@@ -34,7 +34,7 @@ def create_room(data, server):
     buffer = weechat.buffer_new(room_name, "", "", "", "")
 
     weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
-    weechat.buffer_set(buffer, "channel_id", data["id"])
+    weechat.buffer_set(buffer, "localvar_set_channel_id", data["id"])
 
     url = server_root_url(server) + "/api/v4/channels/" + data["id"] + "/posts"
     weechat.hook_process_hashtable(
