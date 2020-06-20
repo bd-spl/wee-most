@@ -17,11 +17,27 @@ Server = NamedTuple(
         ("password", str),
         ("user_id", str),
         ("user_token", str),
+        ("users", dict),
     ],
+)
+
+User = NamedTuple(
+    "User",
+    [
+        ("id", str),
+        ("username", str),
+    ]
 )
 
 def server_root_url(server: Server):
     return server.protocol + "://" + server.host + server.path
+
+def get_server(server_name):
+    if server_name not in servers:
+        weechat.prnt("", "Server is not loaded")
+        return
+
+    return servers[server_name]
 
 from wee_matter.room import create_room
 
@@ -36,13 +52,6 @@ def pop_server(server_name):
 
     return servers.pop(server_name)
 
-def get_server(server_name):
-    if server_name not in servers:
-        weechat.prnt("", "Server is not loaded")
-        return
-
-    return servers[server_name]
-
 def load_server(server_name):
     if server_name in servers:
         return servers[server_name]
@@ -56,6 +65,7 @@ def load_server(server_name):
         password= get_server_config(server_name, "password"),
         user_id= "",
         user_token= "",
+        users= {},
     )
 
     return servers[server_name]
@@ -99,6 +109,36 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def connect_server_users_cb(server_name, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occured when connecting users")
+        return weechat.WEECHAT_RC_ERROR
+
+    response = json.loads(out)
+    users = {}
+    for user in response:
+        users[user["id"]] = User(
+            id= user["id"],
+            username= user["username"],
+        )
+    server = get_server(server_name)._replace(
+        users= users
+    )
+    servers[server_name] = server
+
+    url = server_root_url(server) + "/api/v4/users/" + server.user_id + "/teams"
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "httpheader": "Authorization: Bearer " + server.user_token,
+        },
+        30 * 1000,
+        "connect_server_teams_cb",
+        server_name
+    )
+
+    return weechat.WEECHAT_RC_OK
+
 def connect_server_cb(server_name, command, rc, out, err):
     token_search = re.search('token: (.*)', out)
     if None == token_search:
@@ -114,14 +154,14 @@ def connect_server_cb(server_name, command, rc, out, err):
 
     weechat.prnt("", "Connected to " + server_name)
 
-    url = server_root_url(server) + "/api/v4/users/" + server.user_id + "/teams"
+    url = server_root_url(server) + "/api/v4/users"
     weechat.hook_process_hashtable(
         "url:" + url,
         {
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
         30 * 1000,
-        "connect_server_teams_cb",
+        "connect_server_users_cb",
         server_name
     )
 
