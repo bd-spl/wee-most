@@ -200,6 +200,10 @@ def connect_server(server_name):
 
     weechat.prnt("", "Connecting")
 
+    buffer = weechat.buffer_new(server.name, "", "", "", "")
+    weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
+    weechat.buffer_set(buffer, "localvar_set_type", "server")
+
     url = server_root_url(server) + "/api/v4/users/login"
     params = {
         "login_id": server.username,
