@@ -8,14 +8,6 @@ from wee_matter.room import create_room
 
 servers = {}
 
-User = NamedTuple(
-    "User",
-    [
-        ("id", str),
-        ("token", str),
-    ]
-)
-
 Server = NamedTuple(
     "Server",
     [
@@ -24,7 +16,8 @@ Server = NamedTuple(
         ("path", str),
         ("username", str),
         ("password", str),
-        ("user", User),
+        ("user_id", str),
+        ("user_token", str),
     ],
 )
 
@@ -53,23 +46,20 @@ def load_server(server_name):
     if server_name in servers:
         return servers[server_name]
 
-    user = User(
-        id="",
-        token="",
-    )
     servers[server_name] = Server(
         host= get_server_config(server_name, "address"),
         protocol= "https",
         path= "",
         username= get_server_config(server_name, "username"),
         password= get_server_config(server_name, "password"),
-        user= user,
+        user_id= "",
+        user_token= "",
     )
 
     return servers[server_name]
 
 def is_connected(server: Server):
-    return server.user.token != ""
+    return server.user_token != ""
 
 def connect_server_team_channels_cb(server_name, command, rc, out, err):
     if rc != 0:
@@ -92,11 +82,11 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
     response = json.loads(out)
 
     for team in response:
-        url = server_root_url(server) + "/api/v4/users/" + server.user.id + "/teams/" + team["id"] + "/channels"
+        url = server_root_url(server) + "/api/v4/users/" + server.user_id + "/teams/" + team["id"] + "/channels"
         weechat.hook_process_hashtable(
             "url:" + url,
             {
-                "httpheader": "Authorization: Bearer " + server.user.token,
+                "httpheader": "Authorization: Bearer " + server.user_token,
             },
             30 * 1000,
             "connect_server_team_channels_cb",
@@ -112,21 +102,19 @@ def connect_server_cb(server_name, command, rc, out, err):
 
     response = json.loads(out.splitlines()[-1])
 
-    server = get_server(server_name)
-    user = server.user._replace(
-        id=response["id"],
-        token=token_search.group(1),
+    server = get_server(server_name)._replace(
+        user_id=response["id"],
+        user_token=token_search.group(1),
     )
-    server = server._replace(user=user)
     servers[server_name] = server
 
     weechat.prnt("", "Connected to " + server_name)
 
-    url = server_root_url(server) + "/api/v4/users/" + server.user.id + "/teams"
+    url = server_root_url(server) + "/api/v4/users/" + server.user_id + "/teams"
     weechat.hook_process_hashtable(
         "url:" + url,
         {
-            "httpheader": "Authorization: Bearer " + server.user.token,
+            "httpheader": "Authorization: Bearer " + server.user_token,
         },
         30 * 1000,
         "connect_server_teams_cb",
@@ -185,7 +173,7 @@ def disconnect_server(server_name):
         {
             "post": "1",
             "httpheader": "\n".join([
-                "Authorization: Bearer " + server.user.token,
+                "Authorization: Bearer " + server.user_token,
                 "Content-Type:",
             ]),
         },
