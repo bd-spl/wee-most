@@ -4,6 +4,8 @@ from typing import NamedTuple
 import json
 import re
 
+from wee_matter.room import create_room
+
 servers = {}
 
 User = NamedTuple(
@@ -69,6 +71,40 @@ def load_server(server_name):
 def is_connected(server: Server):
     return server.user.token != ""
 
+def connect_server_team_channels_cb(server_name, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occured when connecting team channels")
+        return weechat.WEECHAT_RC_ERROR
+
+    response = json.loads(out)
+    for room in response:
+        create_room(room, server_name)
+
+    return weechat.WEECHAT_RC_OK
+
+def connect_server_teams_cb(server_name, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occured when connecting teams")
+        return weechat.WEECHAT_RC_ERROR
+
+    server = get_server(server_name)
+
+    response = json.loads(out)
+
+    for team in response:
+        url = server_root_url(server) + "/api/v4/users/" + server.user.id + "/teams/" + team["id"] + "/channels"
+        weechat.hook_process_hashtable(
+            "url:" + url,
+            {
+                "httpheader": "Authorization: Bearer " + server.user.token,
+            },
+            30 * 1000,
+            "connect_server_team_channels_cb",
+            server_name
+        )
+
+    return weechat.WEECHAT_RC_OK
+
 def connect_server_cb(server_name, command, rc, out, err):
     token_search = re.search('token: (.*)', out)
     if None == token_search:
@@ -81,9 +117,21 @@ def connect_server_cb(server_name, command, rc, out, err):
         id=response["id"],
         token=token_search.group(1),
     )
-    servers[server_name] = server._replace(user=user)
+    server = server._replace(user=user)
+    servers[server_name] = server
 
     weechat.prnt("", "Connected to " + server_name)
+
+    url = server_root_url(server) + "/api/v4/users/" + server.user.id + "/teams"
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "httpheader": "Authorization: Bearer " + server.user.token,
+        },
+        30 * 1000,
+        "connect_server_teams_cb",
+        server_name
+    )
 
     return weechat.WEECHAT_RC_OK
 

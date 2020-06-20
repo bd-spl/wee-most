@@ -2,7 +2,8 @@ import weechat
 
 from wee_matter.commands import (setup_commands, matter_command_cb)
 
-from wee_matter.server import (connect_server_cb, disconnect_server_cb,
+from wee_matter.server import (connect_server_cb, connect_server_teams_cb,
+                               connect_server_team_channels_cb, disconnect_server_cb,
                                auto_connect, disconnect_all)
 
 WEECHAT_SCRIPT_NAME = "wee-matter"
