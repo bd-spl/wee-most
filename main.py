@@ -3,7 +3,7 @@ import weechat
 from wee_matter.commands import (setup_commands, matter_command_cb)
 
 from wee_matter.server import (connect_server_cb, disconnect_server_cb,
-                               auto_connect)
+                               auto_connect, disconnect_all)
 
 WEECHAT_SCRIPT_NAME = "wee-matter"
 WEECHAT_SCRIPT_DESCRIPTION = "mattermost chat plugin"
@@ -17,9 +17,14 @@ weechat.register(
     WEECHAT_SCRIPT_VERSION,
     WEECHAT_SCRIPT_LICENSE,
     WEECHAT_SCRIPT_DESCRIPTION,
-    "",
+    "shutdown_cb",
     ""
 )
 
 setup_commands()
 auto_connect()
+
+def shutdown_cb():
+    disconnect_all()
+
+    return weechat.WEECHAT_RC_OK

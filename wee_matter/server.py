@@ -149,3 +149,7 @@ def auto_connect_servers():
 def auto_connect():
     for server_name in auto_connect_servers():
         connect_server(server_name)
+
+def disconnect_all():
+    for server_name, server in servers.items():
+        disconnect_server(server_name)
