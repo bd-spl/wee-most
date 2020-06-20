@@ -29,6 +29,13 @@ def get_server_config(server_name, key):
     key_prefix = "server." + server_name + "."
     return weechat.config_get_plugin(key_prefix + key)
 
+def pop_server(server_name):
+    if server_name not in servers:
+        weechat.prnt("", "Server is not loaded")
+        return
+
+    return servers.pop(server_name)
+
 def get_server(server_name):
     if server_name not in servers:
         weechat.prnt("", "Server is not loaded")
@@ -89,6 +96,37 @@ def connect_server(server_name):
         "connect_server_cb",
         server_name
     )
+
+def disconnect_server_cb(server_name, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occured when disconnecting")
+        return weechat.WEECHAT_RC_ERROR
+
+    pop_server(server_name)
+    return weechat.WEECHAT_RC_OK
+
+def disconnect_server(server_name):
+    server = load_server(server_name)
+
+    if not is_connected(server):
+        weechat.prnt("", "Not connected")
+        return
+
+    url = server.protocol + "://" + server.host + server.path + "/api/v4/users/logout"
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "post": "1",
+            "httpheader": "\n".join([
+                "Authorization: Bearer " + server.token,
+                "Content-Type:",
+            ]),
+        },
+        30 * 1000,
+        "disconnect_server_cb",
+        server_name
+    )
+
 
 def auto_connect_servers():
     if not weechat.config_is_set_plugin("autoconnect"):

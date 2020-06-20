@@ -1,7 +1,7 @@
 
 import weechat
 
-from wee_matter.server import connect_server
+from wee_matter.server import connect_server, disconnect_server
 
 server_default_config = {
     "username": "",
@@ -34,6 +34,10 @@ def server_connect_command_cb(args):
     connect_server(args[0])
     return weechat.WEECHAT_RC_OK
 
+def server_disconnect_command_cb(args):
+    disconnect_server(args[0])
+    return weechat.WEECHAT_RC_OK
+
 def server_command_cb(args):
     command, args = args[0], args[1:]
 
@@ -41,6 +45,8 @@ def server_command_cb(args):
         server_add_command_cb(args)
     if command == "connect":
         server_connect_command_cb(args)
+    if command == "disconnect":
+        server_disconnect_command_cb(args)
 
     return weechat.WEECHAT_RC_OK
 
@@ -60,12 +66,12 @@ def setup_commands():
          # Synopsis
         (
             "server add <server-name> <hostname> ||"
-            "server connect <server-name>        ||"
+            "server connect, disconnect <server-name> ||"
         ),
         # Description
         (
             "server: add Matrix servers\n"
-            "server: connect Matrix servers\n"
+            "server: connect, disconnect Matrix servers\n"
         ),
         # Completions
         (

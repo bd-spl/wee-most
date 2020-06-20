@@ -2,7 +2,8 @@ import weechat
 
 from wee_matter.commands import (setup_commands, matter_command_cb)
 
-from wee_matter.server import (connect_server_cb, auto_connect)
+from wee_matter.server import (connect_server_cb, disconnect_server_cb,
+                               auto_connect)
 
 WEECHAT_SCRIPT_NAME = "wee-matter"
 WEECHAT_SCRIPT_DESCRIPTION = "mattermost chat plugin"
