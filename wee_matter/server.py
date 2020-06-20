@@ -25,6 +25,9 @@ Server = NamedTuple(
     ],
 )
 
+def server_root_url(server: Server):
+    return server.protocol + "://" + server.host + server.path
+
 def get_server_config(server_name, key):
     key_prefix = "server." + server_name + "."
     return weechat.config_get_plugin(key_prefix + key)
@@ -80,7 +83,7 @@ def connect_server(server_name):
         weechat.prnt("", "Already connected")
         return weechat.WEECHAT_RC_ERROR
 
-    url = server.protocol + "://" + server.host + server.path + "/api/v4/users/login"
+    url = server_root_url(server) + "/api/v4/users/login"
     params = {
         "login_id": server.username,
         "password": server.password,
@@ -112,7 +115,7 @@ def disconnect_server(server_name):
         weechat.prnt("", "Not connected")
         return
 
-    url = server.protocol + "://" + server.host + server.path + "/api/v4/users/logout"
+    url = server_root_url(server) + "/api/v4/users/logout"
     weechat.hook_process_hashtable(
         "url:" + url,
         {
