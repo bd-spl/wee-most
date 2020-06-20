@@ -28,6 +28,31 @@ def hidrate_room_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def hidrate_room_users_cb(buffer, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occured when hidrating room users")
+        return weechat.WEECHAT_RC_ERROR
+
+    response = json.loads(out)
+
+    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
+    server = get_server(server_name)
+
+    for user in response:
+        for role in user["roles"].split():
+            group_name = role.replace("channel_", "")
+            group = weechat.nicklist_search_group(buffer, "", group_name)
+            if not group:
+                weechat.nicklist_add_group(buffer, "", group_name, "", 1)
+
+            username = user["user_id"]
+            if username in server.users:
+                username = server.users[username].username
+
+            weechat.nicklist_add_nick(buffer, group, "@" + username, "", "", "", 1)
+
+    return weechat.WEECHAT_RC_OK
+
 def create_room(data, server):
     room_name = data["display_name"]
     if "" == room_name:
@@ -45,6 +70,17 @@ def create_room(data, server):
         },
         30 * 1000,
         "hidrate_room_cb",
+        buffer
+    )
+
+    url = server_root_url(server) + "/api/v4/channels/" + data["id"] + "/members"
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "httpheader": "Authorization: Bearer " + server.user_token,
+        },
+        30 * 1000,
+        "hidrate_room_users_cb",
         buffer
     )
 
