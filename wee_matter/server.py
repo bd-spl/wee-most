@@ -19,6 +19,8 @@ Server = NamedTuple(
         ("user_token", str),
         ("users", dict),
         ("teams", dict),
+        ("buffer", any),
+        ("buffers", list),
     ],
 )
 
@@ -36,6 +38,8 @@ Team = NamedTuple(
         ("id", str),
         ("name", str),
         ("display_name", str),
+        ("buffer", any),
+        ("buffers", list),
     ]
 )
 
@@ -77,6 +81,8 @@ def load_server(server_name):
         user_token= "",
         users= {},
         teams= {},
+        buffer= None,
+        buffers= [],
     )
 
     return servers[server_name]
@@ -108,15 +114,17 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
 
     teams = {}
     for team in response:
-        teams[team["id"]] = Team(
-            id= team["id"],
-            name= team["name"],
-            display_name= team["display_name"],
-        )
         buffer = weechat.buffer_new(team["display_name"], "", "", "", "")
         weechat.buffer_set(buffer, "localvar_set_server_name", team["name"])
         weechat.buffer_set(buffer, "localvar_set_type", "server")
         weechat.buffer_set(buffer, "localvar_set_server", team["display_name"])
+        teams[team["id"]] = Team(
+            id= team["id"],
+            name= team["name"],
+            display_name= team["display_name"],
+             buffer= buffer,
+             buffers= [],
+        )
     server = get_server(server_name)._replace(
         teams= teams
     )
@@ -208,6 +216,11 @@ def connect_server(server_name):
     weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
     weechat.buffer_set(buffer, "localvar_set_type", "server")
     weechat.buffer_set(buffer, "localvar_set_server", server.name)
+
+    server = get_server(server_name)._replace(
+        buffer= buffer
+    )
+    servers[server_name] = server
 
     url = server_root_url(server) + "/api/v4/users/login"
     params = {
