@@ -57,6 +57,7 @@ def create_room(data, server):
     room_name = data["display_name"]
     if "" == room_name:
         return
+
     buffer = weechat.buffer_new(room_name, "", "", "", "")
 
     weechat.buffer_set(buffer, "localvar_set_server_name", server.name)

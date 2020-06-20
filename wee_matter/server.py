@@ -18,6 +18,7 @@ Server = NamedTuple(
         ("user_id", str),
         ("user_token", str),
         ("users", dict),
+        ("teams", dict),
     ],
 )
 
@@ -26,6 +27,15 @@ User = NamedTuple(
     [
         ("id", str),
         ("username", str),
+    ]
+)
+
+Team = NamedTuple(
+    "Team",
+    [
+        ("id", str),
+        ("name", str),
+        ("display_name", str),
     ]
 )
 
@@ -66,6 +76,7 @@ def load_server(server_name):
         user_id= "",
         user_token= "",
         users= {},
+        teams= {},
     )
 
     return servers[server_name]
@@ -94,6 +105,18 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
     server = get_server(server_name)
 
     response = json.loads(out)
+
+    teams = {}
+    for team in response:
+        teams[team["id"]] = Team(
+            id= team["id"],
+            name= team["name"],
+            display_name= team["display_name"],
+        )
+    server = get_server(server_name)._replace(
+        teams= teams
+    )
+    servers[server_name] = server
 
     for team in response:
         url = server_root_url(server) + "/api/v4/users/" + server.user_id + "/teams/" + team["id"] + "/channels"
