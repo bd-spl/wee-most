@@ -113,6 +113,9 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
             name= team["name"],
             display_name= team["display_name"],
         )
+        buffer = weechat.buffer_new(team["name"], "", "", "", "")
+        weechat.buffer_set(buffer, "localvar_set_server_name", team["name"])
+        weechat.buffer_set(buffer, "localvar_set_type", "server")
     server = get_server(server_name)._replace(
         teams= teams
     )
