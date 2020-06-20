@@ -142,6 +142,7 @@ def connect_server_users_cb(server_name, command, rc, out, err):
 def connect_server_cb(server_name, command, rc, out, err):
     token_search = re.search('token: (.*)', out)
     if None == token_search:
+        weechat.prnt("", "An error occured when connecting")
         return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out.splitlines()[-1])
@@ -173,6 +174,8 @@ def connect_server(server_name):
     if is_connected(server):
         weechat.prnt("", "Already connected")
         return weechat.WEECHAT_RC_ERROR
+
+    weechat.prnt("", "Connecting")
 
     url = server_root_url(server) + "/api/v4/users/login"
     params = {
