@@ -17,6 +17,7 @@ def hidrate_room_cb(buffer, command, rc, out, err):
 
     response = json.loads(out)
 
+    response["order"].reverse()
     for post_id in response["order"]:
         post = response["posts"][post_id]
         message = post["message"]
