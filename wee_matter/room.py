@@ -3,8 +3,8 @@ import weechat
 import json
 from wee_matter.server import server_root_url, get_server
 
-def write_post(buffer, username, message):
-    weechat.prnt(buffer, username + "	" + message)
+def write_post(buffer, username, message, date):
+    weechat.prnt_date_tags(buffer, date, "", username + "	" + message)
 
 def hidrate_room_cb(buffer, command, rc, out, err):
     if rc != 0:
@@ -18,11 +18,12 @@ def hidrate_room_cb(buffer, command, rc, out, err):
     response = json.loads(out)
 
     for post_id in response["order"]:
-        message = response["posts"][post_id]["message"]
-        username = response["posts"][post_id]["user_id"]
+        post = response["posts"][post_id]
+        message = post["message"]
+        username = post["user_id"]
         if username in server.users:
             username = server.users[username].username
-        write_post(buffer, username, message)
+        write_post(buffer, username, message, int(post["create_at"]/1000))
 
     return weechat.WEECHAT_RC_OK
 
