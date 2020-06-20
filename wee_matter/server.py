@@ -74,6 +74,8 @@ def connect_server_cb(server_name, command, rc, out, err):
     server = server._replace(token=token)
     servers[server_name] = server
 
+    weechat.prnt("", "Connected to " + server_name)
+
     return weechat.WEECHAT_RC_OK
 
 def connect_server(server_name):
@@ -99,6 +101,7 @@ def connect_server(server_name):
         "connect_server_cb",
         server_name
     )
+
     return weechat.WEECHAT_RC_OK
 
 def disconnect_server_cb(server_name, command, rc, out, err):
@@ -107,6 +110,9 @@ def disconnect_server_cb(server_name, command, rc, out, err):
         return weechat.WEECHAT_RC_ERROR
 
     pop_server(server_name)
+
+    weechat.prnt("", "Disconnected to " + server_name)
+
     return weechat.WEECHAT_RC_OK
 
 def disconnect_server(server_name):
