@@ -65,10 +65,19 @@ def create_room(data, server):
 
     if data["team_id"]:
         weechat.buffer_set(buffer, "localvar_set_type", "channel")
-        weechat.buffer_set(buffer, "localvar_set_server", server.teams[data["team_id"]].display_name)
+        team = server.teams[data["team_id"]]
+        weechat.buffer_set(buffer, "localvar_set_server", team.display_name)
+        parent_number = weechat.buffer_get_integer(team.buffer, "number")
+        number = parent_number + 1 + len(team.buffers)
+        team.buffers.append(buffer)
     else:
         weechat.buffer_set(buffer, "localvar_set_type", "private")
         weechat.buffer_set(buffer, "localvar_set_server", server.name)
+        parent_number = weechat.buffer_get_integer(server.buffer, "number")
+        number = parent_number + 1 + len(server.buffers)
+        server.buffers.append(buffer)
+
+    weechat.buffer_set(buffer, "number", str(number))
 
     url = server_root_url(server) + "/api/v4/channels/" + data["id"] + "/posts"
     weechat.hook_process_hashtable(
