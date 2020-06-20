@@ -6,10 +6,11 @@ import re
 
 servers = {}
 
-Token = NamedTuple(
-    "Token",
+User = NamedTuple(
+    "User",
     [
-        ("value", str)
+        ("id", str),
+        ("token", str),
     ]
 )
 
@@ -21,7 +22,7 @@ Server = NamedTuple(
         ("path", str),
         ("username", str),
         ("password", str),
-        ("token", str)
+        ("user", User),
     ],
 )
 
@@ -50,29 +51,37 @@ def load_server(server_name):
     if server_name in servers:
         return servers[server_name]
 
+    user = User(
+        id="",
+        token="",
+    )
     servers[server_name] = Server(
         host= get_server_config(server_name, "address"),
         protocol= "https",
         path= "",
         username= get_server_config(server_name, "username"),
         password= get_server_config(server_name, "password"),
-        token= "",
+        user= user,
     )
 
     return servers[server_name]
 
 def is_connected(server: Server):
-    return server.token != ""
+    return server.user.token != ""
 
 def connect_server_cb(server_name, command, rc, out, err):
-    search = re.search('token: (.*)', out)
-    if None == search:
+    token_search = re.search('token: (.*)', out)
+    if None == token_search:
         return weechat.WEECHAT_RC_ERROR
-    token = search.group(1)
+
+    response = json.loads(out.splitlines()[-1])
 
     server = get_server(server_name)
-    server = server._replace(token=token)
-    servers[server_name] = server
+    user = server.user._replace(
+        id=response["id"],
+        token=token_search.group(1),
+    )
+    servers[server_name] = server._replace(user=user)
 
     weechat.prnt("", "Connected to " + server_name)
 
@@ -128,7 +137,7 @@ def disconnect_server(server_name):
         {
             "post": "1",
             "httpheader": "\n".join([
-                "Authorization: Bearer " + server.token,
+                "Authorization: Bearer " + server.user.token,
                 "Content-Type:",
             ]),
         },
