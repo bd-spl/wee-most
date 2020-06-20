@@ -99,6 +99,7 @@ def connect_server(server_name):
         "connect_server_cb",
         server_name
     )
+    return weechat.WEECHAT_RC_OK
 
 def disconnect_server_cb(server_name, command, rc, out, err):
     if rc != 0:
@@ -113,7 +114,7 @@ def disconnect_server(server_name):
 
     if not is_connected(server):
         weechat.prnt("", "Not connected")
-        return
+        return weechat.WEECHAT_RC_ERROR
 
     url = server_root_url(server) + "/api/v4/users/logout"
     weechat.hook_process_hashtable(
@@ -130,6 +131,7 @@ def disconnect_server(server_name):
         server_name
     )
 
+    return weechat.WEECHAT_RC_OK
 
 def auto_connect_servers():
     if not weechat.config_is_set_plugin("autoconnect"):

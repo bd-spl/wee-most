@@ -31,12 +31,10 @@ def server_add_command_cb(args):
     return weechat.WEECHAT_RC_OK
 
 def server_connect_command_cb(args):
-    connect_server(args[0])
-    return weechat.WEECHAT_RC_OK
+    return connect_server(args[0])
 
 def server_disconnect_command_cb(args):
-    disconnect_server(args[0])
-    return weechat.WEECHAT_RC_OK
+    return disconnect_server(args[0])
 
 def server_command_cb(args):
     command, args = args[0], args[1:]
