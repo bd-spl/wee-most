@@ -6,6 +6,8 @@ from wee_matter.server import (connect_server_cb, connect_server_teams_cb,
                                connect_server_team_channels_cb, disconnect_server_cb,
                                auto_connect, disconnect_all)
 
+from wee_matter.room import (hidrate_room_cb)
+
 WEECHAT_SCRIPT_NAME = "wee-matter"
 WEECHAT_SCRIPT_DESCRIPTION = "mattermost chat plugin"
 WEECHAT_SCRIPT_AUTHOR = "Reed Wade <reedwade@misterbanal.net>"

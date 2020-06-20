@@ -4,8 +4,6 @@ from typing import NamedTuple
 import json
 import re
 
-from wee_matter.room import create_room
-
 servers = {}
 
 Server = NamedTuple(
@@ -24,6 +22,8 @@ Server = NamedTuple(
 
 def server_root_url(server: Server):
     return server.protocol + "://" + server.host + server.path
+
+from wee_matter.room import create_room
 
 def get_server_config(server_name, key):
     key_prefix = "server." + server_name + "."
