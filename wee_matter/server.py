@@ -11,6 +11,7 @@ servers = {}
 Server = NamedTuple(
     "Server",
     [
+        ("name", str),
         ("host", str),
         ("protocol", str),
         ("path", str),
@@ -47,6 +48,7 @@ def load_server(server_name):
         return servers[server_name]
 
     servers[server_name] = Server(
+        name= server_name,
         host= get_server_config(server_name, "address"),
         protocol= "https",
         path= "",
@@ -66,9 +68,11 @@ def connect_server_team_channels_cb(server_name, command, rc, out, err):
         weechat.prnt("", "An error occured when connecting team channels")
         return weechat.WEECHAT_RC_ERROR
 
+    server = get_server(server_name)
+
     response = json.loads(out)
     for room in response:
-        create_room(room, server_name)
+        create_room(room, server)
 
     return weechat.WEECHAT_RC_OK
 
