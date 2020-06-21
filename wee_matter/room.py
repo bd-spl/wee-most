@@ -63,7 +63,7 @@ def write_post(buffer, username, message, date):
 
     weechat.prnt_date_tags(buffer, date, "", colorize_sentence(username, username_color) + "	" + message)
 
-def hidrate_room_cb(buffer, command, rc, out, err):
+def hidrate_room_posts_cb(buffer, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occured when hidrating room")
 
@@ -171,7 +171,7 @@ def create_room(data, server):
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
         30 * 1000,
-        "hidrate_room_cb",
+        "hidrate_room_posts_cb",
         buffer
     )
 
