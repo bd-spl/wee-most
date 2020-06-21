@@ -83,6 +83,9 @@ def hidrate_room_posts_cb(buffer, command, rc, out, err):
             username = server.users[username].username
         write_post(buffer, username, message, int(post["create_at"]/1000))
 
+    weechat.buffer_set(buffer, "unread", "-")
+    weechat.buffer_set(buffer, "hotlist", "-1")
+
     return weechat.WEECHAT_RC_OK
 
 def hidrate_room_users_cb(buffer, command, rc, out, err):
