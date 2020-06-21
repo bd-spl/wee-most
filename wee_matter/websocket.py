@@ -29,7 +29,6 @@ def server_root_url(server: Server):
 
 def create_ws(server):
     url = server_root_url(server) + "/api/v4/websocket"
-    weechat.prnt("", url)
     ws = create_connection(url)
     ws.sock.setblocking(0)
     websockets[server.name] = ws
@@ -47,7 +46,6 @@ def create_ws(server):
 
 def handle_posted_message(server, message):
     data = message["data"]
-    weechat.prnt("", data["post"])
     post = json.loads(data["post"])
 
     buffer_name = build_buffer_room_name(post["channel_id"])
