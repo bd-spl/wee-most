@@ -11,6 +11,7 @@ Server = NamedTuple(
     [
         ("name", str),
         ("host", str),
+        ("port", str),
         ("protocol", str),
         ("path", str),
         ("username", str),
@@ -73,7 +74,8 @@ def load_server(server_name):
     servers[server_name] = Server(
         name= server_name,
         host= get_server_config(server_name, "address"),
-        protocol= "https",
+        port= get_server_config(server_name, "port"),
+        protocol= get_server_config(server_name, "protocol"),
         path= "",
         username= get_server_config(server_name, "username"),
         password= get_server_config(server_name, "password"),
@@ -135,6 +137,7 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
         weechat.hook_process_hashtable(
             "url:" + url,
             {
+                "port": server.port,
                 "httpheader": "Authorization: Bearer " + server.user_token,
             },
             30 * 1000,
@@ -165,6 +168,7 @@ def connect_server_users_cb(server_name, command, rc, out, err):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
+            "port": server.port,
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
         30 * 1000,
@@ -175,7 +179,7 @@ def connect_server_users_cb(server_name, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def connect_server_cb(server_name, command, rc, out, err):
-    token_search = re.search('token: (.*)', out)
+    token_search = re.search('[tT]oken: (.*)', out)
     if None == token_search:
         weechat.prnt("", "An error occured when connecting")
         return weechat.WEECHAT_RC_ERROR
@@ -194,6 +198,7 @@ def connect_server_cb(server_name, command, rc, out, err):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
+            "port": server.port,
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
         30 * 1000,
@@ -210,7 +215,7 @@ def connect_server(server_name):
         weechat.prnt("", "Already connected")
         return weechat.WEECHAT_RC_ERROR
 
-    weechat.prnt("", "Connecting")
+    weechat.prnt("", "Connecting to " + server_name)
 
     buffer = weechat.buffer_new(server.name, "", "", "", "")
     weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
@@ -231,6 +236,7 @@ def connect_server(server_name):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
+            "port": server.port,
             "postfields": json.dumps(params),
             "header": "1",
         },
@@ -263,6 +269,7 @@ def disconnect_server(server_name):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
+            "port": server.port,
             "post": "1",
             "httpheader": "\n".join([
                 "Authorization: Bearer " + server.user_token,

@@ -6,6 +6,8 @@ from wee_matter.server import connect_server, disconnect_server
 server_default_config = {
     "username": "",
     "password": "",
+    "port": 443,
+    "protocol": "https",
 }
 
 def setup_server_config(server_name, key, value, override=False):
