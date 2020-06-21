@@ -181,7 +181,7 @@ def connect_server_users_cb(server_name, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def connect_server_cb(server_name, command, rc, out, err):
-    token_search = re.search('[tT]oken: (.*)', out)
+    token_search = re.search('[tT]oken: (\w*)', out)
     if None == token_search:
         weechat.prnt("", "An error occured when connecting")
         return weechat.WEECHAT_RC_ERROR
