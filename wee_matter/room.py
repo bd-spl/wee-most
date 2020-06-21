@@ -4,6 +4,20 @@ import json
 from wee_matter.server import server_root_url, get_server
 import re
 
+def color_for_username(username):
+    nick_colors = weechat.config_string(
+         weechat.config_get("weechat.color.chat_nick_colors")
+    ).split(",")
+    nick_color_count = len(nick_colors)
+    color_id = hash(username) % nick_color_count
+
+    color = nick_colors[color_id]
+
+    return color
+
+def colorize_sentence(sentence, color):
+    return "{}{}{}".format(weechat.color(color), sentence, weechat.color("reset"))
+
 def post_post_cb(buffer, command, rc, out, err):
     if rc != 0:
         weechat.prnt(buffer, "Can't send post")
@@ -37,7 +51,17 @@ def room_input_cb(data, buffer, input_data):
 
 
 def write_post(buffer, username, message, date):
-    weechat.prnt_date_tags(buffer, date, "", username + "	" + message)
+    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
+    server = get_server(server_name)
+
+    if username == server.user_name:
+        username_color = weechat.config_string(
+             weechat.config_get("weechat.color.chat_nick_self")
+        )
+    else:
+        username_color = color_for_username(username)
+
+    weechat.prnt_date_tags(buffer, date, "", colorize_sentence(username, username_color) + "	" + message)
 
 def hidrate_room_cb(buffer, command, rc, out, err):
     if rc != 0:
@@ -82,7 +106,18 @@ def hidrate_room_users_cb(buffer, command, rc, out, err):
             if username in server.users:
                 username = server.users[username].username
 
-            weechat.nicklist_add_nick(buffer, group, "@" + username, "", "", "", 1)
+            prefix_color = weechat.config_string(
+                 weechat.config_get("weechat.color.chat_nick_prefix")
+            )
+
+            if username == server.user_name:
+                username_color = weechat.config_string(
+                     weechat.config_get("weechat.color.chat_nick_self")
+                )
+            else:
+                username_color = color_for_username(username)
+
+            weechat.nicklist_add_nick(buffer, group, username, username_color, "@", prefix_color, 1)
 
     return weechat.WEECHAT_RC_OK
 
