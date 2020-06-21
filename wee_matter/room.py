@@ -2,6 +2,7 @@
 import weechat
 import json
 from wee_matter.server import server_root_url, get_server
+import re
 
 def post_post_cb(buffer, command, rc, out, err):
     if rc != 0:
@@ -89,9 +90,6 @@ def build_buffer_room_name(channel_id):
     return "weematter." + channel_id
 
 def create_room(data, server):
-    if "" == data["display_name"]:
-        return
-
     buffer_name = build_buffer_room_name(data["id"])
     buffer = weechat.buffer_new(buffer_name, "room_input_cb", "", "", "")
 
@@ -99,19 +97,30 @@ def create_room(data, server):
     weechat.buffer_set(buffer, "localvar_set_channel_id", data["id"])
 
     weechat.buffer_set(buffer, "nicklist", "1")
-    weechat.buffer_set(buffer, "short_name", data["display_name"])
+
+    room_name = data["name"]
+    if "" != data["display_name"]:
+        room_name = data["display_name"]
+    else:
+        match = re.match('(\w+)__\w+', data["name"])
+        if match:
+            room_name = server.users[match.group(1)].username
+    weechat.buffer_set(buffer, "short_name", room_name)
 
     weechat.buffer_set(buffer, "highlight_words", "@{},@here".format(server.user_name))
 
-    if data["team_id"]:
+    if "P" == data["type"] or "D" == data["type"] or "G" == data["type"]:
+        weechat.buffer_set(buffer, "localvar_set_type", "private")
+    elif "O" == data["type"]:
         weechat.buffer_set(buffer, "localvar_set_type", "channel")
+
+    if data["team_id"]:
         team = server.teams[data["team_id"]]
         weechat.buffer_set(buffer, "localvar_set_server", team.display_name)
         parent_number = weechat.buffer_get_integer(team.buffer, "number")
         number = parent_number + 1 + len(team.buffers)
         team.buffers.append(buffer)
     else:
-        weechat.buffer_set(buffer, "localvar_set_type", "private")
         weechat.buffer_set(buffer, "localvar_set_server", server.name)
         parent_number = weechat.buffer_get_integer(server.buffer, "number")
         number = parent_number + 1 + len(server.buffers)
