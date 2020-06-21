@@ -55,6 +55,7 @@ def get_server(server_name):
     return servers[server_name]
 
 from wee_matter.room import create_room
+from wee_matter.websocket import create_ws
 
 def get_server_config(server_name, key):
     key_prefix = "server." + server_name + "."
@@ -194,6 +195,8 @@ def connect_server_cb(server_name, command, rc, out, err):
     servers[server_name] = server
 
     weechat.prnt("", "Connected to " + server_name)
+
+    create_ws(server)
 
     url = server_root_url(server) + "/api/v4/users"
     weechat.hook_process_hashtable(
