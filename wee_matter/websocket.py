@@ -77,7 +77,8 @@ def receive_ws_callback(server_name, data):
         except (WebSocketConnectionClosedException, socket.error) as e:
             return weechat.WEECHAT_RC_OK
 
-        message = json.loads(data.decode('utf-8'))
-        handle_ws_message(server, message)
+        if data:
+            message = json.loads(data.decode('utf-8'))
+            handle_ws_message(server, message)
 
     return weechat.WEECHAT_RC_OK
