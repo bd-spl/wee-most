@@ -60,7 +60,12 @@ from wee_matter.websocket import create_ws
 
 def get_server_config(server_name, key):
     key_prefix = "server." + server_name + "."
-    return weechat.config_get_plugin(key_prefix + key)
+
+    config_key = key_prefix + key
+    config_value = weechat.config_get_plugin(key_prefix + key)
+    expanded_value = weechat.string_eval_expression(config_value, {}, {}, {})
+
+    return expanded_value
 
 def pop_server(server_name):
     if server_name not in servers:
