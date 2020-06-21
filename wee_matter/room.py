@@ -85,19 +85,21 @@ def hidrate_room_users_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def build_buffer_room_name(channel_id):
+    return "weematter." + channel_id
+
 def create_room(data, server):
-    room_name = data["display_name"]
-    if "" == room_name:
+    if "" == data["display_name"]:
         return
 
-    room_prefix = "weematter." + data["id"]
-    buffer = weechat.buffer_new(room_prefix + room_name, "room_input_cb", "", "", "")
+    buffer_name = build_buffer_room_name(data["id"])
+    buffer = weechat.buffer_new(buffer_name, "room_input_cb", "", "", "")
 
     weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
     weechat.buffer_set(buffer, "localvar_set_channel_id", data["id"])
 
     weechat.buffer_set(buffer, "nicklist", "1")
-    weechat.buffer_set(buffer, "short_name", room_name)
+    weechat.buffer_set(buffer, "short_name", data["display_name"])
 
     if data["team_id"]:
         weechat.buffer_set(buffer, "localvar_set_type", "channel")
