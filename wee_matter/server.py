@@ -129,6 +129,10 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
         weechat.buffer_set(buffer, "localvar_set_server_name", team["name"])
         weechat.buffer_set(buffer, "localvar_set_type", "server")
         weechat.buffer_set(buffer, "localvar_set_server", team["display_name"])
+        weechat.buffer_set(buffer, "localvar_set_channel", team["display_name"])
+        server_number = weechat.buffer_get_integer(server.buffer, "number")
+        weechat.buffer_set(buffer, "number", str(server_number+1))
+
         teams[team["id"]] = Team(
             id= team["id"],
             name= team["name"],
