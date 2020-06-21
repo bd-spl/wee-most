@@ -90,12 +90,14 @@ def create_room(data, server):
     if "" == room_name:
         return
 
-    buffer = weechat.buffer_new(room_name, "room_input_cb", "", "", "")
+    room_prefix = "weematter." + data["id"]
+    buffer = weechat.buffer_new(room_prefix + room_name, "room_input_cb", "", "", "")
 
     weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
     weechat.buffer_set(buffer, "localvar_set_channel_id", data["id"])
 
     weechat.buffer_set(buffer, "nicklist", "1")
+    weechat.buffer_set(buffer, "short_name", room_name)
 
     if data["team_id"]:
         weechat.buffer_set(buffer, "localvar_set_type", "channel")
