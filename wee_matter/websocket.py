@@ -2,6 +2,7 @@
 import weechat
 from wee_matter.server import Server, get_server
 from websocket import create_connection, WebSocketConnectionClosedException
+from wee_matter.room import write_post, build_buffer_room_name
 import json
 import socket
 import ssl
@@ -44,6 +45,28 @@ def create_ws(server):
     weechat.hook_fd(ws.sock.fileno(), 1, 0, 0, "receive_ws_callback", server.name)
     ws.send(json.dumps(params))
 
+def handle_posted_message(server, message):
+    data = message["data"]
+    weechat.prnt("", data["post"])
+    post = json.loads(data["post"])
+
+    buffer_name = build_buffer_room_name(post["channel_id"])
+    buffer = weechat.buffer_search("", buffer_name)
+
+    username = post["user_id"]
+    if username in server.users:
+        username = server.users[username].username
+
+    write_post(buffer, username, post["message"], int(post["create_at"]/1000))
+
+def handle_ws_event_message(server, message):
+    if "posted" == message["event"]:
+        return handle_posted_message(server, message)
+
+def handle_ws_message(server, message):
+    if "event" in message:
+        handle_ws_event_message(server, message)
+
 def receive_ws_callback(server_name, data):
     ws = get_ws(server_name)
     server = get_server(server_name)
@@ -56,6 +79,7 @@ def receive_ws_callback(server_name, data):
         except (WebSocketConnectionClosedException, socket.error) as e:
             return weechat.WEECHAT_RC_OK
 
-        message_json = json.loads(data.decode('utf-8'))
+        message = json.loads(data.decode('utf-8'))
+        handle_ws_message(server, message)
 
     return weechat.WEECHAT_RC_OK
