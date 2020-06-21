@@ -63,6 +63,8 @@ def create_room(data, server):
     weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
     weechat.buffer_set(buffer, "localvar_set_channel_id", data["id"])
 
+    weechat.buffer_set(buffer, "nicklist", "1")
+
     if data["team_id"]:
         weechat.buffer_set(buffer, "localvar_set_type", "channel")
         team = server.teams[data["team_id"]]
