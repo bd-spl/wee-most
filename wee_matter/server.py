@@ -17,6 +17,7 @@ Server = NamedTuple(
         ("username", str),
         ("password", str),
         ("user_id", str),
+        ("user_name", str),
         ("user_token", str),
         ("users", dict),
         ("teams", dict),
@@ -81,6 +82,7 @@ def load_server(server_name):
         username= get_server_config(server_name, "username"),
         password= get_server_config(server_name, "password"),
         user_id= "",
+        user_name= "",
         user_token= "",
         users= {},
         teams= {},
@@ -190,6 +192,7 @@ def connect_server_cb(server_name, command, rc, out, err):
 
     server = get_server(server_name)._replace(
         user_id=response["id"],
+        user_name=response["username"],
         user_token=token_search.group(1),
     )
     servers[server_name] = server
