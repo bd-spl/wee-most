@@ -69,3 +69,17 @@ def run_user_login(server, cb):
         cb,
         server.name
     )
+
+def run_get_user_team_channels(user_id, team_id, server, cb):
+    url = server_root_url(server) + "/api/v4/users/" + user_id + "/teams/" + team_id + "/channels"
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "port": server.port,
+            "failonerror": "1",
+            "httpheader": "Authorization: Bearer " + server.user_token,
+        },
+        30 * 1000,
+        cb,
+        server.name
+    )
