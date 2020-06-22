@@ -99,6 +99,30 @@ def hidrate_room_posts_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def create_room_user(user_data, buffer, server):
+    for role in user_data["roles"].split():
+        group_name = role.replace("channel_", "")
+        group = weechat.nicklist_search_group(buffer, "", group_name)
+        if not group:
+            weechat.nicklist_add_group(buffer, "", group_name, "", 1)
+
+        username = user_data["user_id"]
+        if username in server.users:
+            username = server.users[username].username
+
+        prefix_color = weechat.config_string(
+             weechat.config_get("weechat.color.chat_nick_prefix")
+        )
+
+        if username == server.user_name:
+            username_color = weechat.config_string(
+                 weechat.config_get("weechat.color.chat_nick_self")
+            )
+        else:
+            username_color = color_for_username(username)
+
+        weechat.nicklist_add_nick(buffer, group, username, username_color, "@", prefix_color, 1)
+
 def hidrate_room_users_cb(buffer, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occured when hidrating room users")
@@ -110,28 +134,7 @@ def hidrate_room_users_cb(buffer, command, rc, out, err):
     server = get_server(server_name)
 
     for user in response:
-        for role in user["roles"].split():
-            group_name = role.replace("channel_", "")
-            group = weechat.nicklist_search_group(buffer, "", group_name)
-            if not group:
-                weechat.nicklist_add_group(buffer, "", group_name, "", 1)
-
-            username = user["user_id"]
-            if username in server.users:
-                username = server.users[username].username
-
-            prefix_color = weechat.config_string(
-                 weechat.config_get("weechat.color.chat_nick_prefix")
-            )
-
-            if username == server.user_name:
-                username_color = weechat.config_string(
-                     weechat.config_get("weechat.color.chat_nick_self")
-                )
-            else:
-                username_color = color_for_username(username)
-
-            weechat.nicklist_add_nick(buffer, group, username, username_color, "@", prefix_color, 1)
+        create_room_user(user, buffer, server)
 
     return weechat.WEECHAT_RC_OK
 
