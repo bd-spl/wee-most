@@ -99,12 +99,17 @@ def hidrate_room_posts_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def create_room_group(group_name, buffer):
+    group = weechat.nicklist_search_group(buffer, "", group_name)
+    if not group:
+        weechat.nicklist_add_group(buffer, "", group_name, "", 1)
+
+    return group
+
 def create_room_user(user_data, buffer, server):
     for role in user_data["roles"].split():
         group_name = role.replace("channel_", "")
-        group = weechat.nicklist_search_group(buffer, "", group_name)
-        if not group:
-            weechat.nicklist_add_group(buffer, "", group_name, "", 1)
+        group = create_room_group(group_name, buffer)
 
         username = user_data["user_id"]
         if username in server.users:
