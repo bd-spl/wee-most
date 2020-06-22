@@ -9,7 +9,8 @@ from wee_matter.server import (connect_server_cb, connect_server_teams_cb,
                                connect_server_users_cb, auto_connect, disconnect_all)
 
 from wee_matter.room import (hidrate_room_posts_cb, hidrate_room_users_cb,
-                             room_input_cb, post_post_cb)
+                             room_input_cb, post_post_cb,
+                             handle_multiline_message_cb)
 
 WEECHAT_SCRIPT_NAME = "wee-matter"
 WEECHAT_SCRIPT_DESCRIPTION = "mattermost chat plugin"
@@ -29,6 +30,8 @@ weechat.register(
 
 setup_commands()
 auto_connect()
+
+weechat.hook_modifier("input_text_for_buffer", "handle_multiline_message_cb", "")
 
 def shutdown_cb():
     disconnect_all()

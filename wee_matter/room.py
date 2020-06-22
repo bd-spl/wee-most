@@ -4,6 +4,8 @@ import json
 from wee_matter.server import server_root_url, get_server
 import re
 
+room_buffers = []
+
 def color_for_username(username):
     nick_colors = weechat.config_string(
          weechat.config_get("weechat.color.chat_nick_colors")
@@ -49,6 +51,14 @@ def room_input_cb(data, buffer, input_data):
     )
     return weechat.WEECHAT_RC_OK
 
+def handle_multiline_message_cb(data, modifier, buffer, string):
+    if buffer not in room_buffers:
+        return string
+
+    if "\n" in string and not string[0] == "/":
+        room_input_cb("EVENTROUTER", buffer, string)
+        return ""
+    return string
 
 def write_post(buffer, username, message, date):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
@@ -130,6 +140,7 @@ def build_buffer_room_name(channel_id):
 def create_room(data, server):
     buffer_name = build_buffer_room_name(data["id"])
     buffer = weechat.buffer_new(buffer_name, "room_input_cb", "", "", "")
+    room_buffers.append(buffer)
 
     weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
     weechat.buffer_set(buffer, "localvar_set_channel_id", data["id"])
