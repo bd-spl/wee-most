@@ -232,6 +232,15 @@ def connect_server_cb(server_name, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def create_server_buffer(server_name):
+    buffer = weechat.buffer_new("weematter." + server_name, "", "", "", "")
+    weechat.buffer_set(buffer, "short_name", server_name)
+    weechat.buffer_set(buffer, "localvar_set_server_name", server_name)
+    weechat.buffer_set(buffer, "localvar_set_type", "server")
+    weechat.buffer_set(buffer, "localvar_set_server", server_name)
+
+    return buffer
+
 def connect_server(server_name):
     server = load_server(server_name)
 
@@ -241,11 +250,7 @@ def connect_server(server_name):
 
     weechat.prnt("", "Connecting to " + server_name)
 
-    buffer = weechat.buffer_new("weematter." + server.name, "", "", "", "")
-    weechat.buffer_set(buffer, "short_name", server.name)
-    weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
-    weechat.buffer_set(buffer, "localvar_set_type", "server")
-    weechat.buffer_set(buffer, "localvar_set_server", server.name)
+    buffer = create_server_buffer(server_name)
 
     server = get_server(server_name)._replace(
         buffer= buffer
