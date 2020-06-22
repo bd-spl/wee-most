@@ -113,6 +113,25 @@ def connect_server_team_channels_cb(server_name, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def create_team(team_data, server):
+    server_number = weechat.buffer_get_integer(server.buffer, "number")
+
+    buffer = weechat.buffer_new("weematter." + team_data["display_name"], "", "", "", "")
+    weechat.buffer_set(buffer, "number", str(server_number+1))
+
+    weechat.buffer_set(buffer, "short_name", team_data["display_name"])
+    weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
+    weechat.buffer_set(buffer, "localvar_set_server", team_data["display_name"])
+    weechat.buffer_set(buffer, "localvar_set_type", "server")
+
+    return Team(
+        id= team_data["id"],
+        name= team_data["name"],
+        display_name= team_data["display_name"],
+         buffer= buffer,
+         buffers= [],
+    )
+
 def connect_server_teams_cb(server_name, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occured when connecting teams")
@@ -124,22 +143,8 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
 
     teams = {}
     for team in response:
-        buffer = weechat.buffer_new("weematter." + team["display_name"], "", "", "", "")
-        weechat.buffer_set(buffer, "short_name", team["display_name"])
-        weechat.buffer_set(buffer, "localvar_set_server_name", team["name"])
-        weechat.buffer_set(buffer, "localvar_set_type", "server")
-        weechat.buffer_set(buffer, "localvar_set_server", team["display_name"])
-        weechat.buffer_set(buffer, "localvar_set_channel", team["display_name"])
-        server_number = weechat.buffer_get_integer(server.buffer, "number")
-        weechat.buffer_set(buffer, "number", str(server_number+1))
+        teams[team["id"]] = create_team(team, server)
 
-        teams[team["id"]] = Team(
-            id= team["id"],
-            name= team["name"],
-            display_name= team["display_name"],
-             buffer= buffer,
-             buffers= [],
-        )
     server = get_server(server_name)._replace(
         teams= teams
     )
