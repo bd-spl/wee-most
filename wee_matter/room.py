@@ -167,17 +167,22 @@ def create_room(room_data, server):
     weechat.buffer_set(buffer, "localvar_set_nick", server.user_name)
 
     if room_data["team_id"]:
-        weechat.buffer_set(buffer, "localvar_set_type", "channel")
         team = server.teams[room_data["team_id"]]
+
+        weechat.buffer_set(buffer, "localvar_set_type", "channel")
         weechat.buffer_set(buffer, "localvar_set_server", team.display_name)
+
         parent_number = weechat.buffer_get_integer(team.buffer, "number")
         number = parent_number + 1 + len(team.buffers)
+
         team.buffers.append(buffer)
     else:
         weechat.buffer_set(buffer, "localvar_set_type", "private")
         weechat.buffer_set(buffer, "localvar_set_server", server.name)
+
         parent_number = weechat.buffer_get_integer(server.buffer, "number")
         number = parent_number + 1 + len(server.buffers)
+
         server.buffers.append(buffer)
 
     weechat.buffer_set(buffer, "number", str(number))
