@@ -4,7 +4,7 @@ from wee_matter.server import (get_server, server_root_url,
                               create_team, create_user)
 import json
 
-def run_get_user_teams(user_id, server, cb):
+def run_get_user_teams(user_id, server, cb, cb_data):
     url = server_root_url(server) + "/api/v4/users/" + user_id + "/teams"
     weechat.hook_process_hashtable(
         "url:" + url,
@@ -15,10 +15,10 @@ def run_get_user_teams(user_id, server, cb):
         },
         30 * 1000,
         cb,
-        server.name
+        cb_data
     )
 
-def run_get_users(server, cb):
+def run_get_users(server, cb, cb_data):
     url = server_root_url(server) + "/api/v4/users"
     weechat.hook_process_hashtable(
         "url:" + url,
@@ -29,10 +29,10 @@ def run_get_users(server, cb):
         },
         30 * 1000,
         cb,
-        server.name
+        cb_data
     )
 
-def run_user_logout(server, cb):
+def run_user_logout(server, cb, cb_data):
     url = server_root_url(server) + "/api/v4/users/logout"
     weechat.hook_process_hashtable(
         "url:" + url,
@@ -47,10 +47,10 @@ def run_user_logout(server, cb):
         },
         30 * 1000,
         cb,
-        server.name
+        cb_data
     )
 
-def run_user_login(server, cb):
+def run_user_login(server, cb, cb_data):
     url = server_root_url(server) + "/api/v4/users/login"
     params = {
         "login_id": server.username,
@@ -67,10 +67,10 @@ def run_user_login(server, cb):
         },
         30 * 1000,
         cb,
-        server.name
+        cb_data
     )
 
-def run_get_user_team_channels(user_id, team_id, server, cb):
+def run_get_user_team_channels(user_id, team_id, server, cb, cb_data):
     url = server_root_url(server) + "/api/v4/users/" + user_id + "/teams/" + team_id + "/channels"
     weechat.hook_process_hashtable(
         "url:" + url,
@@ -81,10 +81,10 @@ def run_get_user_team_channels(user_id, team_id, server, cb):
         },
         30 * 1000,
         cb,
-        server.name
+        cb_data
     )
 
-def run_post_post(post, server, cb, data):
+def run_post_post(post, server, cb, cb_data):
     url = server_root_url(server) + "/api/v4/posts"
     params = {
         "channel_id": post.channel_id,
@@ -101,5 +101,5 @@ def run_post_post(post, server, cb, data):
         },
         30 * 1000,
         cb,
-        data
+        cb_data
     )

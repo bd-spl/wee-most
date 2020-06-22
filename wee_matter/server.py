@@ -155,7 +155,7 @@ def connect_server_users_cb(server_name, command, rc, out, err):
     for user in response:
         server.users[user["id"]] = create_user(user, server)
 
-    run_get_user_teams(server.user_id, server, "connect_server_teams_cb")
+    run_get_user_teams(server.user_id, server, "connect_server_teams_cb", server.name)
 
     return weechat.WEECHAT_RC_OK
 
@@ -173,7 +173,7 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
         server.teams[team["id"]] = create_team(team, server)
 
     for team in response:
-        run_get_user_team_channels(server.user_id, team["id"], server, "connect_server_team_channels_cb")
+        run_get_user_team_channels(server.user_id, team["id"], server, "connect_server_team_channels_cb", server.name)
 
     return weechat.WEECHAT_RC_OK
 
@@ -204,7 +204,7 @@ def connect_server_cb(server_name, command, rc, out, err):
 
     weechat.prnt("", "Connected to " + server_name)
 
-    run_get_users(server, "connect_server_users_cb")
+    run_get_users(server, "connect_server_users_cb", server.name)
 
     return weechat.WEECHAT_RC_OK
 
@@ -233,7 +233,7 @@ def connect_server(server_name):
     )
     servers[server_name] = server
 
-    run_user_login(server, "connect_server_cb")
+    run_user_login(server, "connect_server_cb", server.name)
 
     return weechat.WEECHAT_RC_OK
 
@@ -255,7 +255,7 @@ def disconnect_server(server_name):
         weechat.prnt("", "Not connected")
         return weechat.WEECHAT_RC_ERROR
 
-    run_user_logout(server, "disconnect_server_cb")
+    run_user_logout(server, "disconnect_server_cb", server.name)
 
     return weechat.WEECHAT_RC_OK
 
