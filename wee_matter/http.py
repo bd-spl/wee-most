@@ -49,3 +49,23 @@ def run_user_logout(server, cb):
         cb,
         server.name
     )
+
+def run_user_login(server, cb):
+    url = server_root_url(server) + "/api/v4/users/login"
+    params = {
+        "login_id": server.username,
+        "password": server.password,
+    }
+
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "port": server.port,
+            "failonerror": "1",
+            "postfields": json.dumps(params),
+            "header": "1",
+        },
+        30 * 1000,
+        cb,
+        server.name
+    )

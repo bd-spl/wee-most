@@ -84,7 +84,7 @@ def create_user(user_data, server):
 from wee_matter.room import create_room
 from wee_matter.websocket import create_ws
 from wee_matter.http import (run_get_user_teams, run_get_users,
-                            run_user_logout)
+                            run_user_login, run_user_logout)
 
 def get_server_config(server_name, key):
     key_prefix = "server." + server_name + "."
@@ -243,24 +243,7 @@ def connect_server(server_name):
     )
     servers[server_name] = server
 
-    url = server_root_url(server) + "/api/v4/users/login"
-    params = {
-        "login_id": server.username,
-        "password": server.password,
-    }
-
-    weechat.hook_process_hashtable(
-        "url:" + url,
-        {
-            "port": server.port,
-            "failonerror": "1",
-            "postfields": json.dumps(params),
-            "header": "1",
-        },
-        30 * 1000,
-        "connect_server_cb",
-        server_name
-    )
+    run_user_login(server, "connect_server_cb")
 
     return weechat.WEECHAT_RC_OK
 
