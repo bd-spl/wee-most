@@ -138,21 +138,21 @@ def hidrate_room_users_cb(buffer, command, rc, out, err):
 def build_buffer_room_name(channel_id):
     return "weematter." + channel_id
 
-def create_room(data, server):
-    buffer_name = build_buffer_room_name(data["id"])
+def create_room(room_data, server):
+    buffer_name = build_buffer_room_name(room_data["id"])
     buffer = weechat.buffer_new(buffer_name, "room_input_cb", "", "", "")
     room_buffers.append(buffer)
 
     weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
-    weechat.buffer_set(buffer, "localvar_set_channel_id", data["id"])
+    weechat.buffer_set(buffer, "localvar_set_channel_id", room_data["id"])
 
     weechat.buffer_set(buffer, "nicklist", "1")
 
-    room_name = data["name"]
-    if "" != data["display_name"]:
-        room_name = data["display_name"]
+    room_name = room_data["name"]
+    if "" != room_data["display_name"]:
+        room_name = room_data["display_name"]
     else:
-        match = re.match('(\w+)__(\w+)', data["name"])
+        match = re.match('(\w+)__(\w+)', room_data["name"])
         if match:
             room_name = server.users[match.group(1)].username
             if room_name == server.user_name:
@@ -162,9 +162,9 @@ def create_room(data, server):
     weechat.buffer_set(buffer, "highlight_words", "@{},{},@here".format(server.user_name, server.user_name))
     weechat.buffer_set(buffer, "localvar_set_nick", server.user_name)
 
-    if data["team_id"]:
+    if room_data["team_id"]:
         weechat.buffer_set(buffer, "localvar_set_type", "channel")
-        team = server.teams[data["team_id"]]
+        team = server.teams[room_data["team_id"]]
         weechat.buffer_set(buffer, "localvar_set_server", team.display_name)
         parent_number = weechat.buffer_get_integer(team.buffer, "number")
         number = parent_number + 1 + len(team.buffers)
@@ -178,6 +178,6 @@ def create_room(data, server):
 
     weechat.buffer_set(buffer, "number", str(number))
 
-    run_get_channel_posts(data["id"], server, "hidrate_room_posts_cb", buffer)
-    run_get_channel_members(data["id"], server, "hidrate_room_users_cb", buffer)
+    run_get_channel_posts(room_data["id"], server, "hidrate_room_posts_cb", buffer)
+    run_get_channel_members(room_data["id"], server, "hidrate_room_users_cb", buffer)
 
