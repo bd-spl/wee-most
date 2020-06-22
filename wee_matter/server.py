@@ -104,9 +104,6 @@ def pop_server(server_name):
     return servers.pop(server_name)
 
 def load_server(server_name):
-    if server_name in servers:
-        return servers[server_name]
-
     servers[server_name] = Server(
         name= server_name,
         host= get_server_config(server_name, "address"),
@@ -218,7 +215,8 @@ def create_server_buffer(server_name):
     return buffer
 
 def connect_server(server_name):
-    server = load_server(server_name)
+    load_server(server_name)
+    server = get_server(server_name)
 
     if is_connected(server):
         weechat.prnt("", "Already connected")
@@ -249,7 +247,7 @@ def disconnect_server_cb(server_name, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def disconnect_server(server_name):
-    server = load_server(server_name)
+    server = get_server(server_name)
 
     if not is_connected(server):
         weechat.prnt("", "Not connected")
