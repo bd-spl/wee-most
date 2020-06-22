@@ -182,6 +182,7 @@ def create_room(data, server):
         "url:" + url,
         {
             "port": server.port,
+            "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
         30 * 1000,
@@ -194,6 +195,7 @@ def create_room(data, server):
         "url:" + url,
         {
             "port": server.port,
+            "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
         30 * 1000,

@@ -153,6 +153,7 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
             "url:" + url,
             {
                 "port": server.port,
+                "failonerror": "1",
                 "httpheader": "Authorization: Bearer " + server.user_token,
             },
             30 * 1000,
@@ -182,6 +183,7 @@ def connect_server_users_cb(server_name, command, rc, out, err):
         "url:" + url,
         {
             "port": server.port,
+            "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
         30 * 1000,
@@ -223,6 +225,7 @@ def connect_server_cb(server_name, command, rc, out, err):
         "url:" + url,
         {
             "port": server.port,
+            "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
         30 * 1000,
@@ -267,6 +270,7 @@ def connect_server(server_name):
         "url:" + url,
         {
             "port": server.port,
+            "failonerror": "1",
             "postfields": json.dumps(params),
             "header": "1",
         },
@@ -300,6 +304,7 @@ def disconnect_server(server_name):
         "url:" + url,
         {
             "port": server.port,
+            "failonerror": "1",
             "post": "1",
             "httpheader": "\n".join([
                 "Authorization: Bearer " + server.user_token,
