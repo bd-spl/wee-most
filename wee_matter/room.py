@@ -15,7 +15,8 @@ Post = NamedTuple(
     ]
 )
 
-from wee_matter.http import (run_post_post)
+from wee_matter.http import (run_post_post, run_get_channel_posts,
+                             run_get_channel_members)
 
 def color_for_username(username):
     nick_colors = weechat.config_string(
@@ -177,29 +178,6 @@ def create_room(data, server):
 
     weechat.buffer_set(buffer, "number", str(number))
 
-    url = server_root_url(server) + "/api/v4/channels/" + data["id"] + "/posts"
-    weechat.hook_process_hashtable(
-        "url:" + url,
-        {
-            "port": server.port,
-            "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
-        },
-        30 * 1000,
-        "hidrate_room_posts_cb",
-        buffer
-    )
-
-    url = server_root_url(server) + "/api/v4/channels/" + data["id"] + "/members"
-    weechat.hook_process_hashtable(
-        "url:" + url,
-        {
-            "port": server.port,
-            "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
-        },
-        30 * 1000,
-        "hidrate_room_users_cb",
-        buffer
-    )
+    run_get_channel_posts(data["id"], server, "hidrate_room_posts_cb", buffer)
+    run_get_channel_members(data["id"], server, "hidrate_room_users_cb", buffer)
 
