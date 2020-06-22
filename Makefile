@@ -1,4 +1,4 @@
-.PHONY: install
+.PHONY: install run-dev
 
 WEECHAT_HOME ?= $(HOME)/.weechat
 
@@ -11,6 +11,14 @@ uninstall:
 	rm $(WEECHAT_HOME)/python/wee_matter/*
 	rm $(WEECHAT_HOME)/python/wee_matter.py
 	rmdir $(WEECHAT_HOME)/python/wee_matter
+
+.weechat:
+	mkdir -p .weechat/python/autoload
+	ln -s ../wee_matter.py .weechat/python/autoload/wee_matter.py
+
+run-dev: .weechat
+	make install WEECHAT_HOME=.weechat
+	weechat -d .weechat
 
 $(WEECHAT_HOME)/python/wee_matter/:
 	install -d $(WEECHAT_HOME)/python/wee_matter
