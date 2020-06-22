@@ -146,6 +146,7 @@ def create_room(data, server):
     weechat.buffer_set(buffer, "short_name", room_name)
 
     weechat.buffer_set(buffer, "highlight_words", "@{},{},@here".format(server.user_name, server.user_name))
+    weechat.buffer_set(buffer, "localvar_set_nick", server.user_name)
 
     if "P" == data["type"] or "D" == data["type"] or "G" == data["type"]:
         weechat.buffer_set(buffer, "localvar_set_type", "private")
