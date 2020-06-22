@@ -83,7 +83,8 @@ def create_user(user_data, server):
 
 from wee_matter.room import create_room
 from wee_matter.websocket import create_ws
-from wee_matter.http import run_get_user_teams, run_get_users
+from wee_matter.http import (run_get_user_teams, run_get_users,
+                            run_user_logout)
 
 def get_server_config(server_name, key):
     key_prefix = "server." + server_name + "."
@@ -281,22 +282,7 @@ def disconnect_server(server_name):
         weechat.prnt("", "Not connected")
         return weechat.WEECHAT_RC_ERROR
 
-    url = server_root_url(server) + "/api/v4/users/logout"
-    weechat.hook_process_hashtable(
-        "url:" + url,
-        {
-            "port": server.port,
-            "failonerror": "1",
-            "post": "1",
-            "httpheader": "\n".join([
-                "Authorization: Bearer " + server.user_token,
-                "Content-Type:",
-            ]),
-        },
-        30 * 1000,
-        "disconnect_server_cb",
-        server_name
-    )
+    run_user_logout(server, "disconnect_server_cb")
 
     return weechat.WEECHAT_RC_OK
 

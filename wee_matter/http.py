@@ -31,3 +31,21 @@ def run_get_users(server, cb):
         cb,
         server.name
     )
+
+def run_user_logout(server, cb):
+    url = server_root_url(server) + "/api/v4/users/logout"
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "port": server.port,
+            "failonerror": "1",
+            "post": "1",
+            "httpheader": "\n".join([
+                "Authorization: Bearer " + server.user_token,
+                "Content-Type:",
+            ]),
+        },
+        30 * 1000,
+        cb,
+        server.name
+    )
