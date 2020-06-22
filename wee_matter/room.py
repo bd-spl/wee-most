@@ -138,6 +138,19 @@ def hidrate_room_users_cb(buffer, command, rc, out, err):
 def build_buffer_room_name(channel_id):
     return "weematter." + channel_id
 
+def build_room_name(room_data, server):
+    room_name = room_data["name"]
+    if "" != room_data["display_name"]:
+        room_name = room_data["display_name"]
+    else:
+        match = re.match('(\w+)__(\w+)', room_data["name"])
+        if match:
+            room_name = server.users[match.group(1)].username
+            if room_name == server.user_name:
+                room_name = server.users[match.group(2)].username
+
+    return room_name
+
 def create_room(room_data, server):
     buffer_name = build_buffer_room_name(room_data["id"])
     buffer = weechat.buffer_new(buffer_name, "room_input_cb", "", "", "")
@@ -148,16 +161,7 @@ def create_room(room_data, server):
 
     weechat.buffer_set(buffer, "nicklist", "1")
 
-    room_name = room_data["name"]
-    if "" != room_data["display_name"]:
-        room_name = room_data["display_name"]
-    else:
-        match = re.match('(\w+)__(\w+)', room_data["name"])
-        if match:
-            room_name = server.users[match.group(1)].username
-            if room_name == server.user_name:
-                room_name = server.users[match.group(2)].username
-    weechat.buffer_set(buffer, "short_name", room_name)
+    weechat.buffer_set(buffer, "short_name", build_room_name(room_data, server))
 
     weechat.buffer_set(buffer, "highlight_words", "@{},{},@here".format(server.user_name, server.user_name))
     weechat.buffer_set(buffer, "localvar_set_nick", server.user_name)
