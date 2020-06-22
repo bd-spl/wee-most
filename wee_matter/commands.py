@@ -32,10 +32,10 @@ def server_add_command_cb(args):
 
     return weechat.WEECHAT_RC_OK
 
-def server_connect_command_cb(args):
+def connect_command_cb(args):
     return connect_server(args[0])
 
-def server_disconnect_command_cb(args):
+def disconnect_command_cb(args):
     return disconnect_server(args[0])
 
 def server_command_cb(args):
@@ -43,10 +43,6 @@ def server_command_cb(args):
 
     if command == "add":
         server_add_command_cb(args)
-    if command == "connect":
-        server_connect_command_cb(args)
-    if command == "disconnect":
-        server_disconnect_command_cb(args)
 
     return weechat.WEECHAT_RC_OK
 
@@ -56,6 +52,10 @@ def matter_command_cb(data, buffer, args):
 
     if command == "server":
         server_command_cb(args)
+    if command == "connect":
+        connect_command_cb(args)
+    if command == "disconnect":
+        disconnect_command_cb(args)
 
     return weechat.WEECHAT_RC_OK
 
@@ -66,16 +66,20 @@ def setup_commands():
          # Synopsis
         (
             "server add <server-name> <hostname> ||"
-            "server connect, disconnect <server-name> ||"
+            "connect <server-name> ||"
+            "disconnect <server-name> ||"
         ),
         # Description
         (
             "server: add Matrix servers\n"
-            "server: connect, disconnect Matrix servers\n"
+            "connect Matrix servers\n"
+            "disconnect Matrix servers\n"
         ),
         # Completions
         (
             "server %(matrix_server_commands)|%* ||"
+            "connect %(matrix_server_commands)|%* ||"
+            "disconnect %(matrix_server_commands)|%* ||"
         ),
         "matter_command_cb",
         ""
