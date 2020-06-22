@@ -56,8 +56,28 @@ def get_server(server_name):
 
     return servers[server_name]
 
+def create_team(team_data, server):
+    server_number = weechat.buffer_get_integer(server.buffer, "number")
+
+    buffer = weechat.buffer_new("weematter." + team_data["display_name"], "", "", "", "")
+    weechat.buffer_set(buffer, "number", str(server_number+1))
+
+    weechat.buffer_set(buffer, "short_name", team_data["display_name"])
+    weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
+    weechat.buffer_set(buffer, "localvar_set_server", team_data["display_name"])
+    weechat.buffer_set(buffer, "localvar_set_type", "server")
+
+    return Team(
+        id= team_data["id"],
+        name= team_data["name"],
+        display_name= team_data["display_name"],
+         buffer= buffer,
+         buffers= [],
+    )
+
 from wee_matter.room import create_room
 from wee_matter.websocket import create_ws
+from wee_matter.http import run_server_load_teams
 
 def get_server_config(server_name, key):
     key_prefix = "server." + server_name + "."
@@ -115,53 +135,7 @@ def connect_server_team_channels_cb(server_name, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def create_team(team_data, server):
-    server_number = weechat.buffer_get_integer(server.buffer, "number")
 
-    buffer = weechat.buffer_new("weematter." + team_data["display_name"], "", "", "", "")
-    weechat.buffer_set(buffer, "number", str(server_number+1))
-
-    weechat.buffer_set(buffer, "short_name", team_data["display_name"])
-    weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
-    weechat.buffer_set(buffer, "localvar_set_server", team_data["display_name"])
-    weechat.buffer_set(buffer, "localvar_set_type", "server")
-
-    return Team(
-        id= team_data["id"],
-        name= team_data["name"],
-        display_name= team_data["display_name"],
-         buffer= buffer,
-         buffers= [],
-    )
-
-def connect_server_teams_cb(server_name, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occured when connecting teams")
-        return weechat.WEECHAT_RC_ERROR
-
-    server = get_server(server_name)
-
-    response = json.loads(out)
-
-    teams = {}
-    for team in response:
-        server.teams[team["id"]] = create_team(team, server)
-
-    for team in response:
-        url = server_root_url(server) + "/api/v4/users/" + server.user_id + "/teams/" + team["id"] + "/channels"
-        weechat.hook_process_hashtable(
-            "url:" + url,
-            {
-                "port": server.port,
-                "failonerror": "1",
-                "httpheader": "Authorization: Bearer " + server.user_token,
-            },
-            30 * 1000,
-            "connect_server_team_channels_cb",
-            server_name
-        )
-
-    return weechat.WEECHAT_RC_OK
 
 def connect_server_users_cb(server_name, command, rc, out, err):
     if rc != 0:
@@ -178,18 +152,7 @@ def connect_server_users_cb(server_name, command, rc, out, err):
             username= user["username"],
         )
 
-    url = server_root_url(server) + "/api/v4/users/" + server.user_id + "/teams"
-    weechat.hook_process_hashtable(
-        "url:" + url,
-        {
-            "port": server.port,
-            "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
-        },
-        30 * 1000,
-        "connect_server_teams_cb",
-        server_name
-    )
+    run_server_load_teams(server)
 
     return weechat.WEECHAT_RC_OK
 
