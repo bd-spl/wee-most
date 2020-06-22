@@ -143,12 +143,7 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
 
     teams = {}
     for team in response:
-        teams[team["id"]] = create_team(team, server)
-
-    server = get_server(server_name)._replace(
-        teams= teams
-    )
-    servers[server_name] = server
+        server.teams[team["id"]] = create_team(team, server)
 
     for team in response:
         url = server_root_url(server) + "/api/v4/users/" + server.user_id + "/teams/" + team["id"] + "/channels"
