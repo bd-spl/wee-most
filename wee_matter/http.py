@@ -18,7 +18,7 @@ def run_get_user_teams(user_id, server, cb):
         server.name
     )
 
-def run_server_load_users(server, cb):
+def run_get_users(server, cb):
     url = server_root_url(server) + "/api/v4/users"
     weechat.hook_process_hashtable(
         "url:" + url,
