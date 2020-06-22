@@ -75,9 +75,15 @@ def create_team(team_data, server):
          buffers= [],
     )
 
+def create_user(user_data, server):
+    return User(
+        id= user_data["id"],
+        username= user_data["username"],
+    )
+
 from wee_matter.room import create_room
 from wee_matter.websocket import create_ws
-from wee_matter.http import run_server_load_teams
+from wee_matter.http import run_server_load_teams, run_server_load_users
 
 def get_server_config(server_name, key):
     key_prefix = "server." + server_name + "."
@@ -135,12 +141,6 @@ def connect_server_team_channels_cb(server_name, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def create_user(user_data, server):
-    return User(
-        id= user_data["id"],
-        username= user_data["username"],
-    )
-
 def connect_server_users_cb(server_name, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occured when connecting users")
@@ -184,18 +184,7 @@ def connect_server_cb(server_name, command, rc, out, err):
 
     weechat.prnt("", "Connected to " + server_name)
 
-    url = server_root_url(server) + "/api/v4/users"
-    weechat.hook_process_hashtable(
-        "url:" + url,
-        {
-            "port": server.port,
-            "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
-        },
-        30 * 1000,
-        "connect_server_users_cb",
-        server_name
-    )
+    run_server_load_users(server)
 
     return weechat.WEECHAT_RC_OK
 
