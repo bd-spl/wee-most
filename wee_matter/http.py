@@ -1,7 +1,6 @@
 
 import weechat
-from wee_matter.server import (get_server, server_root_url,
-                              create_team, create_user)
+from wee_matter.server import server_root_url
 import json
 
 def run_get_user_teams(user_id, server, cb, cb_data):

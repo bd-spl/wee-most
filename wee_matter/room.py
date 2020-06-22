@@ -1,7 +1,7 @@
 
 import weechat
 import json
-from wee_matter.server import server_root_url, get_server
+from wee_matter.server import get_server
 from typing import NamedTuple
 import re
 
