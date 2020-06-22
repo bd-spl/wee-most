@@ -4,11 +4,9 @@ from wee_matter.commands import (setup_commands, matter_command_cb)
 
 from wee_matter.websocket import (create_ws, receive_ws_callback)
 
-from wee_matter.server import (connect_server_cb,
+from wee_matter.server import (connect_server_cb, connect_server_teams_cb,
                                connect_server_team_channels_cb, disconnect_server_cb,
                                connect_server_users_cb, auto_connect, disconnect_all)
-
-from wee_matter.http import (connect_server_teams_cb)
 
 from wee_matter.room import (hidrate_room_posts_cb, hidrate_room_users_cb,
                              room_input_cb, post_post_cb,
