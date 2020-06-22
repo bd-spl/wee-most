@@ -2,9 +2,20 @@
 import weechat
 import json
 from wee_matter.server import server_root_url, get_server
+from typing import NamedTuple
 import re
 
 room_buffers = []
+
+Post = NamedTuple(
+    "Post",
+    [
+        ("channel_id", str),
+        ("message", str),
+    ]
+)
+
+from wee_matter.http import (run_post_post)
 
 def color_for_username(username):
     nick_colors = weechat.config_string(
@@ -31,24 +42,13 @@ def room_input_cb(data, buffer, input_data):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
     server = get_server(server_name)
 
-    url = server_root_url(server) + "/api/v4/posts"
-    params = {
-        "channel_id": weechat.buffer_get_string(buffer, "localvar_channel_id"),
-        "message": input_data,
-    }
-
-    weechat.hook_process_hashtable(
-        "url:" + url,
-        {
-            "port": server.port,
-            "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
-            "postfields": json.dumps(params),
-        },
-        30 * 1000,
-        "post_post_cb",
-        buffer
+    post = Post(
+        channel_id= weechat.buffer_get_string(buffer, "localvar_channel_id"),
+        message= input_data,
     )
+
+    run_post_post(post, server, "post_post_cb", buffer)
+
     return weechat.WEECHAT_RC_OK
 
 def handle_multiline_message_cb(data, modifier, buffer, string):

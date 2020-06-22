@@ -83,3 +83,23 @@ def run_get_user_team_channels(user_id, team_id, server, cb):
         cb,
         server.name
     )
+
+def run_post_post(post, server, cb, data):
+    url = server_root_url(server) + "/api/v4/posts"
+    params = {
+        "channel_id": post.channel_id,
+        "message": post.message,
+    }
+
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "port": server.port,
+            "failonerror": "1",
+            "httpheader": "Authorization: Bearer " + server.user_token,
+            "postfields": json.dumps(params),
+        },
+        30 * 1000,
+        cb,
+        data
+    )
