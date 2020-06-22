@@ -83,7 +83,7 @@ def create_user(user_data, server):
 
 from wee_matter.room import create_room
 from wee_matter.websocket import create_ws
-from wee_matter.http import run_server_load_teams, run_server_load_users
+from wee_matter.http import run_get_user_teams, run_server_load_users
 
 def get_server_config(server_name, key):
     key_prefix = "server." + server_name + "."
@@ -153,7 +153,7 @@ def connect_server_users_cb(server_name, command, rc, out, err):
     for user in response:
         server.users[user["id"]] = create_user(user, server)
 
-    run_server_load_teams(server, "connect_server_teams_cb")
+    run_get_user_teams(server.user_id, server, "connect_server_teams_cb")
 
     return weechat.WEECHAT_RC_OK
 
