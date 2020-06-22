@@ -199,7 +199,9 @@ def connect_server_cb(server_name, command, rc, out, err):
         weechat.prnt("", "User token not present in response")
         return weechat.WEECHAT_RC_ERROR
 
-    response = json.loads(out.splitlines()[-1])
+    out = out.splitlines()[-1] # we remove the headers
+
+    response = json.loads(out)
 
     server = get_server(server_name)._replace(
         user_id=response["id"],
