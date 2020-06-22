@@ -3,9 +3,18 @@ import weechat
 from wee_matter.server import Server, get_server
 from websocket import create_connection, WebSocketConnectionClosedException
 from wee_matter.room import write_post, build_buffer_room_name
+from typing import NamedTuple
 import json
 import socket
 import ssl
+
+Worker = NamedTuple(
+    "Worker",
+    [
+        ("ws", any),
+        ("hook", any),
+    ]
+)
 
 def server_root_url(server: Server):
     protocol = "ws"
@@ -18,7 +27,7 @@ def server_root_url(server: Server):
 
     return root_url
 
-def create_ws(server):
+def create_worker(server):
     url = server_root_url(server) + "/api/v4/websocket"
     ws = create_connection(url)
     ws.sock.setblocking(0)
@@ -31,10 +40,17 @@ def create_ws(server):
         }
     }
 
-    weechat.hook_fd(ws.sock.fileno(), 1, 0, 0, "receive_ws_callback", server.name)
+    hook = weechat.hook_fd(ws.sock.fileno(), 1, 0, 0, "receive_ws_callback", server.name)
     ws.send(json.dumps(params))
 
-    return ws
+    return Worker(
+        ws= ws,
+        hook= hook,
+    )
+
+def close_worker(worker):
+    weechat.unhook(worker.hook)
+    worker.ws.close()
 
 def handle_posted_message(server, message):
     data = message["data"]
@@ -59,10 +75,11 @@ def handle_ws_message(server, message):
 
 def receive_ws_callback(server_name, data):
     server = get_server(server_name)
+    ws = server.worker.ws
 
     while True:
         try:
-            opcode, data = server.ws.recv_data(control_frame=True)
+            opcode, data = ws.recv_data(control_frame=True)
         except ssl.SSLWantReadError:
             return weechat.WEECHAT_RC_OK
         except (WebSocketConnectionClosedException, socket.error) as e:

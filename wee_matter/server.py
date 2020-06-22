@@ -23,7 +23,7 @@ Server = NamedTuple(
         ("teams", dict),
         ("buffer", any),
         ("buffers", list),
-        ("ws", any),
+        ("worker", any),
     ],
 )
 
@@ -51,7 +51,6 @@ def server_root_url(server: Server):
 
 def get_server(server_name):
     if server_name not in servers:
-        weechat.prnt("", "Server is not loaded")
         return
 
     return servers[server_name]
@@ -82,7 +81,7 @@ def create_user(user_data, server):
     )
 
 from wee_matter.room import create_room
-from wee_matter.websocket import create_ws
+from wee_matter.websocket import create_worker, close_worker
 from wee_matter.http import (run_get_user_teams, run_get_users,
                             run_user_login, run_user_logout,
                             run_get_user_team_channels)
@@ -112,7 +111,7 @@ def load_server(server_name):
         teams= {},
         buffer= None,
         buffers= [],
-        ws= None,
+        worker= None,
     )
 
     return servers[server_name]
@@ -124,6 +123,8 @@ def unload_server(server_name):
 
     weechat.prnt("", "Unloading server")
     server = servers.pop(server_name)
+
+    close_worker(server.worker)
 
     for buffer in server.buffers:
         weechat.buffer_close(buffer)
@@ -206,7 +207,7 @@ def connect_server_cb(server_name, command, rc, out, err):
     )
 
     servers[server_name] = server._replace(
-        ws=create_ws(server)
+        worker=create_worker(server)
     )
 
     weechat.prnt("", "Connected to " + server_name)
