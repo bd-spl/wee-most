@@ -135,7 +135,11 @@ def connect_server_team_channels_cb(server_name, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-
+def create_user(user_data, server):
+    return User(
+        id= user_data["id"],
+        username= user_data["username"],
+    )
 
 def connect_server_users_cb(server_name, command, rc, out, err):
     if rc != 0:
@@ -147,10 +151,7 @@ def connect_server_users_cb(server_name, command, rc, out, err):
     response = json.loads(out)
     users = {}
     for user in response:
-        server.users[user["id"]] = User(
-            id= user["id"],
-            username= user["username"],
-        )
+        server.users[user["id"]] = create_user(user, server)
 
     run_server_load_teams(server)
 
