@@ -125,6 +125,15 @@ def unload_server(server_name):
     weechat.prnt("", "Unloading server")
     server = servers.pop(server_name)
 
+    for buffer in server.buffers:
+        weechat.buffer_close(buffer)
+    for team_id, team in server.teams.items():
+        for buffer in team.buffers:
+            weechat.buffer_close(buffer)
+        weechat.buffer_close(team.buffer)
+
+    weechat.buffer_close(server.buffer)
+
 def is_connected(server: Server):
     return server.user_token != ""
 
