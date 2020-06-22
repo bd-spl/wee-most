@@ -44,6 +44,8 @@ def create_ws(server):
     weechat.hook_fd(ws.sock.fileno(), 1, 0, 0, "receive_ws_callback", server.name)
     ws.send(json.dumps(params))
 
+    return ws
+
 def handle_posted_message(server, message):
     data = message["data"]
     post = json.loads(data["post"])

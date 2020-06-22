@@ -23,6 +23,7 @@ Server = NamedTuple(
         ("teams", dict),
         ("buffer", any),
         ("buffers", list),
+        ("ws", any),
     ],
 )
 
@@ -93,6 +94,7 @@ def load_server(server_name):
         teams= {},
         buffer= None,
         buffers= [],
+        ws= None,
     )
 
     return servers[server_name]
@@ -200,19 +202,21 @@ def connect_server_cb(server_name, command, rc, out, err):
         return weechat.WEECHAT_RC_ERROR
 
     out = out.splitlines()[-1] # we remove the headers
-
     response = json.loads(out)
 
-    server = get_server(server_name)._replace(
+    server = get_server(server_name)
+
+    server = server._replace(
         user_id=response["id"],
         user_name=response["username"],
         user_token=token_search.group(1),
     )
-    servers[server_name] = server
+
+    servers[server_name] = server._replace(
+        ws=create_ws(server)
+    )
 
     weechat.prnt("", "Connected to " + server_name)
-
-    create_ws(server)
 
     url = server_root_url(server) + "/api/v4/users"
     weechat.hook_process_hashtable(
