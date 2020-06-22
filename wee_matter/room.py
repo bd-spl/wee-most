@@ -140,9 +140,11 @@ def create_room(data, server):
     if "" != data["display_name"]:
         room_name = data["display_name"]
     else:
-        match = re.match('(\w+)__\w+', data["name"])
+        match = re.match('(\w+)__(\w+)', data["name"])
         if match:
             room_name = server.users[match.group(1)].username
+            if room_name == server.user_name:
+                room_name = server.users[match.group(2)].username
     weechat.buffer_set(buffer, "short_name", room_name)
 
     weechat.buffer_set(buffer, "highlight_words", "@{},{},@here".format(server.user_name, server.user_name))
