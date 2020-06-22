@@ -190,9 +190,13 @@ def connect_server_users_cb(server_name, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def connect_server_cb(server_name, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occured when connecting")
+        return weechat.WEECHAT_RC_ERROR
+
     token_search = re.search('[tT]oken: (\w*)', out)
     if None == token_search:
-        weechat.prnt("", "An error occured when connecting")
+        weechat.prnt("", "User token not present in response")
         return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out.splitlines()[-1])
