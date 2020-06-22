@@ -96,13 +96,6 @@ def get_server_config(server_name, key):
 
     return expanded_value
 
-def pop_server(server_name):
-    if server_name not in servers:
-        weechat.prnt("", "Server is not loaded")
-        return
-
-    return servers.pop(server_name)
-
 def load_server(server_name):
     servers[server_name] = Server(
         name= server_name,
@@ -123,6 +116,14 @@ def load_server(server_name):
     )
 
     return servers[server_name]
+
+def unload_server(server_name):
+    if server_name not in servers:
+        weechat.prnt("", "Server is not loaded")
+        return
+
+    weechat.prnt("", "Unloading server")
+    server = servers.pop(server_name)
 
 def is_connected(server: Server):
     return server.user_token != ""
@@ -215,12 +216,16 @@ def create_server_buffer(server_name):
     return buffer
 
 def connect_server(server_name):
-    load_server(server_name)
     server = get_server(server_name)
 
-    if is_connected(server):
+    if server != None and is_connected(server):
         weechat.prnt("", "Already connected")
         return weechat.WEECHAT_RC_ERROR
+
+    if server != None:
+        unload_server(server_name)
+
+    server = load_server(server_name)
 
     weechat.prnt("", "Connecting to " + server_name)
 
@@ -240,7 +245,7 @@ def disconnect_server_cb(server_name, command, rc, out, err):
         weechat.prnt("", "An error occured when disconnecting")
         return weechat.WEECHAT_RC_ERROR
 
-    pop_server(server_name)
+    unload_server(server_name)
 
     weechat.prnt("", "Disconnected to " + server_name)
 
