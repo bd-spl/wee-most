@@ -165,17 +165,15 @@ def connect_server_users_cb(server_name, command, rc, out, err):
         weechat.prnt("", "An error occured when connecting users")
         return weechat.WEECHAT_RC_ERROR
 
+    server = get_server(server_name)
+
     response = json.loads(out)
     users = {}
     for user in response:
-        users[user["id"]] = User(
+        server.users[user["id"]] = User(
             id= user["id"],
             username= user["username"],
         )
-    server = get_server(server_name)._replace(
-        users= users
-    )
-    servers[server_name] = server
 
     url = server_root_url(server) + "/api/v4/users/" + server.user_id + "/teams"
     weechat.hook_process_hashtable(
