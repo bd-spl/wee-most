@@ -13,6 +13,8 @@ from wee_matter.room import (hidrate_room_read_posts_cb, hidrate_room_posts_cb,
                              post_post_cb, handle_multiline_message_cb,
                              buffer_switch_cb)
 
+from wee_matter.http import singularity_cb
+
 WEECHAT_SCRIPT_NAME = "wee-matter"
 WEECHAT_SCRIPT_DESCRIPTION = "mattermost chat plugin"
 WEECHAT_SCRIPT_AUTHOR = "Reed Wade <reedwade@misterbanal.net>"

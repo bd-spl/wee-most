@@ -3,6 +3,14 @@ import weechat
 from wee_matter.server import server_root_url
 import json
 
+def singularity_cb(data, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occured when performing a request")
+        weechat.prnt("", err)
+        return weechat.WEECHAT_RC_ERROR
+
+    return weechat.WEECHAT_RC_OK
+
 def run_get_user_teams(user_id, server, cb, cb_data):
     url = server_root_url(server) + "/api/v4/users/" + user_id + "/teams"
     weechat.hook_process_hashtable(

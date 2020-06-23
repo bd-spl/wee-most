@@ -277,7 +277,7 @@ def buffer_switch_cb(data, signal, buffer):
     server = get_server(server_name)
 
     last_post_id = buffer_last_post_id(buffer)
-    run_post_user_post_unread(server.user_id, last_post_id, server, "", "")
+    run_post_user_post_unread(server.user_id, last_post_id, server, "singularity_cb", "")
 
     return weechat.WEECHAT_RC_OK
 
