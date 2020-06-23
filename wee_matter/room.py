@@ -16,7 +16,8 @@ Post = NamedTuple(
 )
 
 from wee_matter.http import (run_post_post, run_get_channel_posts,
-                             run_get_channel_members)
+                             run_get_read_channel_posts, run_get_channel_members,
+                             run_get_channel_posts_after)
 
 def color_for_username(username):
     nick_colors = weechat.config_string(
@@ -77,6 +78,34 @@ def write_post(buffer, username, message, date):
 def hidrate_room_posts_cb(buffer, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occured when hidrating room")
+        weechat.prnt("", err)
+
+        return weechat.WEECHAT_RC_ERROR
+
+    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
+    server = get_server(server_name)
+
+    response = json.loads(out)
+
+    response["order"].reverse()
+    for post_id in response["order"]:
+        post = response["posts"][post_id]
+        message = post["message"]
+        username = post["user_id"]
+        if username in server.users:
+            username = server.users[username].username
+        write_post(buffer, username, message, int(post["create_at"]/1000))
+
+    if "" != response["next_post_id"]:
+        channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id"),
+        run_get_channel_posts_after(response["next_post_id"], channel_id[0], server, "hidrate_room_posts_cb", buffer)
+
+    return weechat.WEECHAT_RC_OK
+
+def hidrate_room_read_posts_cb(buffer, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occured when hidrating room")
+        weechat.prnt("", err)
 
         return weechat.WEECHAT_RC_ERROR
 
@@ -96,6 +125,10 @@ def hidrate_room_posts_cb(buffer, command, rc, out, err):
 
     weechat.buffer_set(buffer, "unread", "-")
     weechat.buffer_set(buffer, "hotlist", "-1")
+
+    if "" != response["next_post_id"]:
+        channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id"),
+        run_get_channel_posts_after(response["next_post_id"], channel_id[0], server, "hidrate_room_posts_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -195,6 +228,6 @@ def create_room(room_data, server):
 
     weechat.buffer_set(buffer, "number", str(number))
 
-    run_get_channel_posts(room_data["id"], server, "hidrate_room_posts_cb", buffer)
+    run_get_read_channel_posts(server.user_id, room_data["id"], server, "hidrate_room_read_posts_cb", buffer)
     run_get_channel_members(room_data["id"], server, "hidrate_room_users_cb", buffer)
 
