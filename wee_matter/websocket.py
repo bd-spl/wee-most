@@ -2,7 +2,7 @@
 import weechat
 from wee_matter.server import Server, get_server
 from websocket import create_connection, WebSocketConnectionClosedException
-from wee_matter.room import write_post, build_buffer_room_name
+from wee_matter.room import Post, write_post, build_buffer_room_name
 from typing import NamedTuple
 import json
 import socket
@@ -58,12 +58,21 @@ def handle_posted_message(server, message):
 
     buffer_name = build_buffer_room_name(post["channel_id"])
     buffer = weechat.buffer_search("", buffer_name)
+    channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id"),
 
     username = post["user_id"]
     if username in server.users:
         username = server.users[username].username
 
-    write_post(buffer, username, post["message"], int(post["create_at"]/1000))
+    post = Post(
+        id= post["id"],
+        user_name= username,
+        channel_id= channel_id,
+        message= post["message"],
+        date= int(post["create_at"]/1000),
+    )
+
+    write_post(buffer, post)
 
 def handle_ws_event_message(server, message):
     if "posted" == message["event"]:
