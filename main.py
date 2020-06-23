@@ -33,6 +33,7 @@ setup_commands()
 auto_connect()
 
 weechat.hook_modifier("input_text_for_buffer", "handle_multiline_message_cb", "")
+weechat.hook_signal("buffer_switch", "buffer_switch_cb", "")
 
 def shutdown_cb():
     disconnect_all()
