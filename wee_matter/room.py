@@ -22,6 +22,13 @@ from wee_matter.http import (run_post_post, run_get_channel_posts,
                              run_get_read_channel_posts, run_get_channel_members,
                              run_get_channel_posts_after, run_post_user_post_unread)
 
+def mark_channel_as_read(buffer):
+    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
+    server = get_server(server_name)
+
+    last_post_id = buffer_last_post_id(buffer)
+    run_post_user_post_unread(server.user_id, last_post_id, server, "singularity_cb", "")
+
 def color_for_username(username):
     nick_colors = weechat.config_string(
          weechat.config_get("weechat.color.chat_nick_colors")
@@ -273,11 +280,7 @@ def buffer_switch_cb(data, signal, buffer):
     if buffer not in room_buffers:
         return weechat.WEECHAT_RC_OK
 
-    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
-    server = get_server(server_name)
-
-    last_post_id = buffer_last_post_id(buffer)
-    run_post_user_post_unread(server.user_id, last_post_id, server, "singularity_cb", "")
+    mark_channel_as_read(buffer)
 
     return weechat.WEECHAT_RC_OK
 
