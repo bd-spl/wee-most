@@ -74,6 +74,9 @@ def handle_posted_message(server, message):
 
     write_post(buffer, post)
 
+    if buffer == weechat.current_buffer():
+        run_post_user_post_unread(server.user_id, post.id, server, "", "")
+
 def handle_ws_event_message(server, message):
     if "posted" == message["event"]:
         return handle_posted_message(server, message)
