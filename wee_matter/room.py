@@ -27,7 +27,11 @@ def mark_channel_as_read(buffer):
     server = get_server(server_name)
 
     last_post_id = buffer_last_post_id(buffer)
+    if last_post_id == weechat.buffer_get_string(buffer, "localvar_last_read_post_id"):
+        return
+
     run_post_user_post_unread(server.user_id, last_post_id, server, "singularity_cb", "")
+    weechat.buffer_set(buffer, "localvar_set_last_read_post_id", last_post_id)
 
 def color_for_username(username):
     nick_colors = weechat.config_string(
@@ -157,6 +161,7 @@ def hidrate_room_read_posts_cb(buffer, command, rc, out, err):
 
         write_post(buffer, post)
 
+    weechat.buffer_set(buffer, "localvar_set_last_read_post_id", post.id)
     weechat.buffer_set(buffer, "unread", "-")
     weechat.buffer_set(buffer, "hotlist", "-1")
 
