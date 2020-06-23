@@ -231,3 +231,11 @@ def create_room(room_data, server):
     run_get_read_channel_posts(server.user_id, room_data["id"], server, "hidrate_room_read_posts_cb", buffer)
     run_get_channel_members(room_data["id"], server, "hidrate_room_users_cb", buffer)
 
+    weechat.hook_signal("buffer_switch", "buffer_switch_cb", "")
+
+def buffer_switch_cb(data, signal, buffer):
+    if buffer not in room_buffers:
+        return weechat.WEECHAT_RC_OK
+
+    return weechat.WEECHAT_RC_OK
+
