@@ -20,7 +20,7 @@ Post = NamedTuple(
 
 from wee_matter.http import (run_post_post, run_get_channel_posts,
                              run_get_read_channel_posts, run_get_channel_members,
-                             run_get_channel_posts_after)
+                             run_get_channel_posts_after, run_post_user_post_unread)
 
 def color_for_username(username):
     nick_colors = weechat.config_string(
@@ -257,10 +257,27 @@ def create_room(room_data, server):
     run_get_read_channel_posts(server.user_id, room_data["id"], server, "hidrate_room_read_posts_cb", buffer)
     run_get_channel_members(room_data["id"], server, "hidrate_room_users_cb", buffer)
 
+def buffer_last_post_id(buffer):
+    lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), buffer, "lines")
+    line = weechat.hdata_pointer(weechat.hdata_get("lines"), lines, "last_line")
+    data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
+
+    tags_count = weechat.hdata_integer(weechat.hdata_get("line_data"), data, "tags_count")
+    for i in range(tags_count):
+        tag = weechat.hdata_string(weechat.hdata_get("line_data"), data, '{}|tags_array'.format(i))
+
+        if tag.startswith('post_id_'):
+            return tag[8:]
 
 def buffer_switch_cb(data, signal, buffer):
     if buffer not in room_buffers:
         return weechat.WEECHAT_RC_OK
+
+    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
+    server = get_server(server_name)
+
+    last_post_id = buffer_last_post_id(buffer)
+    run_post_user_post_unread(server.user_id, last_post_id, server, "", "")
 
     return weechat.WEECHAT_RC_OK
 

@@ -158,3 +158,18 @@ def run_get_channel_members(channel_id, server, cb, cb_data):
         cb,
         cb_data
     )
+
+def run_post_user_post_unread(user_id, post_id, server, cb, cb_data):
+    url = server_root_url(server) + "/api/v4/users/" + user_id + "/posts/" + post_id + "/set_unread"
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "port": server.port,
+            "post": "1",
+            "failonerror": "1",
+            "httpheader": "Authorization: Bearer " + server.user_token,
+        },
+        30 * 1000,
+        cb,
+        cb_data
+    )
