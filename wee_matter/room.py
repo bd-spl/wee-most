@@ -128,7 +128,7 @@ def hidrate_room_posts_cb(buffer, command, rc, out, err):
         write_post(buffer, post)
 
     if "" != response["next_post_id"]:
-        run_get_channel_posts_after(response["next_post_id"], channel_id[0], server, "hidrate_room_posts_cb", buffer)
+        run_get_channel_posts_after(post.id, channel_id[0], server, "hidrate_room_posts_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -168,7 +168,7 @@ def hidrate_room_read_posts_cb(buffer, command, rc, out, err):
     weechat.buffer_set(buffer, "hotlist", "-1")
 
     if "" != response["next_post_id"]:
-        run_get_channel_posts_after(response["next_post_id"], channel_id[0], server, "hidrate_room_posts_cb", buffer)
+        run_get_channel_posts_after(post.id, channel_id[0], server, "hidrate_room_posts_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
