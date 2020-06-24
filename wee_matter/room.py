@@ -439,7 +439,7 @@ def find_buffer_post_line_data(buffer, post_id):
 def add_reaction_to_post(buffer, reaction):
     line_data = find_buffer_post_line_data(buffer, reaction.post_id)
 
-    if "" == line_data:
+    if None == line_data:
         return
 
     tags = get_line_data_tags(line_data)
@@ -464,6 +464,42 @@ def add_reaction_to_post(buffer, reaction):
         line_data,
         {
             "message": new_message.strip(),
-            "tags": ",".join(tags)
+            "tags_array": ",".join(tags)
         }
     )
+
+def remove_reaction_from_post(buffer, reaction):
+    line_data = find_buffer_post_line_data(buffer, reaction.post_id)
+
+    if None == line_data:
+        return
+
+    tags = get_line_data_tags(line_data)
+    weechat.prnt("", str(tags))
+    if not "reactions" in tags:
+        return
+
+    old_message, old_reactions = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message").rsplit(' | ', 1)
+
+    reaction_message = build_reaction_message(reaction)
+
+    new_reactions = old_reactions.replace(reaction_message, "").replace("  ", " ").strip()
+
+    if "" == new_reactions:
+        tags.remove("reactions")
+        weechat.hdata_update(
+            weechat.hdata_get("line_data"),
+            line_data,
+            {
+                "message": old_message,
+                "tags_array": ",".join(tags),
+            }
+        )
+    else:
+        weechat.hdata_update(
+            weechat.hdata_get("line_data"),
+            line_data,
+            {
+                "message": old_message + " | " + new_reactions,
+            }
+        )
