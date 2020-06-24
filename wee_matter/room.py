@@ -128,22 +128,37 @@ def append_file_public_link_to_post_cb(data, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def build_reaction_line(post, server):
+def build_reaction_line(post):
     reaction_line = ""
     for reaction in post.reactions:
         reaction_line += " [:{}:]".format(reaction.emoji_name)
 
     return reaction_line.strip()
 
-def build_post_message(post, server):
-    message = post.message
+def write_message_lines(buffer, post, username_color):
+    weechat.prnt_date_tags(
+        buffer,
+        post.date,
+        "post_id_%s" % post.id,
+        colorize_sentence(post.user_name, username_color) + "	" + post.message
+    )
 
+def write_file_lines(buffer, post):
     for file in post.files:
-        message += "\n[{}]({})".format(file.name, file.url)
-    if post.reactions:
-        message += "\n" + build_reaction_line(post, server)
+        weechat.prnt_date_tags(
+            buffer,
+            post.date,
+            "post_id_{},file_line".format(post.id),
+            "	[{}]({})".format(file.name, file.url)
+        )
 
-    return message
+def write_reactions_line(buffer, post):
+    weechat.prnt_date_tags(
+        buffer,
+        post.date,
+        "post_id_{},reactions_line".format(post.id),
+        "	" + build_reaction_line(post)
+    )
 
 def write_post(buffer, post):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
@@ -156,13 +171,10 @@ def write_post(buffer, post):
     else:
         username_color = color_for_username(post.user_name)
 
-    tags = "post_id_%s" % post.id
+    write_message_lines(buffer, post, username_color)
+    write_file_lines(buffer, post)
+    write_reactions_line(buffer, post)
 
-    if post.files:
-        for file in post.files:
-            tags += ",file_id_%s" % file.id
-
-    weechat.prnt_date_tags(buffer, post.date, tags, colorize_sentence(post.user_name, username_color) + "	" + build_post_message(post, server))
     weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
 
 def get_files_from_post_data(post_data, server):
