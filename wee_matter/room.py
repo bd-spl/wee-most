@@ -128,7 +128,7 @@ def append_file_public_link_to_post_cb(data, command, rc, out, err):
     buffer = data.split("|")[0]
     post_id = data.split("|")[1]
 
-    line_data = find_buffer_post_line_data(buffer, post_id)
+    line_data = find_buffer_last_post_line_data(buffer, post_id)
 
     old_message = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message")
     new_message = old_message + "[{}]".format(response["link"])
@@ -423,7 +423,7 @@ def is_post_line_data(line_data, post_id):
 
     return post_id_tag in tags
 
-def find_buffer_post_line_data(buffer, post_id):
+def find_buffer_last_post_line_data(buffer, post_id):
     lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), buffer, "lines")
     line = weechat.hdata_pointer(weechat.hdata_get("lines"), lines, "last_line")
 
@@ -437,7 +437,7 @@ def find_buffer_post_line_data(buffer, post_id):
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
 
 def add_reaction_to_post(buffer, reaction):
-    line_data = find_buffer_post_line_data(buffer, reaction.post_id)
+    line_data = find_buffer_last_post_line_data(buffer, reaction.post_id)
 
     if None == line_data:
         return
@@ -469,7 +469,7 @@ def add_reaction_to_post(buffer, reaction):
     )
 
 def remove_reaction_from_post(buffer, reaction):
-    line_data = find_buffer_post_line_data(buffer, reaction.post_id)
+    line_data = find_buffer_last_post_line_data(buffer, reaction.post_id)
 
     if None == line_data:
         return
