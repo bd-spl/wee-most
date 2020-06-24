@@ -2,7 +2,7 @@
 import weechat
 from wee_matter.server import Server, get_server
 from websocket import create_connection, WebSocketConnectionClosedException
-from wee_matter.room import Post, write_post, build_buffer_room_name, mark_channel_as_read
+from wee_matter.room import write_post_from_post_data, build_buffer_room_name, mark_channel_as_read
 from typing import NamedTuple
 import json
 import socket
@@ -56,24 +56,10 @@ def handle_posted_message(server, message):
     data = message["data"]
     post = json.loads(data["post"])
 
+    write_post_from_post_data(post)
+
     buffer_name = build_buffer_room_name(post["channel_id"])
     buffer = weechat.buffer_search("", buffer_name)
-    channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id"),
-
-    username = post["user_id"]
-    if username in server.users:
-        username = server.users[username].username
-
-    post = Post(
-        id= post["id"],
-        user_name= username,
-        channel_id= channel_id,
-        message= post["message"],
-        date= int(post["create_at"]/1000),
-    )
-
-    write_post(buffer, post)
-
     if buffer == weechat.current_buffer():
         mark_channel_as_read(buffer)
 

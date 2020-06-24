@@ -96,6 +96,29 @@ def write_post(buffer, post):
     weechat.prnt_date_tags(buffer, post.date, tags, colorize_sentence(post.user_name, username_color) + "	" + post.message)
     weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
 
+def write_post_from_post_data(post_data):
+    buffer_name = build_buffer_room_name(post_data["channel_id"])
+    buffer = weechat.buffer_search("", buffer_name)
+
+    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
+    server = get_server(server_name)
+
+    username = post_data["user_id"]
+    if username in server.users:
+        username = server.users[username].username
+
+    post = Post(
+        id= post_data["id"],
+        user_name= username,
+        channel_id= post_data["channel_id"],
+        message= post_data["message"],
+        date= int(post_data["create_at"]/1000),
+    )
+
+    write_post(buffer, post)
+
+    return post
+
 def hidrate_room_posts_cb(buffer, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occured when hidrating room")
@@ -105,30 +128,15 @@ def hidrate_room_posts_cb(buffer, command, rc, out, err):
 
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
     server = get_server(server_name)
-    channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id"),
 
     response = json.loads(out)
 
     response["order"].reverse()
     for post_id in response["order"]:
-        post = response["posts"][post_id]
-
-        username = post["user_id"]
-        if username in server.users:
-            username = server.users[username].username
-
-        post = Post(
-            id= post_id,
-            user_name= username,
-            channel_id= channel_id,
-            message= post["message"],
-            date= int(post["create_at"]/1000),
-        )
-
-        write_post(buffer, post)
+        post = write_post_from_post_data(response["posts"][post_id])
 
     if "" != response["next_post_id"]:
-        run_get_channel_posts_after(post.id, channel_id[0], server, "hidrate_room_posts_cb", buffer)
+        run_get_channel_posts_after(post.id, post.channel_id, server, "hidrate_room_posts_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -141,34 +149,19 @@ def hidrate_room_read_posts_cb(buffer, command, rc, out, err):
 
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
     server = get_server(server_name)
-    channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id"),
 
     response = json.loads(out)
 
     response["order"].reverse()
     for post_id in response["order"]:
-        post = response["posts"][post_id]
-
-        username = post["user_id"]
-        if username in server.users:
-            username = server.users[username].username
-
-        post = Post(
-            id= post_id,
-            user_name= username,
-            channel_id= channel_id,
-            message= post["message"],
-            date= int(post["create_at"]/1000),
-        )
-
-        write_post(buffer, post)
+        post = write_post_from_post_data(response["posts"][post_id])
 
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", post.id)
     weechat.buffer_set(buffer, "unread", "-")
     weechat.buffer_set(buffer, "hotlist", "-1")
 
     if "" != response["next_post_id"]:
-        run_get_channel_posts_after(post.id, channel_id[0], server, "hidrate_room_posts_cb", buffer)
+        run_get_channel_posts_after(post.id, post.channel_id, server, "hidrate_room_posts_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
