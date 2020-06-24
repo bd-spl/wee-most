@@ -27,5 +27,3 @@ Then you can connect/disconnect to servers
 /matter connect a_banal_server
 /matter disconnect a_banal_server
 ```
-
-## Resources
