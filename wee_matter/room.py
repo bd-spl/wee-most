@@ -1,7 +1,7 @@
 
 import weechat
 import json
-from wee_matter.server import get_server
+from wee_matter.server import get_server, server_root_url
 from typing import NamedTuple
 import re
 
@@ -114,6 +114,19 @@ def append_file_public_link_to_post_cb(data, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def build_file_url(file_id, server):
+    return server_root_url(server) + "/api/v4/files/" + file_id
+
+def build_post_message(post, server):
+
+    message = post.message
+
+    file_ids = list(map(lambda file: build_file_url(file.id, server), post.files))
+    if file_ids:
+        message += "\nfiles: [{}]".format(", ".join(file_ids))
+
+    return message
+
 def write_post(buffer, post):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
     server = get_server(server_name)
@@ -130,9 +143,9 @@ def write_post(buffer, post):
     if post.files:
         for file in post.files:
             tags += ",file_id_%s" % file.id
-            run_get_file_link(file.id, server, "append_file_link_to_post_cb", "{}|{}".format(buffer, post.id))
+            #run_get_file_public_link(file.id, server, "append_file_public_link_to_post_cb", "{}|{}".format(buffer, post.id))
 
-    weechat.prnt_date_tags(buffer, post.date, tags, colorize_sentence(post.user_name, username_color) + "	" + post.message)
+    weechat.prnt_date_tags(buffer, post.date, tags, colorize_sentence(post.user_name, username_color) + "	" + build_post_message(post, server))
     weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
 
 def get_files_from_post_data(post_data):
