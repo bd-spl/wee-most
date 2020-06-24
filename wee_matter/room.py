@@ -74,6 +74,7 @@ def room_input_cb(data, buffer, input_data):
         channel_id= weechat.buffer_get_string(buffer, "localvar_channel_id"),
         message= input_data,
         date= 0,
+        files= [],
     )
 
     run_post_post(post, server, "post_post_cb", buffer)
