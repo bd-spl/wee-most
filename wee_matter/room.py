@@ -32,7 +32,7 @@ File = NamedTuple(
 Reaction = NamedTuple(
     "Reaction",
     [
-        ("user_id", str),
+        ("user", any),
         ("emoji_name", str),
         ("post_id", str),
     ]
@@ -128,19 +128,31 @@ def append_file_public_link_to_post_cb(data, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def build_reaction_message(reaction):
+    return "[:{}:]".format(reaction.emoji_name)
+
 def build_reaction_line(post):
     reaction_line = ""
     for reaction in post.reactions:
-        reaction_line += " [:{}:]".format(reaction.emoji_name)
+        reaction_line += " " + build_reaction_message(reaction)
 
     return reaction_line.strip()
 
 def write_message_lines(buffer, post, username_color):
+    if not post.reactions:
+        weechat.prnt_date_tags(
+            buffer,
+            post.date,
+            "post_id_%s" % post.id,
+            colorize_sentence(post.user_name, username_color) + "	" + post.message
+        )
+        return
+
     weechat.prnt_date_tags(
         buffer,
         post.date,
-        "post_id_%s" % post.id,
-        colorize_sentence(post.user_name, username_color) + "	" + post.message
+        "post_id_%s,reactions" % post.id,
+        colorize_sentence(post.user_name, username_color) + "	" + post.message + " | " + build_reaction_line(post)
     )
 
 def write_file_lines(buffer, post):
@@ -148,17 +160,9 @@ def write_file_lines(buffer, post):
         weechat.prnt_date_tags(
             buffer,
             post.date,
-            "post_id_{},file_line".format(post.id),
+            "file_line",
             "	[{}]({})".format(file.name, file.url)
         )
-
-def write_reactions_line(buffer, post):
-    weechat.prnt_date_tags(
-        buffer,
-        post.date,
-        "post_id_{},reactions_line".format(post.id),
-        "	" + build_reaction_line(post)
-    )
 
 def write_post(buffer, post):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
@@ -173,7 +177,6 @@ def write_post(buffer, post):
 
     write_message_lines(buffer, post, username_color)
     write_file_lines(buffer, post)
-    write_reactions_line(buffer, post)
 
     weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
 
@@ -191,8 +194,12 @@ def get_files_from_post_data(post_data, server):
     return []
 
 def get_reaction_from_reaction_data(reaction_data, server):
+    user = None
+    if reaction_data["user_id"] in server.users:
+        user = server.users[reaction_data["user_id"]]
+
     return Reaction(
-        user_id= reaction_data["user_id"],
+        user= user,
         emoji_name= reaction_data["emoji_name"],
         post_id= reaction_data["post_id"],
     )
@@ -416,6 +423,31 @@ def find_buffer_post_line_data(buffer, post_id):
 def add_reaction_to_post(buffer, reaction):
     line_data = find_buffer_post_line_data(buffer, reaction.post_id)
 
-    old_message = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message")
-    print(old_message)
+    if "" == line_data:
+        return
 
+    tags = get_line_data_tags(line_data)
+    old_message = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message")
+
+    if "reactions" in tags:
+        new_message = old_message + " " + build_reaction_message(reaction)
+        weechat.hdata_update(
+            weechat.hdata_get("line_data"),
+            line_data,
+            {
+                "message": new_message.strip(),
+            }
+        )
+        return
+
+    tags.append("reactions")
+
+    new_message = old_message + " | " + build_reaction_message(reaction)
+    weechat.hdata_update(
+        weechat.hdata_get("line_data"),
+        line_data,
+        {
+            "message": new_message.strip(),
+            "tags": ",".join(tags)
+        }
+    )
