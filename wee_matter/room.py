@@ -155,7 +155,7 @@ def build_reaction_line(post):
 
     return reaction_line.strip()
 
-def write_parent_message_lines(buffer, post):
+def write_parent_message_lines(buffer, post, server):
     if post.parent_id:
         parent_line_data = find_buffer_first_post_line_data(buffer, post.parent_id)
         parent_tags = get_line_data_tags(parent_line_data)
@@ -171,23 +171,36 @@ def write_parent_message_lines(buffer, post):
             "post_id_%s" % post.id,
             parent_message_prefix + "	> " + parent_message
         )
+        if weechat.string_remove_color(parent_message_prefix, "") == server.user_name:
+            return True
 
-def write_message_lines(buffer, post, username_color):
-    write_parent_message_lines(buffer, post)
+def write_message_lines(buffer, post, server):
+    tags = "post_id_%s" % post.id
+
+    if post.user_name == server.user_name:
+        username_color = weechat.config_string(
+             weechat.config_get("weechat.color.chat_nick_self")
+        )
+    else:
+        username_color = color_for_username(post.user_name)
+
+    if write_parent_message_lines(buffer, post, server):
+        tags += ",notify_highlight"
 
     if not post.reactions:
         weechat.prnt_date_tags(
             buffer,
             post.date,
-            "post_id_%s" % post.id,
+            tags,
             colorize_sentence(post.user_name, username_color) + "	" + post.message
         )
         return
 
+    tags += ",reactions"
     weechat.prnt_date_tags(
         buffer,
         post.date,
-        "post_id_%s,reactions" % post.id,
+        tags,
         colorize_sentence(post.user_name, username_color) + "	" + post.message + " | " + build_reaction_line(post)
     )
 
@@ -204,14 +217,7 @@ def write_post(buffer, post):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
     server = get_server(server_name)
 
-    if post.user_name == server.user_name:
-        username_color = weechat.config_string(
-             weechat.config_get("weechat.color.chat_nick_self")
-        )
-    else:
-        username_color = color_for_username(post.user_name)
-
-    write_message_lines(buffer, post, username_color)
+    write_message_lines(buffer, post, server)
     write_file_lines(buffer, post)
 
     weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
