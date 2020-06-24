@@ -3,6 +3,9 @@ import weechat
 from wee_matter.server import server_root_url
 import json
 
+def build_file_url(file_id, server):
+    return server_root_url(server) + "/api/v4/files/" + file_id
+
 def singularity_cb(data, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occured when performing a request")

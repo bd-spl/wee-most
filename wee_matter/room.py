@@ -1,7 +1,7 @@
 
 import weechat
 import json
-from wee_matter.server import get_server, server_root_url
+from wee_matter.server import get_server
 from typing import NamedTuple
 import re
 
@@ -24,12 +24,14 @@ File = NamedTuple(
     [
         ("id", str),
         ("name", str),
+        ("url", str),
     ]
 )
 
 from wee_matter.http import (run_post_post, run_get_read_channel_posts,
                              run_get_channel_members, run_get_channel_posts_after,
-                             run_post_user_post_unread, run_get_file_public_link)
+                             run_post_user_post_unread, run_get_file_public_link,
+                             build_file_url)
 
 def mark_channel_as_read(buffer):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
@@ -115,15 +117,12 @@ def append_file_public_link_to_post_cb(data, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def build_file_url(file_id, server):
-    return server_root_url(server) + "/api/v4/files/" + file_id
 
 def build_post_message(post, server):
-
     message = post.message
 
     for file in post.files:
-        message += "\n[{}]({})".format(file.name, build_file_url(file.id, server))
+        message += "\n[{}]({})".format(file.name, file.url)
 
     return message
 
@@ -143,18 +142,18 @@ def write_post(buffer, post):
     if post.files:
         for file in post.files:
             tags += ",file_id_%s" % file.id
-            #run_get_file_public_link(file.id, server, "append_file_public_link_to_post_cb", "{}|{}".format(buffer, post.id))
 
     weechat.prnt_date_tags(buffer, post.date, tags, colorize_sentence(post.user_name, username_color) + "	" + build_post_message(post, server))
     weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
 
-def get_files_from_post_data(post_data):
+def get_files_from_post_data(post_data, server):
     if "files" in post_data["metadata"]:
         files = []
         for file_data in post_data["metadata"]["files"]:
             files.append(File(
                 id= file_data["id"],
-                name= file_data["name"]
+                name= file_data["name"],
+                url= build_file_url(file_data["id"], server)
             ))
         return files
 
@@ -177,7 +176,7 @@ def write_post_from_post_data(post_data):
         channel_id= post_data["channel_id"],
         message= post_data["message"],
         date= int(post_data["create_at"]/1000),
-        files= get_files_from_post_data(post_data)
+        files= get_files_from_post_data(post_data, server)
     )
 
     write_post(buffer, post)
