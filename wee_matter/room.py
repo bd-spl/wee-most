@@ -5,7 +5,14 @@ from wee_matter.server import get_server
 from typing import NamedTuple
 import re
 
-room_buffers = {}
+channel_buffers = {}
+
+def get_buffer_from_channel_id(channel_id):
+    if channel_id not in channel_buffers:
+        return
+
+    return channel_buffers[channel_id]
+
 
 Post = NamedTuple(
     "Post",
@@ -95,7 +102,7 @@ def room_input_cb(data, buffer, input_data):
     return weechat.WEECHAT_RC_OK
 
 def handle_multiline_message_cb(data, modifier, buffer, string):
-    if buffer not in room_buffers.values():
+    if buffer not in channel_buffers.values():
         return string
 
     if "\n" in string and not string[0] == "/":
@@ -347,7 +354,7 @@ def build_room_name(room_data, server):
 def create_room(room_data, server):
     buffer_name = build_buffer_room_name(room_data["id"])
     buffer = weechat.buffer_new(buffer_name, "room_input_cb", "", "", "")
-    room_buffers[room_data["id"]] = buffer
+    channel_buffers[room_data["id"]] = buffer
 
     weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
     weechat.buffer_set(buffer, "localvar_set_channel_id", room_data["id"])
@@ -384,7 +391,7 @@ def create_room(room_data, server):
     run_get_channel_members(room_data["id"], server, "hidrate_room_users_cb", buffer)
 
 def buffer_switch_cb(data, signal, buffer):
-    if buffer not in room_buffers.values():
+    if buffer not in channel_buffers.values():
         return weechat.WEECHAT_RC_OK
 
     mark_channel_as_read(buffer)
