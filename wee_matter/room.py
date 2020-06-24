@@ -26,6 +26,7 @@ Post = NamedTuple(
     "Post",
     [
         ("id", str),
+        ("parent_id", str),
         ("user_name", str),
         ("channel_id", str),
         ("message", str),
@@ -97,6 +98,7 @@ def room_input_cb(data, buffer, input_data):
 
     post = Post(
         id= "",
+        parent_id= "",
         user_name= server.user_name,
         channel_id= weechat.buffer_get_string(buffer, "localvar_channel_id"),
         message= input_data,
@@ -153,7 +155,26 @@ def build_reaction_line(post):
 
     return reaction_line.strip()
 
+def write_parent_message_lines(buffer, post):
+    if post.parent_id:
+        parent_line_data = find_buffer_first_post_line_data(buffer, post.parent_id)
+        parent_tags = get_line_data_tags(parent_line_data)
+        parent_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), parent_line_data, "date")
+        parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
+        if not "reactions" in parent_tags:
+            parent_message = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "message")
+        else:
+            parent_message = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "message").rsplit(' | ', 1)[0]
+        weechat.prnt_date_tags(
+            buffer,
+            parent_message_date,
+            "post_id_%s" % post.id,
+            parent_message_prefix + "	> " + parent_message
+        )
+
 def write_message_lines(buffer, post, username_color):
+    write_parent_message_lines(buffer, post)
+
     if not post.reactions:
         weechat.prnt_date_tags(
             buffer,
@@ -242,6 +263,7 @@ def write_post_from_post_data(post_data):
 
     post = Post(
         id= post_data["id"],
+        parent_id= post_data["parent_id"],
         user_name= username,
         channel_id= post_data["channel_id"],
         message= post_data["message"],
@@ -432,6 +454,19 @@ def find_buffer_last_post_line_data(buffer, post_id):
         if is_post_line_data(line_data, post_id):
             return line_data
         line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "prev_line")
+        if "" == line:
+            break
+        line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
+
+def find_buffer_first_post_line_data(buffer, post_id):
+    lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), buffer, "lines")
+    line = weechat.hdata_pointer(weechat.hdata_get("lines"), lines, "first_line")
+
+    line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
+    while True:
+        if is_post_line_data(line_data, post_id):
+            return line_data
+        line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "next_line")
         if "" == line:
             break
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
