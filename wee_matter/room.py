@@ -122,9 +122,8 @@ def build_post_message(post, server):
 
     message = post.message
 
-    file_ids = list(map(lambda file: build_file_url(file.id, server), post.files))
-    if file_ids:
-        message += "\nfiles: [{}]".format(", ".join(file_ids))
+    for file in post.files:
+        message += "\n[{}]({})".format(file.name, build_file_url(file.id, server))
 
     return message
 
