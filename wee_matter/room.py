@@ -16,6 +16,7 @@ Post = NamedTuple(
         ("message", str),
         ("date", int),
         ("files", list),
+        ("reactions", list),
     ]
 )
 
@@ -25,6 +26,14 @@ File = NamedTuple(
         ("id", str),
         ("name", str),
         ("url", str),
+    ]
+)
+
+Reaction = NamedTuple(
+    "Reaction",
+    [
+        ("user_id", str),
+        ("emoji_name", str),
     ]
 )
 
@@ -77,6 +86,7 @@ def room_input_cb(data, buffer, input_data):
         message= input_data,
         date= 0,
         files= [],
+        reactions= [],
     )
 
     run_post_post(post, server, "post_post_cb", buffer)
@@ -117,12 +127,20 @@ def append_file_public_link_to_post_cb(data, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def build_reaction_line(post, server):
+    reaction_line = ""
+    for reaction in post.reactions:
+        reaction_line += " [:{}:]".format(reaction.emoji_name)
+
+    return reaction_line.strip()
 
 def build_post_message(post, server):
     message = post.message
 
     for file in post.files:
         message += "\n[{}]({})".format(file.name, file.url)
+    if post.reactions:
+        message += "\n" + build_reaction_line(post, server)
 
     return message
 
@@ -159,6 +177,18 @@ def get_files_from_post_data(post_data, server):
 
     return []
 
+def get_reactions_from_post_data(post_data, server):
+    if "reactions" in post_data["metadata"]:
+        reactions = []
+        for reaction_data in post_data["metadata"]["reactions"]:
+            reactions.append(Reaction(
+                user_id= reaction_data["user_id"],
+                emoji_name= reaction_data["emoji_name"],
+            ))
+        return reactions
+
+    return []
+
 def write_post_from_post_data(post_data):
     buffer_name = build_buffer_room_name(post_data["channel_id"])
     buffer = weechat.buffer_search("", buffer_name)
@@ -176,7 +206,8 @@ def write_post_from_post_data(post_data):
         channel_id= post_data["channel_id"],
         message= post_data["message"],
         date= int(post_data["create_at"]/1000),
-        files= get_files_from_post_data(post_data, server)
+        files= get_files_from_post_data(post_data, server),
+        reactions= get_reactions_from_post_data(post_data, server),
     )
 
     write_post(buffer, post)
