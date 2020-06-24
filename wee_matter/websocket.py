@@ -1,12 +1,12 @@
 
 import weechat
-from wee_matter.server import Server, get_server
+from wee_matter.server import get_server
 from websocket import create_connection, WebSocketConnectionClosedException
 from wee_matter.room import write_post_from_post_data, build_buffer_room_name, mark_channel_as_read
 from typing import NamedTuple
 import json
 import socket
-import ssl
+from ssl import SSLWantReadError
 
 Worker = NamedTuple(
     "Worker",
@@ -16,7 +16,7 @@ Worker = NamedTuple(
     ]
 )
 
-def server_root_url(server: Server):
+def server_root_url(server):
     protocol = "ws"
     if "https" == server.protocol:
         protocol = "wss"
@@ -78,7 +78,7 @@ def receive_ws_callback(server_name, data):
     while True:
         try:
             opcode, data = ws.recv_data(control_frame=True)
-        except ssl.SSLWantReadError:
+        except SSLWantReadError:
             return weechat.WEECHAT_RC_OK
         except (WebSocketConnectionClosedException, socket.error) as e:
             return weechat.WEECHAT_RC_OK

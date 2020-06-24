@@ -18,9 +18,9 @@ Post = NamedTuple(
     ]
 )
 
-from wee_matter.http import (run_post_post, run_get_channel_posts,
-                             run_get_read_channel_posts, run_get_channel_members,
-                             run_get_channel_posts_after, run_post_user_post_unread)
+from wee_matter.http import (run_post_post, run_get_read_channel_posts,
+                             run_get_channel_members, run_get_channel_posts_after,
+                             run_post_user_post_unread)
 
 def mark_channel_as_read(buffer):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
