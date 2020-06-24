@@ -34,6 +34,7 @@ Reaction = NamedTuple(
     [
         ("user_id", str),
         ("emoji_name", str),
+        ("post_id", str),
     ]
 )
 
@@ -177,14 +178,18 @@ def get_files_from_post_data(post_data, server):
 
     return []
 
+def get_reaction_from_reaction_data(reaction_data, server):
+    return Reaction(
+        user_id= reaction_data["user_id"],
+        emoji_name= reaction_data["emoji_name"],
+        post_id= reaction_data["post_id"],
+    )
+
 def get_reactions_from_post_data(post_data, server):
     if "reactions" in post_data["metadata"]:
         reactions = []
         for reaction_data in post_data["metadata"]["reactions"]:
-            reactions.append(Reaction(
-                user_id= reaction_data["user_id"],
-                emoji_name= reaction_data["emoji_name"],
-            ))
+            reactions.append(get_reaction_from_reaction_data(reaction_data, server))
         return reactions
 
     return []
@@ -395,4 +400,10 @@ def find_buffer_post_line_data(buffer, post_id):
         if "" == line:
             break
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
+
+def add_reaction_to_post(buffer, reaction):
+    line_data = find_buffer_post_line_data(buffer, reaction.post_id)
+
+    old_message = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message")
+    print(old_message)
 

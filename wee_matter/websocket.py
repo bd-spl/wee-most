@@ -2,7 +2,9 @@
 import weechat
 from wee_matter.server import get_server
 from websocket import create_connection, WebSocketConnectionClosedException
-from wee_matter.room import write_post_from_post_data, build_buffer_room_name, mark_channel_as_read
+from wee_matter.room import (write_post_from_post_data, build_buffer_room_name,
+                             mark_channel_as_read, get_reaction_from_reaction_data,
+                             add_reaction_to_post)
 from typing import NamedTuple
 import json
 import socket
@@ -63,9 +65,23 @@ def handle_posted_message(server, message):
     if buffer == weechat.current_buffer():
         mark_channel_as_read(buffer)
 
+def handle_reaction_added_message(server, message):
+    data = message["data"]
+
+    reaction_data = json.loads(data["reaction"])
+    broadcast_data = message["broadcast"]
+
+    buffer_name = build_buffer_room_name(broadcast_data["channel_id"])
+    buffer = weechat.buffer_search("", buffer_name)
+
+    reaction = get_reaction_from_reaction_data(reaction_data, server)
+    add_reaction_to_post(buffer, reaction)
+
 def handle_ws_event_message(server, message):
     if "posted" == message["event"]:
         return handle_posted_message(server, message)
+    if "reaction_added" == message["event"]:
+        return handle_reaction_added_message(server, message)
 
 def handle_ws_message(server, message):
     if "event" in message:
