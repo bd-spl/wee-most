@@ -13,6 +13,14 @@ def get_buffer_from_channel_id(channel_id):
 
     return channel_buffers[channel_id]
 
+post_buffers = {}
+
+def get_buffer_from_post_id(post_id):
+    if post_id not in post_buffers:
+        return
+
+    return post_buffers[post_id]
+
 
 Post = NamedTuple(
     "Post",
@@ -186,6 +194,7 @@ def write_post(buffer, post):
     write_file_lines(buffer, post)
 
     weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
+    post_buffers[post.id] = buffer
 
 def get_files_from_post_data(post_data, server):
     if "files" in post_data["metadata"]:
