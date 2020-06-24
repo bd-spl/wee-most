@@ -16,7 +16,6 @@ def run_get_user_teams(user_id, server, cb, cb_data):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
-            "port": server.port,
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
@@ -30,7 +29,6 @@ def run_get_users(server, cb, cb_data):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
-            "port": server.port,
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
@@ -44,7 +42,6 @@ def run_user_logout(server, cb, cb_data):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
-            "port": server.port,
             "failonerror": "1",
             "post": "1",
             "httpheader": "\n".join([
@@ -67,7 +64,6 @@ def run_user_login(server, cb, cb_data):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
-            "port": server.port,
             "failonerror": "1",
             "postfields": json.dumps(params),
             "header": "1",
@@ -82,7 +78,6 @@ def run_get_user_team_channels(user_id, team_id, server, cb, cb_data):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
-            "port": server.port,
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
@@ -101,7 +96,6 @@ def run_post_post(post, server, cb, cb_data):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
-            "port": server.port,
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
             "postfields": json.dumps(params),
@@ -116,7 +110,6 @@ def run_get_channel_posts(channel_id, server, cb, cb_data):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
-            "port": server.port,
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
@@ -130,7 +123,6 @@ def run_get_read_channel_posts(user_id, channel_id, server, cb, cb_data):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
-            "port": server.port,
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
@@ -144,7 +136,6 @@ def run_get_channel_posts_after(post_id, channel_id, server, cb, cb_data):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
-            "port": server.port,
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
@@ -158,7 +149,6 @@ def run_get_channel_members(channel_id, server, cb, cb_data):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
-            "port": server.port,
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
         },
@@ -172,7 +162,6 @@ def run_post_user_post_unread(user_id, post_id, server, cb, cb_data):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
-            "port": server.port,
             "post": "1",
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
@@ -187,7 +176,6 @@ def run_get_file_public_link(file_id, server, cb, cb_data):
     weechat.hook_process_hashtable(
         "url:" + url,
         {
-            "port": server.port,
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
         },

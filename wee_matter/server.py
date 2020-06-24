@@ -47,7 +47,7 @@ Team = NamedTuple(
 )
 
 def server_root_url(server: Server):
-    return server.protocol + "://" + server.host + server.path
+    return server.protocol + "://" + server.host + ":" + server.port + server.path
 
 def get_server(server_name):
     if server_name not in servers:
