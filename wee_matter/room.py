@@ -14,7 +14,16 @@ Post = NamedTuple(
         ("user_name", str),
         ("channel_id", str),
         ("message", str),
-        ("date", int)
+        ("date", int),
+        ("files", list),
+    ]
+)
+
+File = NamedTuple(
+    "File",
+    [
+        ("id", str),
+        ("name", str),
     ]
 )
 
@@ -93,8 +102,24 @@ def write_post(buffer, post):
 
     tags = "post_id_%s" % post.id
 
+    if post.files:
+        for file in post.files:
+            tags += ",file_id_%s" % file.id
+
     weechat.prnt_date_tags(buffer, post.date, tags, colorize_sentence(post.user_name, username_color) + "	" + post.message)
     weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
+
+def get_files_from_post_data(post_data):
+    if "files" in post_data["metadata"]:
+        files = []
+        for file_data in post_data["metadata"]["files"]:
+            files.append(File(
+                id= file_data["id"],
+                name= file_data["name"]
+            ))
+        return files
+
+    return []
 
 def write_post_from_post_data(post_data):
     buffer_name = build_buffer_room_name(post_data["channel_id"])
@@ -113,6 +138,7 @@ def write_post_from_post_data(post_data):
         channel_id= post_data["channel_id"],
         message= post_data["message"],
         date= int(post_data["create_at"]/1000),
+        files= get_files_from_post_data(post_data)
     )
 
     write_post(buffer, post)
