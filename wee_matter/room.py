@@ -29,7 +29,7 @@ File = NamedTuple(
 
 from wee_matter.http import (run_post_post, run_get_read_channel_posts,
                              run_get_channel_members, run_get_channel_posts_after,
-                             run_post_user_post_unread)
+                             run_post_user_post_unread, run_get_file_public_link)
 
 def mark_channel_as_read(buffer):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
@@ -89,6 +89,31 @@ def handle_multiline_message_cb(data, modifier, buffer, string):
         return ""
     return string
 
+def append_file_public_link_to_post_cb(data, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occured when appending file to post")
+        return weechat.WEECHAT_RC_ERROR
+
+    response = json.loads(out)
+
+    buffer = data.split("|")[0]
+    post_id = data.split("|")[1]
+
+    line_data = find_buffer_post_line_data(buffer, post_id)
+
+    old_message = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message")
+    new_message = old_message + "[{}]".format(response["link"])
+
+    weechat.hdata_update(
+        weechat.hdata_get("line_data"),
+        line_data,
+        {
+            "message": new_message
+        }
+    )
+
+    return weechat.WEECHAT_RC_OK
+
 def write_post(buffer, post):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
     server = get_server(server_name)
@@ -105,6 +130,7 @@ def write_post(buffer, post):
     if post.files:
         for file in post.files:
             tags += ",file_id_%s" % file.id
+            run_get_file_link(file.id, server, "append_file_link_to_post_cb", "{}|{}".format(buffer, post.id))
 
     weechat.prnt_date_tags(buffer, post.date, tags, colorize_sentence(post.user_name, username_color) + "	" + post.message)
     weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
@@ -297,4 +323,33 @@ def buffer_switch_cb(data, signal, buffer):
     mark_channel_as_read(buffer)
 
     return weechat.WEECHAT_RC_OK
+
+def get_line_data_tags(line_data):
+    tags = []
+
+    tags_count = weechat.hdata_integer(weechat.hdata_get("line_data"), line_data, "tags_count")
+    for i in range(tags_count):
+        tag = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, '{}|tags_array'.format(i))
+        tags.append(tag)
+
+    return tags
+
+def is_post_line_data(line_data, post_id):
+    post_id_tag = "post_id_{}".format(post_id)
+    tags = get_line_data_tags(line_data)
+
+    return post_id_tag in tags
+
+def find_buffer_post_line_data(buffer, post_id):
+    lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), buffer, "lines")
+    line = weechat.hdata_pointer(weechat.hdata_get("lines"), lines, "last_line")
+
+    line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
+    while True:
+        if is_post_line_data(line_data, post_id):
+            return line_data
+        line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "prev_line")
+        if "" == line:
+            break
+        line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
 

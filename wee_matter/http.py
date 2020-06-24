@@ -181,3 +181,17 @@ def run_post_user_post_unread(user_id, post_id, server, cb, cb_data):
         cb,
         cb_data
     )
+
+def run_get_file_public_link(file_id, server, cb, cb_data):
+    url = server_root_url(server) + "/api/v4/files/" + file_id + "/link"
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "port": server.port,
+            "failonerror": "1",
+            "httpheader": "Authorization: Bearer " + server.user_token,
+        },
+        30 * 1000,
+        cb,
+        cb_data
+    )
