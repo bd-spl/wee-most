@@ -16,8 +16,7 @@ Server = NamedTuple(
         ("path", str),
         ("username", str),
         ("password", str),
-        ("user_id", str),
-        ("user_name", str),
+        ("user", any),
         ("user_token", str),
         ("users", dict),
         ("teams", dict),
@@ -82,11 +81,7 @@ def create_team(team_data, server):
          buffers= [],
     )
 
-def color_for_username(username, server):
-    if username == server.user_name:
-        return weechat.config_string(
-             weechat.config_get("weechat.color.chat_nick_self")
-        )
+def color_for_username(username):
     nick_colors = weechat.config_string(
          weechat.config_get("weechat.color.chat_nick_colors")
     ).split(",")
@@ -101,7 +96,7 @@ def create_user(user_data, server):
     return User(
         id= user_data["id"],
         username= user_data["username"],
-        color= color_for_username(user_data["username"], server),
+        color= color_for_username(user_data["username"]),
     )
 
 from wee_matter.room import create_room
@@ -120,6 +115,11 @@ def get_server_config(server_name, key):
     return expanded_value
 
 def load_server(server_name):
+    user = User(
+        id = "",
+        username = "",
+        color = "",
+    )
     servers[server_name] = Server(
         name= server_name,
         host= get_server_config(server_name, "address"),
@@ -128,8 +128,7 @@ def load_server(server_name):
         path= "",
         username= get_server_config(server_name, "username"),
         password= get_server_config(server_name, "password"),
-        user_id= "",
-        user_name= "",
+        user= user,
         user_token= "",
         users= {},
         teams= {},
@@ -185,9 +184,12 @@ def connect_server_users_cb(server_name, command, rc, out, err):
     response = json.loads(out)
     users = {}
     for user in response:
-        server.users[user["id"]] = create_user(user, server)
+        if user["id"] == server.user.id:
+            server.users[user["id"]] = server.user
+        else:
+            server.users[user["id"]] = create_user(user, server)
 
-    run_get_user_teams(server.user_id, server, "connect_server_teams_cb", server.name)
+    run_get_user_teams(server.user.id, server, "connect_server_teams_cb", server.name)
 
     return weechat.WEECHAT_RC_OK
 
@@ -205,7 +207,7 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
         server.teams[team["id"]] = create_team(team, server)
 
     for team in response:
-        run_get_user_team_channels(server.user_id, team["id"], server, "connect_server_team_channels_cb", server.name)
+        run_get_user_team_channels(server.user.id, team["id"], server, "connect_server_team_channels_cb", server.name)
 
     return weechat.WEECHAT_RC_OK
 
@@ -224,10 +226,15 @@ def connect_server_cb(server_name, command, rc, out, err):
 
     server = get_server(server_name)
 
+    user = User(
+        id= response["id"],
+        username= response["username"],
+        color= weechat.config_string(weechat.config_get("weechat.color.chat_nick_self")),
+    )
+
     server = server._replace(
-        user_id=response["id"],
-        user_name=response["username"],
         user_token=token_search.group(1),
+        user= user,
     )
 
     servers[server_name] = server._replace(
