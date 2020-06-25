@@ -86,8 +86,6 @@ def room_input_cb(data, buffer, input_data):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
     server = get_server(server_name)
 
-    user = server.users[server.user.id]
-
     post = Post(
         id= "",
         parent_id= "",
@@ -96,7 +94,7 @@ def room_input_cb(data, buffer, input_data):
         date= 0,
         files= [],
         reactions= [],
-        user= user,
+        user= server.user,
     )
 
     run_post_post(post, server, "post_post_cb", buffer)
