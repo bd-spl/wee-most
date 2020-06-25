@@ -1,7 +1,9 @@
 
 import weechat
-from wee_matter.server import get_server
-from websocket import create_connection, WebSocketConnectionClosedException
+import time
+from wee_matter.server import get_server, update_server
+from websocket import (create_connection, WebSocketConnectionClosedException,
+                       WebSocketTimeoutException, ABNF)
 from wee_matter.room import (write_post_from_post_data, build_buffer_room_name,
                              mark_channel_as_read, get_reaction_from_reaction_data,
                              add_reaction_to_post, remove_reaction_from_post,
@@ -15,7 +17,10 @@ Worker = NamedTuple(
     "Worker",
     [
         ("ws", any),
-        ("hook", any),
+        ("hook_data_read", any),
+        ("hook_ping", any),
+        ("last_ping_time", int),
+        ("last_pong_time", int),
     ]
 )
 
@@ -43,17 +48,40 @@ def create_worker(server):
         }
     }
 
-    hook = weechat.hook_fd(ws.sock.fileno(), 1, 0, 0, "receive_ws_callback", server.name)
+    hook_data_read = weechat.hook_fd(ws.sock.fileno(), 1, 0, 0, "receive_ws_callback", server.name)
     ws.send(json.dumps(params))
+
+    hook_ping = weechat.hook_timer(5 * 1000, 0, 0, "ws_ping_cb", server.name)
 
     return Worker(
         ws= ws,
-        hook= hook,
+        hook_data_read= hook_data_read,
+        hook_ping= hook_ping,
+        last_ping_time= 0,
+        last_pong_time= 0,
     )
 
 def close_worker(worker):
-    weechat.unhook(worker.hook)
+    weechat.unhook(worker.hook_data_read)
+    weechat.unhook(worker.hook_ping)
     worker.ws.close()
+
+def ws_ping_cb(server_name, remaining_calls):
+    server = get_server(server_name)
+    worker = server.worker
+
+    if worker.last_pong_time < worker.last_ping_time:
+        weechat.prnt("", "it seems we lost server")
+
+    try:
+        result = worker.ws.ping()
+        worker = worker._replace(last_ping_time=time.time())
+        server = server._replace(worker=worker)
+        update_server(server)
+    except (WebSocketConnectionClosedException, socket.error) as e:
+        weechat.prnt("", "socker error!")
+
+    return weechat.WEECHAT_RC_OK
 
 def handle_posted_message(server, message):
     data = message["data"]
@@ -109,14 +137,20 @@ def handle_ws_message(server, message):
 
 def receive_ws_callback(server_name, data):
     server = get_server(server_name)
-    ws = server.worker.ws
+    worker = server.worker
 
     while True:
         try:
-            opcode, data = ws.recv_data(control_frame=True)
+            opcode, data = worker.ws.recv_data(control_frame=True)
         except SSLWantReadError:
             return weechat.WEECHAT_RC_OK
         except (WebSocketConnectionClosedException, socket.error) as e:
+            return weechat.WEECHAT_RC_OK
+
+        if opcode == ABNF.OPCODE_PONG:
+            worker = worker._replace(last_pong_time=time.time())
+            server = server._replace(worker=worker)
+            update_server(server)
             return weechat.WEECHAT_RC_OK
 
         if data:
@@ -124,3 +158,4 @@ def receive_ws_callback(server_name, data):
             handle_ws_message(server, message)
 
     return weechat.WEECHAT_RC_OK
+

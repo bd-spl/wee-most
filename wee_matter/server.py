@@ -2,6 +2,7 @@
 import weechat
 from typing import NamedTuple
 import json
+import time
 import re
 
 servers = {}
@@ -61,6 +62,9 @@ def get_server(server_name):
         return
 
     return servers[server_name]
+
+def update_server(server):
+    servers[server.name] = server
 
 def get_server_from_buffer(buffer):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
