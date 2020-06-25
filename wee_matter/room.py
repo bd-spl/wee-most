@@ -218,9 +218,10 @@ def get_files_from_post_data(post_data, server):
     return []
 
 def get_reaction_from_reaction_data(reaction_data, server):
-    user = None
-    if reaction_data["user_id"] in server.users:
-        user = server.users[reaction_data["user_id"]]
+    if reaction_data["user_id"] not in server.users:
+        weechat.prnt("", "User not found in server")
+        return
+    user = server.users[reaction_data["user_id"]]
 
     return Reaction(
         user= user,
@@ -232,7 +233,10 @@ def get_reactions_from_post_data(post_data, server):
     if "reactions" in post_data["metadata"]:
         reactions = []
         for reaction_data in post_data["metadata"]["reactions"]:
-            reactions.append(get_reaction_from_reaction_data(reaction_data, server))
+            reaction = get_reaction_from_reaction_data(reaction_data, server)
+            if not reaction:
+                continue
+            reactions.append(reaction)
         return reactions
 
     return []
