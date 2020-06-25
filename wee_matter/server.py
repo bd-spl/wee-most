@@ -24,6 +24,7 @@ Server = NamedTuple(
         ("buffer", any),
         ("buffers", list),
         ("worker", any),
+        ("reconnection_loop_hook", str),
     ],
 )
 
@@ -148,6 +149,7 @@ def load_server(server_name):
         buffer= None,
         buffers= [],
         worker= None,
+        reconnection_loop_hook= "",
     )
 
     return servers[server_name]
@@ -162,6 +164,8 @@ def unload_server(server_name):
 
     if server.worker:
         close_worker(server.worker)
+    if server.reconnection_loop_hook:
+        weechat.unhook(server.reconnection_loop_hook)
 
     for buffer in server.buffers:
         weechat.buffer_close(buffer)
@@ -251,10 +255,11 @@ def connect_server_cb(server_name, command, rc, out, err):
     worker = create_worker(server)
     if not worker:
         return weechat.WEECHAT_RC_ERROR
-    weechat.hook_timer(5 * 1000, 0, 0, "reconnection_loop_cb", server.name)
+    reconnection_loop_hook = weechat.hook_timer(5 * 1000, 0, 0, "reconnection_loop_cb", server.name)
 
     server = server._replace(
         worker= worker,
+        reconnection_loop_hook= reconnection_loop_hook,
     )
     servers[server_name] = server
 
@@ -305,7 +310,7 @@ def disconnect_server_cb(server_name, command, rc, out, err):
 
     unload_server(server_name)
 
-    weechat.prnt("", "Disconnected to " + server_name)
+    weechat.prnt("", "Disconnected")
 
     return weechat.WEECHAT_RC_OK
 
@@ -328,8 +333,6 @@ def reconnect_server(server_name):
         return weechat.WEECHAT_RC_ERROR
 
     close_worker(server.worker)
-
-    #weechat.prnt("", "we should sync back")
 
     return weechat.WEECHAT_RC_OK
 
