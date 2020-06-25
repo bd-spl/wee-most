@@ -118,27 +118,35 @@ def build_reaction_line(post):
     return reaction_line.strip()
 
 def write_parent_message_lines(buffer, post):
-    if post.parent_id:
-        parent_line_data = find_buffer_first_post_line_data(buffer, post.parent_id)
-        parent_tags = get_line_data_tags(parent_line_data)
-        parent_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), parent_line_data, "date")
-        parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
-        if not "reactions" in parent_tags:
-            parent_message = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "message")
-        else:
-            parent_message = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "message").rsplit(' | ', 1)[0]
-        weechat.prnt_date_tags(
-            buffer,
-            parent_message_date,
-            "post_id_%s" % post.id,
-            parent_message_prefix + "	> " + parent_message
-        )
+    if not post.parent_id:
+        return
+    parent_line_data = find_buffer_first_post_line_data(buffer, post.parent_id)
+    parent_tags = get_line_data_tags(parent_line_data)
+    parent_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), parent_line_data, "date")
+    parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
+    if not "reactions" in parent_tags:
+        parent_message = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "message")
+    else:
+        parent_message = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "message").rsplit(' | ', 1)[0]
+    weechat.prnt_date_tags(
+        buffer,
+        parent_message_date,
+        "post_id_%s" % post.id,
+        parent_message_prefix + "	> " + parent_message
+    )
 
 def write_message_lines(buffer, post):
     tags = "post_id_%s" % post.id
 
-    if write_parent_message_lines(buffer, post):
-        tags += ",notify_highlight"
+    if post.parent_id:
+        write_parent_message_lines(buffer, post)
+
+        parent_line_data = find_buffer_first_post_line_data(buffer, post.parent_id)
+        parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
+        own_prefix = weechat.buffer_get_string(buffer, "localvar_nick")
+
+        if weechat.string_remove_color(parent_message_prefix, "") == own_prefix:
+            tags += ",notify_highlight"
 
     if not post.reactions:
         weechat.prnt_date_tags(
