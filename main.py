@@ -11,7 +11,7 @@ from wee_matter.server import (connect_server_cb, connect_server_teams_cb,
 from wee_matter.room import (hidrate_room_read_posts_cb, hidrate_room_posts_cb,
                              hidrate_room_users_cb, room_input_cb,
                              post_post_cb, handle_multiline_message_cb,
-                             buffer_switch_cb, append_file_public_link_to_post_cb)
+                             buffer_switch_cb)
 
 from wee_matter.http import singularity_cb
 

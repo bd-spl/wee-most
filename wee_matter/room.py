@@ -56,8 +56,7 @@ Reaction = NamedTuple(
 
 from wee_matter.http import (run_post_post, run_get_read_channel_posts,
                              run_get_channel_members, run_get_channel_posts_after,
-                             run_post_user_post_unread, run_get_file_public_link,
-                             build_file_url)
+                             run_post_user_post_unread, build_file_url)
 
 def mark_channel_as_read(buffer):
     server = get_server_from_buffer(buffer)
@@ -107,31 +106,6 @@ def handle_multiline_message_cb(data, modifier, buffer, string):
         room_input_cb("EVENTROUTER", buffer, string)
         return ""
     return string
-
-def append_file_public_link_to_post_cb(data, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occured when appending file to post")
-        return weechat.WEECHAT_RC_ERROR
-
-    response = json.loads(out)
-
-    buffer = data.split("|")[0]
-    post_id = data.split("|")[1]
-
-    line_data = find_buffer_last_post_line_data(buffer, post_id)
-
-    old_message = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message")
-    new_message = old_message + "[{}]".format(response["link"])
-
-    weechat.hdata_update(
-        weechat.hdata_get("line_data"),
-        line_data,
-        {
-            "message": new_message
-        }
-    )
-
-    return weechat.WEECHAT_RC_OK
 
 def build_reaction_message(reaction):
     return "[:{}:]".format(reaction.emoji_name)
