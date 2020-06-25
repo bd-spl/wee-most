@@ -8,6 +8,7 @@ from wee_matter.room import (write_post_from_post_data, build_buffer_room_name,
                              mark_channel_as_read, get_reaction_from_reaction_data,
                              add_reaction_to_post, remove_reaction_from_post,
                              get_buffer_from_post_id, get_buffer_from_channel_id)
+from wee_matter.http import run_get_channel_posts_after
 from typing import NamedTuple
 import json
 import socket
@@ -64,6 +65,13 @@ def create_worker(server):
         last_pong_time= 0,
     )
 
+def rehidrate_server_buffers(server):
+    weechat.prnt("", "Syncing...")
+    for buffer in server.buffers:
+        last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
+        channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
+        run_get_channel_posts_after(last_post_id, channel_id, server, "hidrate_room_posts_cb", buffer)
+
 def reconnection_loop_cb(server_name, remaining_calls):
     server = get_server(server_name)
     if server != None and is_connected(server):
@@ -75,6 +83,7 @@ def reconnection_loop_cb(server_name, remaining_calls):
     if new_worker:
         update_server_worker(server, new_worker)
         weechat.prnt("", "Connected back.")
+        rehidrate_server_buffers(server)
         return weechat.WEECHAT_RC_OK
 
     weechat.prnt("", "Reconnection issue. Trying again in some seconds...")
