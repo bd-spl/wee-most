@@ -5,7 +5,7 @@ from websocket import create_connection, WebSocketConnectionClosedException
 from wee_matter.room import (write_post_from_post_data, build_buffer_room_name,
                              mark_channel_as_read, get_reaction_from_reaction_data,
                              add_reaction_to_post, remove_reaction_from_post,
-                             get_buffer_from_post_id)
+                             get_buffer_from_post_id, get_buffer_from_channel_id)
 from typing import NamedTuple
 import json
 import socket
@@ -61,8 +61,10 @@ def handle_posted_message(server, message):
 
     write_post_from_post_data(post)
 
-    buffer_name = build_buffer_room_name(post["channel_id"])
-    buffer = weechat.buffer_search("", buffer_name)
+    buffer = get_buffer_from_channel_id(post["channel_id"])
+    if not buffer:
+        return
+
     if buffer == weechat.current_buffer():
         mark_channel_as_read(buffer)
 
