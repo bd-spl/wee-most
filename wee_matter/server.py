@@ -63,8 +63,10 @@ def get_server(server_name):
 
     return servers[server_name]
 
-def update_server(server):
+def update_server_worker(server, worker):
+    server = server._replace(worker=worker)
     servers[server.name] = server
+    return server
 
 def get_server_from_buffer(buffer):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")

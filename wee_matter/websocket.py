@@ -1,7 +1,7 @@
 
 import weechat
 import time
-from wee_matter.server import get_server, update_server, is_connected
+from wee_matter.server import get_server, update_server_worker, is_connected
 from websocket import (create_connection, WebSocketConnectionClosedException,
                        WebSocketTimeoutException, ABNF)
 from wee_matter.room import (write_post_from_post_data, build_buffer_room_name,
@@ -73,8 +73,7 @@ def reconnection_loop_cb(server_name, remaining_calls):
 
     new_worker = create_worker(server)
     if new_worker:
-        server = server._replace(worker=new_worker)
-        update_server(server)
+        update_server_worker(server, new_worker)
         weechat.prnt("", "Connected back.")
         return weechat.WEECHAT_RC_OK
 
@@ -86,27 +85,25 @@ def close_worker(worker):
     weechat.unhook(worker.hook_ping)
     worker.ws.close()
 
+def handle_loosed_connection(server):
+    weechat.prnt("", "Loosed connection.")
+    close_worker(server.worker)
+    update_server_worker(server, None)
+
 def ws_ping_cb(server_name, remaining_calls):
     server = get_server(server_name)
     worker = server.worker
 
     if worker.last_pong_time < worker.last_ping_time:
-        weechat.prnt("", "Loosed connection.")
-        close_worker(server.worker)
-        server = server._replace(worker=None)
-        update_server(server)
+        handle_loosed_connection(server)
         return weechat.WEECHAT_RC_OK
 
     try:
-        result = worker.ws.ping()
+        worker.ws.ping()
         worker = worker._replace(last_ping_time=time.time())
-        server = server._replace(worker=worker)
-        update_server(server)
+        update_server_worker(server, worker)
     except (WebSocketConnectionClosedException, socket.error) as e:
-        close_worker(server.worker)
-        server = server._replace(worker=None)
-        update_server(server)
-        return weechat.WEECHAT_RC_OK
+        handle_loosed_connection(server)
 
     return weechat.WEECHAT_RC_OK
 
@@ -176,8 +173,7 @@ def receive_ws_callback(server_name, data):
 
         if opcode == ABNF.OPCODE_PONG:
             worker = worker._replace(last_pong_time=time.time())
-            server = server._replace(worker=worker)
-            update_server(server)
+            update_server_worker(server, worker)
             return weechat.WEECHAT_RC_OK
 
         if data:
