@@ -268,8 +268,6 @@ def write_post_from_post_data(post_data):
 def hidrate_room_posts_cb(buffer, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occured when hidrating room")
-        weechat.prnt("", err)
-
         return weechat.WEECHAT_RC_ERROR
 
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
@@ -289,8 +287,6 @@ def hidrate_room_posts_cb(buffer, command, rc, out, err):
 def hidrate_room_read_posts_cb(buffer, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occured when hidrating room")
-        weechat.prnt("", err)
-
         return weechat.WEECHAT_RC_ERROR
 
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
@@ -490,7 +486,6 @@ def remove_reaction_from_post(buffer, reaction):
         return
 
     tags = get_line_data_tags(line_data)
-    weechat.prnt("", str(tags))
     if not "reactions" in tags:
         return
 
