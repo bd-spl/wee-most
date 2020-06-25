@@ -1,7 +1,7 @@
 
 import weechat
 import json
-from wee_matter.server import get_server_from_buffer
+from wee_matter.server import get_servers, get_server_from_buffer
 from typing import NamedTuple
 import re
 
@@ -53,6 +53,43 @@ Reaction = NamedTuple(
         ("post_id", str),
     ]
 )
+
+def channel_completion_cb(data, completion_item, current_buffer, completion):
+    servers = get_servers()
+    for server in servers.values():
+        weechat.hook_completion_list_add(completion, server.name, 0, weechat.WEECHAT_LIST_POS_SORT)
+        for team in server.teams.values():
+            for buffer in team.buffers:
+                buffer_name = weechat.buffer_get_string(buffer, "short_name")
+                weechat.hook_completion_list_add(completion, buffer_name, 0, weechat.WEECHAT_LIST_POS_SORT)
+
+    return weechat.WEECHAT_RC_OK
+
+def private_completion_cb(data, completion_item, current_buffer, completion):
+    servers = get_servers()
+    for server in servers.values():
+        for buffer in server.buffers:
+            buffer_name = weechat.buffer_get_string(buffer, "short_name")
+            weechat.hook_completion_list_add(completion, buffer_name, 0, weechat.WEECHAT_LIST_POS_SORT)
+    return weechat.WEECHAT_RC_OK
+
+def channel_switch_cb(data, current_buffer, args):
+    target_room_name = args.split(" ", 1)[1]
+
+    servers = get_servers()
+    for server in servers.values():
+        for team in server.teams.values():
+            for buffer in team.buffers:
+                buffer_name = weechat.buffer_get_string(buffer, "short_name")
+                if buffer_name == target_room_name:
+                    weechat.buffer_set(buffer, "display", "1")
+                    return weechat.WEECHAT_RC_OK_EAT
+        for buffer in server.buffers:
+            buffer_name = weechat.buffer_get_string(buffer, "short_name")
+            weechat.buffer_set(buffer, "display", "1")
+            return weechat.WEECHAT_RC_OK_EAT
+
+    return weechat.WEECHAT_RC_OK
 
 from wee_matter.http import (run_post_post, run_get_read_channel_posts,
                              run_get_channel_members, run_get_channel_posts_after,
@@ -350,7 +387,8 @@ def create_room(room_data, server):
 
     weechat.buffer_set(buffer, "nicklist", "1")
 
-    weechat.buffer_set(buffer, "short_name", build_room_name(room_data, server))
+    room_name = build_room_name(room_data, server)
+    weechat.buffer_set(buffer, "short_name", room_name)
 
     weechat.buffer_set(buffer, "highlight_words", "@{},{},@here".format(server.user.username, server.user.username))
     weechat.buffer_set(buffer, "localvar_set_nick", server.user.username)

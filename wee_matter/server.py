@@ -64,6 +64,9 @@ def get_server(server_name):
 
     return servers[server_name]
 
+def get_servers():
+    return servers
+
 def update_server_worker(server, worker):
     server = server._replace(worker=worker)
     servers[server.name] = server
@@ -112,6 +115,12 @@ def create_user(user_data, server):
 
 def is_connected(server: Server):
     return server.worker
+
+def server_completion_cb(data, completion_item, current_buffer, completion):
+    servers = get_servers()
+    for server in servers.values():
+        weechat.hook_completion_list_add(completion, server.name, 0, weechat.WEECHAT_LIST_POS_SORT)
+    return weechat.WEECHAT_RC_OK
 
 from wee_matter.room import create_room
 from wee_matter.websocket import create_worker, close_worker
