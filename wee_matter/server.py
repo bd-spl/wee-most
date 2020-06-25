@@ -160,7 +160,8 @@ def unload_server(server_name):
     weechat.prnt("", "Unloading server")
     server = servers.pop(server_name)
 
-    close_worker(server.worker)
+    if server.worker:
+        close_worker(server.worker)
 
     for buffer in server.buffers:
         weechat.buffer_close(buffer)
