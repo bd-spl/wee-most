@@ -107,6 +107,9 @@ def create_user(user_data, server):
         color= color_for_username(user_data["username"]),
     )
 
+def is_connected(server: Server):
+    return server.worker
+
 from wee_matter.room import create_room
 from wee_matter.websocket import create_worker, close_worker
 from wee_matter.http import (run_get_user_teams, run_get_users,
@@ -165,9 +168,6 @@ def unload_server(server_name):
         weechat.buffer_close(team.buffer)
 
     weechat.buffer_close(server.buffer)
-
-def is_connected(server: Server):
-    return server.user_token != ""
 
 def connect_server_team_channels_cb(server_name, command, rc, out, err):
     if rc != 0:
@@ -245,9 +245,15 @@ def connect_server_cb(server_name, command, rc, out, err):
         user= user,
     )
 
-    servers[server_name] = server._replace(
-        worker=create_worker(server)
+    worker = create_worker(server)
+    if not worker:
+        return weechat.WEECHAT_RC_ERROR
+    weechat.hook_timer(5 * 1000, 0, 0, "reconnection_loop_cb", server.name)
+
+    server = server._replace(
+        worker= worker,
     )
+    servers[server_name] = server
 
     weechat.prnt("", "Connected to " + server_name)
 
@@ -310,6 +316,20 @@ def disconnect_server(server_name):
     run_user_logout(server, "disconnect_server_cb", server.name)
 
     return weechat.WEECHAT_RC_OK
+
+def reconnect_server(server_name):
+    server = get_server(server_name)
+
+    if not is_connected(server):
+        weechat.prnt("", "Not connected")
+        return weechat.WEECHAT_RC_ERROR
+
+    close_worker(server.worker)
+
+    #weechat.prnt("", "we should sync back")
+
+    return weechat.WEECHAT_RC_OK
+
 
 def auto_connect_servers():
     if not weechat.config_is_set_plugin("autoconnect"):
