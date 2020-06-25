@@ -72,9 +72,10 @@ def handle_reaction_added_message(server, message):
     reaction_data = json.loads(data["reaction"])
 
     reaction = get_reaction_from_reaction_data(reaction_data, server)
-    if not reaction:
-        return
     buffer = get_buffer_from_post_id(reaction_data["post_id"])
+
+    if not buffer or not reaction:
+        return
 
     reaction = get_reaction_from_reaction_data(reaction_data, server)
     add_reaction_to_post(buffer, reaction)
@@ -85,9 +86,10 @@ def handle_reaction_removed_message(server, message):
     reaction_data = json.loads(data["reaction"])
 
     reaction = get_reaction_from_reaction_data(reaction_data, server)
-    if not reaction:
-        return
     buffer = get_buffer_from_post_id(reaction_data["post_id"])
+
+    if not buffer or not reaction:
+        return
 
     remove_reaction_from_post(buffer, reaction)
 
