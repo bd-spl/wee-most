@@ -1,7 +1,7 @@
 
 import weechat
 import json
-from wee_matter.server import get_server
+from wee_matter.server import get_server_from_buffer
 from typing import NamedTuple
 import re
 
@@ -60,8 +60,7 @@ from wee_matter.http import (run_post_post, run_get_read_channel_posts,
                              build_file_url)
 
 def mark_channel_as_read(buffer):
-    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
-    server = get_server(server_name)
+    server = get_server_from_buffer(buffer)
 
     last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
     last_read_post_id = weechat.buffer_get_string(buffer, "localvar_last_read_post_id")
@@ -83,8 +82,7 @@ def post_post_cb(buffer, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def room_input_cb(data, buffer, input_data):
-    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
-    server = get_server(server_name)
+    server = get_server_from_buffer(buffer)
 
     post = Post(
         id= "",
@@ -195,8 +193,7 @@ def write_file_lines(buffer, post):
         )
 
 def write_post(buffer, post):
-    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
-    server = get_server(server_name)
+    server = get_server_from_buffer(buffer)
 
     write_message_lines(buffer, post)
     write_file_lines(buffer, post)
@@ -245,8 +242,7 @@ def write_post_from_post_data(post_data):
     buffer_name = build_buffer_room_name(post_data["channel_id"])
     buffer = weechat.buffer_search("", buffer_name)
 
-    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
-    server = get_server(server_name)
+    server = get_server_from_buffer(buffer)
 
     if post_data["user_id"] not in server.users:
         weechat.prnt("", "User not found in server")
@@ -274,8 +270,7 @@ def hidrate_room_posts_cb(buffer, command, rc, out, err):
         weechat.prnt("", "An error occured when hidrating room")
         return weechat.WEECHAT_RC_ERROR
 
-    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
-    server = get_server(server_name)
+    server = get_server_from_buffer(buffer)
 
     response = json.loads(out)
 
@@ -293,8 +288,7 @@ def hidrate_room_read_posts_cb(buffer, command, rc, out, err):
         weechat.prnt("", "An error occured when hidrating room")
         return weechat.WEECHAT_RC_ERROR
 
-    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
-    server = get_server(server_name)
+    server = get_server_from_buffer(buffer)
 
     response = json.loads(out)
 
@@ -338,8 +332,7 @@ def hidrate_room_users_cb(buffer, command, rc, out, err):
 
     response = json.loads(out)
 
-    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
-    server = get_server(server_name)
+    server = get_server_from_buffer(buffer)
 
     for user in response:
         create_room_user(user, buffer, server)

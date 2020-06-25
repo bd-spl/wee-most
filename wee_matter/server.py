@@ -62,6 +62,10 @@ def get_server(server_name):
 
     return servers[server_name]
 
+def get_server_from_buffer(buffer):
+    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
+    return get_server(server_name)
+
 def create_team(team_data, server):
     server_number = weechat.buffer_get_integer(server.buffer, "number")
 
