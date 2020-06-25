@@ -27,12 +27,12 @@ Post = NamedTuple(
     [
         ("id", str),
         ("parent_id", str),
-        ("user_name", str),
         ("channel_id", str),
         ("message", str),
         ("date", int),
         ("files", list),
         ("reactions", list),
+        ("user", any),
     ]
 )
 
@@ -71,16 +71,6 @@ def mark_channel_as_read(buffer):
     run_post_user_post_unread(server.user_id, last_post_id, server, "singularity_cb", "")
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", last_post_id)
 
-def color_for_username(username):
-    nick_colors = weechat.config_string(
-         weechat.config_get("weechat.color.chat_nick_colors")
-    ).split(",")
-    nick_color_count = len(nick_colors)
-    color_id = hash(username) % nick_color_count
-
-    color = nick_colors[color_id]
-
-    return color
 
 def colorize_sentence(sentence, color):
     return "{}{}{}".format(weechat.color(color), sentence, weechat.color("reset"))
@@ -96,15 +86,17 @@ def room_input_cb(data, buffer, input_data):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
     server = get_server(server_name)
 
+    user = server.users[server.user_id]
+
     post = Post(
         id= "",
         parent_id= "",
-        user_name= server.user_name,
         channel_id= weechat.buffer_get_string(buffer, "localvar_channel_id"),
         message= input_data,
         date= 0,
         files= [],
         reactions= [],
+        user= user,
     )
 
     run_post_post(post, server, "post_post_cb", buffer)
@@ -155,7 +147,7 @@ def build_reaction_line(post):
 
     return reaction_line.strip()
 
-def write_parent_message_lines(buffer, post, server):
+def write_parent_message_lines(buffer, post):
     if post.parent_id:
         parent_line_data = find_buffer_first_post_line_data(buffer, post.parent_id)
         parent_tags = get_line_data_tags(parent_line_data)
@@ -171,20 +163,11 @@ def write_parent_message_lines(buffer, post, server):
             "post_id_%s" % post.id,
             parent_message_prefix + "	> " + parent_message
         )
-        if weechat.string_remove_color(parent_message_prefix, "") == server.user_name:
-            return True
 
-def write_message_lines(buffer, post, server):
+def write_message_lines(buffer, post):
     tags = "post_id_%s" % post.id
 
-    if post.user_name == server.user_name:
-        username_color = weechat.config_string(
-             weechat.config_get("weechat.color.chat_nick_self")
-        )
-    else:
-        username_color = color_for_username(post.user_name)
-
-    if write_parent_message_lines(buffer, post, server):
+    if write_parent_message_lines(buffer, post):
         tags += ",notify_highlight"
 
     if not post.reactions:
@@ -192,7 +175,7 @@ def write_message_lines(buffer, post, server):
             buffer,
             post.date,
             tags,
-            colorize_sentence(post.user_name, username_color) + "	" + post.message
+            colorize_sentence(post.user.username, post.user.color) + "	" + post.message
         )
         return
 
@@ -201,7 +184,7 @@ def write_message_lines(buffer, post, server):
         buffer,
         post.date,
         tags,
-        colorize_sentence(post.user_name, username_color) + "	" + post.message + " | " + build_reaction_line(post)
+        colorize_sentence(post.user.username, post.user.color) + "	" + post.message + " | " + build_reaction_line(post)
     )
 
 def write_file_lines(buffer, post):
@@ -217,7 +200,7 @@ def write_post(buffer, post):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
     server = get_server(server_name)
 
-    write_message_lines(buffer, post, server)
+    write_message_lines(buffer, post)
     write_file_lines(buffer, post)
 
     weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
@@ -263,19 +246,21 @@ def write_post_from_post_data(post_data):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
     server = get_server(server_name)
 
-    username = post_data["user_id"]
-    if username in server.users:
-        username = server.users[username].username
+    if post_data["user_id"] not in server.users:
+        weechat.prnt("", "User not found in server")
+        return
+
+    user = server.users[post_data["user_id"]]
 
     post = Post(
         id= post_data["id"],
         parent_id= post_data["parent_id"],
-        user_name= username,
         channel_id= post_data["channel_id"],
         message= post_data["message"],
         date= int(post_data["create_at"]/1000),
         files= get_files_from_post_data(post_data, server),
         reactions= get_reactions_from_post_data(post_data, server),
+        user= user,
     )
 
     write_post(buffer, post)
@@ -336,26 +321,17 @@ def create_room_group(group_name, buffer):
     return group
 
 def create_room_user(user_data, buffer, server):
+    if user_data["user_id"] not in server.users:
+        weechat.prnt("", "User not found in server")
+        return
+
+    user = server.users[user_data["user_id"]]
+
     for role in user_data["roles"].split():
         group_name = role.replace("channel_", "")
         group = create_room_group(group_name, buffer)
 
-        username = user_data["user_id"]
-        if username in server.users:
-            username = server.users[username].username
-
-        prefix_color = weechat.config_string(
-             weechat.config_get("weechat.color.chat_nick_prefix")
-        )
-
-        if username == server.user_name:
-            username_color = weechat.config_string(
-                 weechat.config_get("weechat.color.chat_nick_self")
-            )
-        else:
-            username_color = color_for_username(username)
-
-        weechat.nicklist_add_nick(buffer, group, username, username_color, "@", prefix_color, 1)
+        weechat.nicklist_add_nick(buffer, group, user.username, user.color, "@", user.color, 1)
 
 def hidrate_room_users_cb(buffer, command, rc, out, err):
     if rc != 0:

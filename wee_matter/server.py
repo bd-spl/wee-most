@@ -32,6 +32,7 @@ User = NamedTuple(
     [
         ("id", str),
         ("username", str),
+        ("color", str),
     ]
 )
 
@@ -81,10 +82,26 @@ def create_team(team_data, server):
          buffers= [],
     )
 
+def color_for_username(username, server):
+    if username == server.user_name:
+        return weechat.config_string(
+             weechat.config_get("weechat.color.chat_nick_self")
+        )
+    nick_colors = weechat.config_string(
+         weechat.config_get("weechat.color.chat_nick_colors")
+    ).split(",")
+    nick_color_count = len(nick_colors)
+    color_id = hash(username) % nick_color_count
+
+    color = nick_colors[color_id]
+
+    return color
+
 def create_user(user_data, server):
     return User(
         id= user_data["id"],
         username= user_data["username"],
+        color= color_for_username(user_data["username"], server),
     )
 
 from wee_matter.room import create_room
