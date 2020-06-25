@@ -70,10 +70,9 @@ def handle_reaction_added_message(server, message):
     data = message["data"]
 
     reaction_data = json.loads(data["reaction"])
-    broadcast_data = message["broadcast"]
 
-    buffer_name = build_buffer_room_name(broadcast_data["channel_id"])
-    buffer = weechat.buffer_search("", buffer_name)
+    reaction = get_reaction_from_reaction_data(reaction_data, server)
+    buffer = get_buffer_from_post_id(reaction_data["post_id"])
 
     reaction = get_reaction_from_reaction_data(reaction_data, server)
     add_reaction_to_post(buffer, reaction)
