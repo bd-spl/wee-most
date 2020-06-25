@@ -88,4 +88,3 @@ def setup_commands():
     weechat.hook_completion("irc_channels", "complete channels for mattermost", "channel_completion_cb", "")
     weechat.hook_completion("irc_privates", "complete dms/mpdms for mattermost", "private_completion_cb", "")
     weechat.hook_completion("mattermost_server_commands", "complete server names for mattermost", "server_completion_cb", "")
-    weechat.hook_command_run('/buffer', 'channel_switch_cb', '')
