@@ -76,7 +76,7 @@ def get_server_from_buffer(buffer):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
     return get_server(server_name)
 
-def create_team(team_data, server):
+def create_team_from_team_data(team_data, server):
     server_number = weechat.buffer_get_integer(server.buffer, "number")
 
     buffer = weechat.buffer_new("weematter." + team_data["display_name"], "", "", "", "")
@@ -99,14 +99,13 @@ def color_for_username(username):
     nick_colors = weechat.config_string(
          weechat.config_get("weechat.color.chat_nick_colors")
     ).split(",")
+
     nick_color_count = len(nick_colors)
     color_id = hash(username) % nick_color_count
 
-    color = nick_colors[color_id]
+    return nick_colors[color_id]
 
-    return color
-
-def create_user(user_data, server):
+def create_user_from_user_data(user_data, server):
     return User(
         id= user_data["id"],
         username= user_data["username"],
@@ -122,7 +121,7 @@ def server_completion_cb(data, completion_item, current_buffer, completion):
         weechat.hook_completion_list_add(completion, server_name, 0, weechat.WEECHAT_LIST_POS_SORT)
     return weechat.WEECHAT_RC_OK
 
-from wee_matter.room import create_room
+from wee_matter.room import create_room_from_channel_data
 from wee_matter.websocket import create_worker, close_worker
 from wee_matter.http import (run_get_user_teams, run_get_users,
                             run_user_login, run_user_logout,
@@ -178,7 +177,7 @@ def unload_server(server_name):
 
     for buffer in server.buffers:
         weechat.buffer_close(buffer)
-    for team_id, team in server.teams.items():
+    for team in server.teams.values():
         for buffer in team.buffers:
             weechat.buffer_close(buffer)
         weechat.buffer_close(team.buffer)
@@ -193,8 +192,8 @@ def connect_server_team_channels_cb(server_name, command, rc, out, err):
     server = get_server(server_name)
 
     response = json.loads(out)
-    for room in response:
-        create_room(room, server)
+    for channel_data in response:
+        create_room_from_channel_data(channel_data, server)
 
     return weechat.WEECHAT_RC_OK
 
@@ -206,12 +205,11 @@ def connect_server_users_cb(server_name, command, rc, out, err):
     server = get_server(server_name)
 
     response = json.loads(out)
-    users = {}
     for user in response:
         if user["id"] == server.user.id:
             server.users[user["id"]] = server.user
         else:
-            server.users[user["id"]] = create_user(user, server)
+            server.users[user["id"]] = create_user_from_user_data(user, server)
 
     run_get_user_teams(server.user.id, server, "connect_server_teams_cb", server.name)
 
@@ -226,12 +224,11 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
 
     response = json.loads(out)
 
-    teams = {}
-    for team in response:
-        server.teams[team["id"]] = create_team(team, server)
+    for team_data in response:
+        server.teams[team_data["id"]] = create_team_from_team_data(team_data, server)
 
-    for team in response:
-        run_get_user_team_channels(server.user.id, team["id"], server, "connect_server_team_channels_cb", server.name)
+    for team_data in response:
+        run_get_user_team_channels(server.user.id, team_data["id"], server, "connect_server_team_channels_cb", server.name)
 
     return weechat.WEECHAT_RC_OK
 
@@ -245,7 +242,7 @@ def connect_server_cb(server_name, command, rc, out, err):
         weechat.prnt("", "User token not present in response")
         return weechat.WEECHAT_RC_ERROR
 
-    out = out.splitlines()[-1] # we remove the headers
+    out = out.splitlines()[-1] # we remove the headers line
     response = json.loads(out)
 
     server = get_server(server_name)
@@ -344,7 +341,6 @@ def reconnect_server(server_name):
     close_worker(server.worker)
 
     return weechat.WEECHAT_RC_OK
-
 
 def auto_connect_servers():
     if not weechat.config_is_set_plugin("autoconnect"):

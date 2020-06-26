@@ -21,7 +21,6 @@ def get_buffer_from_post_id(post_id):
 
     return post_buffers[post_id]
 
-
 Post = NamedTuple(
     "Post",
     [
@@ -86,12 +85,11 @@ def mark_channel_as_read(buffer):
 
     last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
     last_read_post_id = weechat.buffer_get_string(buffer, "localvar_last_read_post_id")
-    if last_post_id == last_read_post_id:
+    if last_post_id == last_read_post_id: # prevent spamming on buffer switch
         return
 
     run_post_user_post_unread(server.user.id, last_post_id, server, "singularity_cb", "")
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", last_post_id)
-
 
 def colorize_sentence(sentence, color):
     return "{}{}{}".format(weechat.color(color), sentence, weechat.color("reset"))
@@ -131,8 +129,9 @@ def handle_multiline_message_cb(data, modifier, buffer, string):
         return string
 
     if "\n" in string and not string[0] == "/":
-        room_input_cb("EVENTROUTER", buffer, string)
+        room_input_cb(data, buffer, string)
         return ""
+
     return string
 
 def build_reaction_message(reaction):
@@ -148,9 +147,11 @@ def build_reaction_line(post):
 def write_parent_message_lines(buffer, post):
     if not post.parent_id:
         return
+
     parent_line_data = find_buffer_first_post_line_data(buffer, post.parent_id)
     if not parent_line_data:
         return
+
     parent_tags = get_line_data_tags(parent_line_data)
     parent_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), parent_line_data, "date")
     parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
@@ -177,24 +178,25 @@ def write_message_lines(buffer, post):
             parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
             own_prefix = weechat.buffer_get_string(buffer, "localvar_nick")
 
+            # if somebody (not us) reply to our post
             if parent_message_prefix == own_prefix and parent_message_prefix != post.user.username:
                 tags += ",notify_highlight"
 
-    if not post.reactions:
+    if post.reactions:
+        tags += ",reactions"
         weechat.prnt_date_tags(
             buffer,
             post.date,
             tags,
-            colorize_sentence(post.user.username, post.user.color) + "	" + post.message
+            colorize_sentence(post.user.username, post.user.color) + "	" + post.message + " | " + build_reaction_line(post)
         )
         return
 
-    tags += ",reactions"
     weechat.prnt_date_tags(
         buffer,
         post.date,
         tags,
-        colorize_sentence(post.user.username, post.user.color) + "	" + post.message + " | " + build_reaction_line(post)
+        colorize_sentence(post.user.username, post.user.color) + "	" + post.message
     )
 
 def write_file_lines(buffer, post):
@@ -219,11 +221,13 @@ def get_files_from_post_data(post_data, server):
     if "files" in post_data["metadata"]:
         files = []
         for file_data in post_data["metadata"]["files"]:
-            files.append(File(
-                id= file_data["id"],
-                name= file_data["name"],
-                url= build_file_url(file_data["id"], server)
-            ))
+            files.append(
+                File(
+                    id= file_data["id"],
+                    name= file_data["name"],
+                    url= build_file_url(file_data["id"], server)
+                )
+            )
         return files
 
     return []
@@ -253,7 +257,7 @@ def get_reactions_from_post_data(post_data, server):
     return []
 
 def write_post_from_post_data(post_data):
-    buffer_name = build_buffer_room_name(post_data["channel_id"])
+    buffer_name = build_buffer_channel_name(post_data["channel_id"])
     buffer = weechat.buffer_search("", buffer_name)
 
     server = get_server_from_buffer(buffer)
@@ -326,7 +330,7 @@ def create_room_group(group_name, buffer):
 
     return group
 
-def create_room_user(user_data, buffer, server):
+def create_room_user_from_user_data(user_data, buffer, server):
     if user_data["user_id"] not in server.users:
         weechat.prnt("", "User not found in server")
         return
@@ -348,20 +352,20 @@ def hidrate_room_users_cb(buffer, command, rc, out, err):
 
     server = get_server_from_buffer(buffer)
 
-    for user in response:
-        create_room_user(user, buffer, server)
+    for user_data in response:
+        create_room_user_from_user_data(user_data, buffer, server)
 
     return weechat.WEECHAT_RC_OK
 
-def build_buffer_room_name(channel_id):
+def build_buffer_channel_name(channel_id):
     return "weematter." + channel_id
 
-def build_room_name(room_data, server):
-    room_name = room_data["name"]
-    if "" != room_data["display_name"]:
-        room_name = room_data["display_name"]
+def build_room_name_from_channel_data(channel_data, server):
+    room_name = channel_data["name"]
+    if "" != channel_data["display_name"]:
+        room_name = channel_data["display_name"]
     else:
-        match = re.match('(\w+)__(\w+)', room_data["name"])
+        match = re.match('(\w+)__(\w+)', channel_data["name"])
         if match:
             room_name = server.users[match.group(1)].username
             if room_name == server.user.username:
@@ -369,25 +373,25 @@ def build_room_name(room_data, server):
 
     return room_name
 
-def create_room(room_data, server):
-    buffer_name = build_buffer_room_name(room_data["id"])
+def create_room_from_channel_data(channel_data, server):
+    buffer_name = build_buffer_channel_name(channel_data["id"])
     buffer = weechat.buffer_new(buffer_name, "room_input_cb", "", "", "")
-    channel_buffers[room_data["id"]] = buffer
+    channel_buffers[channel_data["id"]] = buffer
 
     weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
-    weechat.buffer_set(buffer, "localvar_set_channel_id", room_data["id"])
+    weechat.buffer_set(buffer, "localvar_set_channel_id", channel_data["id"])
 
     weechat.buffer_set(buffer, "nicklist", "1")
 
-    room_name = build_room_name(room_data, server)
+    room_name = build_room_name_from_channel_data(channel_data, server)
     weechat.buffer_set(buffer, "short_name", room_name)
     weechat.hook_command_run("/buffer %s" % room_name, 'channel_switch_cb', buffer)
 
     weechat.buffer_set(buffer, "highlight_words", "@{},{},@here".format(server.user.username, server.user.username))
     weechat.buffer_set(buffer, "localvar_set_nick", server.user.username)
 
-    if room_data["team_id"]:
-        team = server.teams[room_data["team_id"]]
+    if channel_data["team_id"]:
+        team = server.teams[channel_data["team_id"]]
 
         weechat.buffer_set(buffer, "localvar_set_type", "channel")
         weechat.buffer_set(buffer, "localvar_set_server", team.display_name)
@@ -407,8 +411,8 @@ def create_room(room_data, server):
 
     weechat.buffer_set(buffer, "number", str(number))
 
-    run_get_read_channel_posts(server.user.id, room_data["id"], server, "hidrate_room_read_posts_cb", buffer)
-    run_get_channel_members(room_data["id"], server, "hidrate_room_users_cb", buffer)
+    run_get_read_channel_posts(server.user.id, channel_data["id"], server, "hidrate_room_read_posts_cb", buffer)
+    run_get_channel_members(channel_data["id"], server, "hidrate_room_users_cb", buffer)
 
 def buffer_switch_cb(data, signal, buffer):
     if buffer not in channel_buffers.values():
@@ -473,23 +477,15 @@ def add_reaction_to_post(buffer, reaction):
 
     if "reactions" in tags:
         new_message = old_message + " " + build_reaction_message(reaction)
-        weechat.hdata_update(
-            weechat.hdata_get("line_data"),
-            line_data,
-            {
-                "message": new_message.strip(),
-            }
-        )
-        return
+    else:
+        new_message = old_message + " | " + build_reaction_message(reaction)
+        tags.append("reactions")
 
-    tags.append("reactions")
-
-    new_message = old_message + " | " + build_reaction_message(reaction)
     weechat.hdata_update(
         weechat.hdata_get("line_data"),
         line_data,
         {
-            "message": new_message.strip(),
+            "message": new_message,
             "tags_array": ",".join(tags)
         }
     )
@@ -504,30 +500,26 @@ def remove_reaction_from_post(buffer, reaction):
     if not "reactions" in tags:
         return
 
-    old_message, old_reactions = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message").rsplit(' | ', 1)
+    old_message, _, old_reactions = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message").partition(' | ')
+
 
     reaction_message = build_reaction_message(reaction)
-
-    new_reactions = old_reactions.replace(reaction_message, "").replace("  ", " ").strip()
+    new_reactions = old_reactions.replace(reaction_message, "", 1).replace("  ", " ").strip()
 
     if "" == new_reactions:
         tags.remove("reactions")
-        weechat.hdata_update(
-            weechat.hdata_get("line_data"),
-            line_data,
-            {
-                "message": old_message,
-                "tags_array": ",".join(tags),
-            }
-        )
+        new_message = old_message
     else:
-        weechat.hdata_update(
-            weechat.hdata_get("line_data"),
-            line_data,
-            {
-                "message": old_message + " | " + new_reactions,
-            }
-        )
+        new_message = old_message + " | " + new_reactions
+
+    weechat.hdata_update(
+        weechat.hdata_get("line_data"),
+        line_data,
+        {
+            "message": new_message,
+            "tags_array": ",".join(tags),
+        }
+    )
 
 def short_post_id(post_id):
     return post_id[:4]
@@ -561,7 +553,7 @@ def handle_post_click(data, info):
     after_position_message = old_input[old_position:]
 
     post_id = short_post_id(post_id)
-    if len(old_input) == old_position:
+    if len(old_input) == old_position: # add whitespace smartly
         post_id += " "
     new_input = before_position_message + post_id + after_position_message
 

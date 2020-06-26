@@ -24,12 +24,12 @@ def setup_server_config(server_name, key, value, override=False):
             value
         )
 
-def usage_server_add_command(buffer):
+def server_add_command_usage(buffer):
     weechat.prnt(buffer, "Usage: /matter server add <server-name> <server-domain>")
 
 def server_add_command(args, buffer):
     if 2 != len(args.split()):
-        usage_server_add_command(buffer)
+        server_add_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
 
     server_name, _, server_url = args.partition(" ")
@@ -44,21 +44,21 @@ def server_add_command(args, buffer):
 
     return weechat.WEECHAT_RC_OK
 
-def usage_connect_command(buffer):
+def connect_command_usage(buffer):
     weechat.prnt(buffer, "Usage: /matter connect <server-name>")
 
 def connect_command(args, buffer):
     if 1 != len(args.split()):
-        usage_connect_command(buffer)
+        connect_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
     return connect_server(args)
 
-def usage_disconnect_command(buffer):
+def disconnect_command_usage(buffer):
     weechat.prnt(buffer, "Usage: /matter connect <server-name>")
 
 def disconnect_command(args, buffer):
     if 1 != len(args.split()):
-        usage_disconnect_command(buffer)
+        disconnect_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
     return disconnect_server(args)
 
@@ -198,7 +198,6 @@ def setup_commands():
     weechat.hook_command("reply", "Reply to a post", "<post-id> <message>", "Reply to a post", "", "reply_command_cb", "")
     weechat.hook_command("react", "React to a post", "<post-id> <emoji-name>", "React to a post", "", "react_command_cb", "")
     weechat.hook_command("unreact", "Unreact to a post", "<post-id> <emoji-name>", "Unreact to a post", "", "unreact_command_cb", "")
-
 
     weechat.hook_focus("chat", "channel_click_cb", "")
 

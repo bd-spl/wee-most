@@ -4,7 +4,7 @@ import time
 from wee_matter.server import get_server, update_server_worker, is_connected
 from websocket import (create_connection, WebSocketConnectionClosedException,
                        WebSocketTimeoutException, ABNF)
-from wee_matter.room import (write_post_from_post_data, build_buffer_room_name,
+from wee_matter.room import (write_post_from_post_data, build_buffer_channel_name,
                              mark_channel_as_read, get_reaction_from_reaction_data,
                              add_reaction_to_post, remove_reaction_from_post,
                              get_buffer_from_post_id, get_buffer_from_channel_id)
@@ -140,7 +140,6 @@ def handle_reaction_added_message(server, message):
     if not buffer or not reaction:
         return
 
-    reaction = get_reaction_from_reaction_data(reaction_data, server)
     add_reaction_to_post(buffer, reaction)
 
 def handle_reaction_removed_message(server, message):

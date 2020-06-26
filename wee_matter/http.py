@@ -9,7 +9,6 @@ def build_file_url(file_id, server):
 def singularity_cb(data, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occured when performing a request")
-        weechat.prnt("", err)
         return weechat.WEECHAT_RC_ERROR
 
     return weechat.WEECHAT_RC_OK
