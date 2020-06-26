@@ -11,7 +11,7 @@ from wee_matter.http import (run_post_post, run_post_reaction,
 server_default_config = {
     "username": "",
     "password": "",
-    "port": 443,
+    "port": "443",
     "protocol": "https",
 }
 
@@ -24,50 +24,103 @@ def setup_server_config(server_name, key, value, override=False):
             value
         )
 
-def server_add_command_cb(args):
-    server_name = args[0]
-    server_url = args[1]
+def usage_server_add_command(buffer):
+    weechat.prnt(buffer, "Usage: /matter server add <server-name> <server-domain>")
+
+def server_add_command(args, buffer):
+    if 2 != len(args.split()):
+        usage_server_add_command(buffer)
+        return weechat.WEECHAT_RC_ERROR
+
+    server_name, _, server_url = args.partition(" ")
 
     for config, default_value in server_default_config.items():
         setup_server_config(server_name, config, default_value)
 
     setup_server_config(server_name, "address", server_url)
 
-    weechat.prnt("", "Server added. You should now configure your username and password.")
+    weechat.prnt(buffer, "Server added. You should now configure your username and password.")
+    weechat.prnt(buffer, "/set plugins.var.python.wee-matter.server.%s.*" % server_name)
 
     return weechat.WEECHAT_RC_OK
 
-def connect_command_cb(args):
-    return connect_server(args[0])
+def usage_connect_command(buffer):
+    weechat.prnt(buffer, "Usage: /matter connect <server-name>")
 
-def disconnect_command_cb(args):
-    return disconnect_server(args[0])
+def connect_command(args, buffer):
+    if 1 != len(args.split()):
+        usage_connect_command(buffer)
+        return weechat.WEECHAT_RC_ERROR
+    return connect_server(args)
 
-def server_command_cb(args):
-    command, args = args[0], args[1:]
+def usage_disconnect_command(buffer):
+    weechat.prnt(buffer, "Usage: /matter connect <server-name>")
+
+def disconnect_command(args, buffer):
+    if 1 != len(args.split()):
+        usage_disconnect_command(buffer)
+        return weechat.WEECHAT_RC_ERROR
+    return disconnect_server(args)
+
+def matter_server_command_usage(buffer):
+    weechat.prnt(buffer,
+        (
+            "Usage: /matter server add <server-name> <server-domain>"
+        )
+    )
+
+def server_command(args, buffer):
+    if 0 == len(args.split()):
+        matter_server_command_usage(buffer)
+        return weechat.WEECHAT_RC_ERROR
+
+    command, _, args = args.partition(" ")
 
     if command == "add":
-        server_add_command_cb(args)
+        server_add_command(args, buffer)
 
     return weechat.WEECHAT_RC_OK
+
+def matter_command_usage(buffer):
+    weechat.prnt(buffer,
+        (
+            "Usage: \n"
+            "    /matter server add <server-name> <server-domain>\n"
+            "    /matter connect <server-name>\n"
+            "    /matter disconnect <server-name>\n"
+        )
+    )
 
 def matter_command_cb(data, buffer, args):
-    split_args = list(filter(bool, args.split(" ")))
-    command, args = split_args[0], split_args[1:]
+    if 0 == len(args.split()):
+        matter_command_usage(buffer)
+        return weechat.WEECHAT_RC_ERROR
+
+    command, _, args = args.partition(" ")
 
     if command == "server":
-        server_command_cb(args)
+        server_command(args, buffer)
     if command == "connect":
-        connect_command_cb(args)
+        connect_command(args, buffer)
     if command == "disconnect":
-        disconnect_command_cb(args)
+        disconnect_command(args, buffer)
 
     return weechat.WEECHAT_RC_OK
 
+def reply_command_usage(buffer):
+    weechat.prnt(buffer, "Usage: /reply <post-id> <message>")
+
 def reply_command_cb(data, buffer, args):
-    short_post_id, message = args.split(' ', 1)
+    if 2 != len(args.split(' ', 1)):
+        reply_command_usage(buffer)
+        return weechat.WEECHAT_RC_ERROR
+
+    short_post_id, _, message = args.partition(" ")
 
     post_id = find_full_post_id(buffer, short_post_id)
+    if not post_id:
+        weechat.prnt(buffer, "Can't find post id for \"%s\"" % short_post_id)
+        return weechat.WEECHAT_RC_ERROR
 
     post = build_post_from_input_data(buffer, message)
     post = post._replace(parent_id=post_id)
@@ -78,18 +131,38 @@ def reply_command_cb(data, buffer, args):
 
     return weechat.WEECHAT_RC_OK
 
+def react_command_usage(buffer):
+    weechat.prnt(buffer, "Usage: /react <post-id> <emoji-name>")
+
 def react_command_cb(data, buffer, args):
-    short_post_id, emoji_name = args.split(' ')
+    if 2 != len(args.split()):
+        react_command_usage(buffer)
+        return weechat.WEECHAT_RC_ERROR
+
+    short_post_id, _, emoji_name = args.partition(" ")
     post_id = find_full_post_id(buffer, short_post_id)
+    if not post_id:
+        weechat.prnt(buffer, "Can't find post id for \"%s\"" % short_post_id)
+        return weechat.WEECHAT_RC_ERROR
 
     server = get_server_from_buffer(buffer)
     run_post_reaction(emoji_name, post_id, server, "singularity_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
+def unreact_command_usage(buffer):
+    weechat.prnt(buffer, "Usage: /unreact <post-id> <emoji-name>")
+
 def unreact_command_cb(data, buffer, args):
-    short_post_id, emoji_name = args.split(' ')
+    if 2 != len(args.split()):
+        unreact_command_usage(buffer)
+        return weechat.WEECHAT_RC_ERROR
+
+    short_post_id, _, emoji_name = args.partition(" ")
     post_id = find_full_post_id(buffer, short_post_id)
+    if not post_id:
+        weechat.prnt(buffer, "Can't find post id for \"%s\"" % short_post_id)
+        return weechat.WEECHAT_RC_ERROR
 
     server = get_server_from_buffer(buffer)
     run_delete_reaction(emoji_name, post_id, server, "singularity_cb", buffer)
@@ -114,9 +187,9 @@ def setup_commands():
         ),
         # Completions
         (
-            "server %(mattermost_server_commands)|%* ||"
-            "connect %(mattermost_server_commands)|%* ||"
-            "disconnect %(mattermost_server_commands)|%* ||"
+            "server add ||"
+            "connect ||"
+            "disconnect %(mattermost_server_commands) ||"
         ),
         "matter_command_cb",
         ""

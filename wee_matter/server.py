@@ -119,7 +119,7 @@ def is_connected(server: Server):
 def server_completion_cb(data, completion_item, current_buffer, completion):
     servers = get_servers()
     for server_name in servers:
-        weechat.hook_completion_list_add(completion, server, 0, weechat.WEECHAT_LIST_POS_SORT)
+        weechat.hook_completion_list_add(completion, server_name, 0, weechat.WEECHAT_LIST_POS_SORT)
     return weechat.WEECHAT_RC_OK
 
 from wee_matter.room import create_room
