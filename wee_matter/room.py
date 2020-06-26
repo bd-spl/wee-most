@@ -520,3 +520,37 @@ def remove_reaction_from_post(buffer, reaction):
                 "message": old_message + " | " + new_reactions,
             }
         )
+
+def short_post_id(post_id):
+    return post_id[:4]
+
+def find_post_id_in_tags(tags):
+    for tag in tags:
+        if tag.startswith("post_id_"):
+            return tag[8:]
+
+def handle_post_click(data, info):
+    tags = info["_chat_line_tags"].split(",")
+
+    post_id = find_post_id_in_tags(tags)
+    if not post_id:
+        return
+
+    post_id = short_post_id(post_id)
+
+    buffer = info["_buffer"]
+
+    old_input = weechat.buffer_get_string(buffer, "input")
+    new_input = old_input + post_id
+    weechat.buffer_set(buffer, "input", new_input)
+
+    old_position = weechat.buffer_get_integer(buffer, "input_pos")
+    new_position = old_position + len(post_id)
+    weechat.buffer_set(buffer, "input_pos", str(new_position))
+
+def channel_click_cb(data, info):
+    if not "_buffer_localvar_script_name" in info or "wee-matter" != info["_buffer_localvar_script_name"]:
+        return info
+
+    handle_post_click(data, info)
+

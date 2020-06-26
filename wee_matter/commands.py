@@ -61,8 +61,8 @@ def matter_command_cb(data, buffer, args):
 
 def setup_commands():
     weechat.hook_command(
-         "matter",
-         "Mattermost chat protocol command",
+        "matter",
+        "Mattermost chat protocol command",
          # Synopsis
         (
             "server add <server-name> <hostname> ||"
@@ -84,6 +84,8 @@ def setup_commands():
         "matter_command_cb",
         ""
     )
+
+    weechat.hook_focus("chat", "channel_click_cb", "")
 
     weechat.hook_completion("irc_channels", "complete channels for mattermost", "channel_completion_cb", "")
     weechat.hook_completion("irc_privates", "complete dms/mpdms for mattermost", "private_completion_cb", "")
