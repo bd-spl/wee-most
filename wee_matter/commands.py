@@ -3,7 +3,9 @@ import weechat
 
 from wee_matter.server import (connect_server, disconnect_server,
                                get_server_from_buffer)
-from wee_matter.room import build_post_from_input_data, find_full_post_id
+from wee_matter.room import (build_post_from_input_data, get_line_data_tags,
+                             find_buffer_last_post_line_data, find_reply_to_in_tags,
+                             find_post_id_in_tags)
 
 from wee_matter.http import (run_post_post, run_post_reaction,
                              run_delete_reaction)
@@ -117,10 +119,16 @@ def reply_command_cb(data, buffer, args):
 
     short_post_id, _, message = args.partition(" ")
 
-    post_id = find_full_post_id(buffer, short_post_id)
-    if not post_id:
+    line_data = find_buffer_last_post_line_data(buffer, short_post_id)
+    if not line_data:
         weechat.prnt(buffer, "Can't find post id for \"%s\"" % short_post_id)
         return weechat.WEECHAT_RC_ERROR
+
+    tags = get_line_data_tags(line_data)
+
+    post_id = find_reply_to_in_tags(tags)
+    if not post_id:
+        post_id = find_post_id_in_tags(tags)
 
     post = build_post_from_input_data(buffer, message)
     post = post._replace(parent_id=post_id)

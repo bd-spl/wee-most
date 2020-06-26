@@ -162,7 +162,7 @@ def write_parent_message_lines(buffer, post):
     weechat.prnt_date_tags(
         buffer,
         parent_message_date,
-        "post_id_%s" % post.id,
+        "quote",
         parent_message_prefix + "	> " + parent_message
     )
 
@@ -177,6 +177,10 @@ def write_message_lines(buffer, post):
             parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
             parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
             own_prefix = weechat.buffer_get_string(buffer, "localvar_nick")
+
+            parent_tags = get_line_data_tags(parent_line_data)
+            parent_post_id = find_post_id_in_tags(parent_tags)
+            tags += ",reply_to_{}".format(parent_post_id)
 
             # if somebody (not us) reply to our post
             if parent_message_prefix == own_prefix and parent_message_prefix != post.user.username:
@@ -536,6 +540,11 @@ def find_post_id_in_tags(tags):
     for tag in tags:
         if tag.startswith("post_id_"):
             return tag[8:]
+
+def find_reply_to_in_tags(tags):
+    for tag in tags:
+        if tag.startswith("reply_to_"):
+            return tag[9:]
 
 def handle_post_click(data, info):
     tags = info["_chat_line_tags"].split(",")
