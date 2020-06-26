@@ -551,17 +551,23 @@ def handle_post_click(data, info):
     if not post_id:
         return
 
-    post_id = short_post_id(post_id)
-
     buffer = info["_buffer"]
 
     old_input = weechat.buffer_get_string(buffer, "input")
-    new_input = old_input + post_id + " "
+    old_position = weechat.buffer_get_integer(buffer, "input_pos")
+
+    before_position_message = old_input[:old_position]
+    after_position_message = old_input[old_position:]
+
+    post_id = short_post_id(post_id)
+    if len(old_input) == old_position:
+        post_id += " "
+    new_input = before_position_message + post_id + after_position_message
+
     weechat.buffer_set(buffer, "input", new_input)
 
-    weechat.buffer_set(buffer, "input_pos", str(len(new_input)))
-
-    find_full_post_id(buffer, post_id)
+    new_position = old_position + len(post_id)
+    weechat.buffer_set(buffer, "input_pos", str(new_position))
 
 def channel_click_cb(data, info):
     if not "_buffer_localvar_script_name" in info or "wee-matter" != info["_buffer_localvar_script_name"]:
