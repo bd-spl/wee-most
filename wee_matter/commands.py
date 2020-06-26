@@ -5,7 +5,8 @@ from wee_matter.server import (connect_server, disconnect_server,
                                get_server_from_buffer)
 from wee_matter.room import build_post_from_input_data, find_full_post_id
 
-from wee_matter.http import (run_post_post, run_post_reaction)
+from wee_matter.http import (run_post_post, run_post_reaction,
+                             run_delete_reaction)
 
 server_default_config = {
     "username": "",
@@ -86,6 +87,15 @@ def react_command_cb(data, buffer, args):
 
     return weechat.WEECHAT_RC_OK
 
+def unreact_command_cb(data, buffer, args):
+    short_post_id, emoji_name = args.split(' ')
+    post_id = find_full_post_id(buffer, short_post_id)
+
+    server = get_server_from_buffer(buffer)
+    run_delete_reaction(emoji_name, post_id, server, "singularity_cb", buffer)
+
+    return weechat.WEECHAT_RC_OK
+
 def setup_commands():
     weechat.hook_command(
         "matter",
@@ -137,6 +147,20 @@ def setup_commands():
         ),
         "",
         "react_command_cb",
+        ""
+    )
+
+    weechat.hook_command(
+        "unreact",
+        "Unreact to a post",
+        (
+            "<post-id> <emoji-name> ||"
+        ),
+        (
+            "Unreact to a post"
+        ),
+        "",
+        "unreact_command_cb",
         ""
     )
 

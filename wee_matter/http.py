@@ -198,3 +198,18 @@ def run_post_reaction(emoji_name, post_id, server, cb, cb_data):
         cb_data
     )
 
+def run_delete_reaction(emoji_name, post_id, server, cb, cb_data):
+    url = server_root_url(server) + "/api/v4/users/" + server.user.id + "/posts/" + post_id + "/reactions/" + emoji_name
+
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "customrequest": "DELETE",
+            "failonerror": "1",
+            "httpheader": "Authorization: Bearer " + server.user_token,
+        },
+        30 * 1000,
+        cb,
+        cb_data
+    )
+
