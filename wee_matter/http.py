@@ -177,3 +177,24 @@ def run_post_user_post_unread(user_id, post_id, server, cb, cb_data):
         cb_data
     )
 
+def run_post_reaction(emoji_name, post_id, server, cb, cb_data):
+    url = server_root_url(server) + "/api/v4/reactions"
+    params = {
+        "user_id": server.user.id,
+        "post_id": post_id,
+        "emoji_name": emoji_name,
+        "create_at": 0,
+    }
+
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "postfields": json.dumps(params),
+            "failonerror": "1",
+            "httpheader": "Authorization: Bearer " + server.user_token,
+        },
+        30 * 1000,
+        cb,
+        cb_data
+    )
+

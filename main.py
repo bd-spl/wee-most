@@ -1,7 +1,7 @@
 import weechat
 
 from wee_matter.commands import (setup_commands, matter_command_cb,
-                                 reply_command_cb)
+                                 reply_command_cb, react_command_cb)
 
 from wee_matter.websocket import (receive_ws_callback, ws_ping_cb,
                                   reconnection_loop_cb)
