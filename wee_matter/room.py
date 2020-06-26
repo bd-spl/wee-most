@@ -163,7 +163,7 @@ def write_parent_message_lines(buffer, post):
         buffer,
         parent_message_date,
         "quote",
-        parent_message_prefix + "	> " + parent_message
+        parent_message_prefix + "	" + colorize_sentence("> {}".format(parent_message), "lightgreen")
     )
 
     return True
