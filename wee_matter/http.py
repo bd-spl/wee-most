@@ -2,6 +2,7 @@
 import weechat
 from wee_matter.server import server_root_url
 import json
+import time
 
 def build_file_url(file_id, server):
     return server_root_url(server) + "/api/v4/files/" + file_id
@@ -182,7 +183,7 @@ def run_post_reaction(emoji_name, post_id, server, cb, cb_data):
         "user_id": server.user.id,
         "post_id": post_id,
         "emoji_name": emoji_name,
-        "create_at": 0,
+        "create_at": int(time.time()),
     }
 
     weechat.hook_process_hashtable(
