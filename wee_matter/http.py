@@ -96,6 +96,9 @@ def run_post_post(post, server, cb, cb_data):
         "message": post.message,
     }
 
+    if post.parent_id:
+        params["root_id"] = post.parent_id
+
     weechat.hook_process_hashtable(
         "url:" + url,
         {

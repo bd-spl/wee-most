@@ -103,10 +103,10 @@ def post_post_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def room_input_cb(data, buffer, input_data):
+def build_post_from_input_data(buffer, input_data):
     server = get_server_from_buffer(buffer)
 
-    post = Post(
+    return Post(
         id= "",
         parent_id= "",
         channel_id= weechat.buffer_get_string(buffer, "localvar_channel_id"),
@@ -116,6 +116,11 @@ def room_input_cb(data, buffer, input_data):
         reactions= [],
         user= server.user,
     )
+
+def room_input_cb(data, buffer, input_data):
+    server = get_server_from_buffer(buffer)
+
+    post = build_post_from_input_data(buffer, input_data)
 
     run_post_post(post, server, "post_post_cb", buffer)
 

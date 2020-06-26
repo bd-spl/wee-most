@@ -1,7 +1,11 @@
 
 import weechat
 
-from wee_matter.server import connect_server, disconnect_server
+from wee_matter.server import (connect_server, disconnect_server,
+                               get_server_from_buffer)
+from wee_matter.room import build_post_from_input_data, find_full_post_id
+
+from wee_matter.http import (run_post_post)
 
 server_default_config = {
     "username": "",
@@ -59,6 +63,20 @@ def matter_command_cb(data, buffer, args):
 
     return weechat.WEECHAT_RC_OK
 
+def reply_command_cb(data, buffer, args):
+    short_post_id, message = args.split(' ', 1)
+
+    post_id = find_full_post_id(buffer, short_post_id)
+
+    post = build_post_from_input_data(buffer, message)
+    post = post._replace(parent_id=post_id)
+
+    server = get_server_from_buffer(buffer)
+
+    run_post_post(post, server, "post_post_cb", buffer)
+
+    return weechat.WEECHAT_RC_OK
+
 def setup_commands():
     weechat.hook_command(
         "matter",
@@ -84,6 +102,21 @@ def setup_commands():
         "matter_command_cb",
         ""
     )
+
+    weechat.hook_command(
+        "reply",
+        "Reply to a post",
+        (
+            "<post-id> <message> ||"
+        ),
+        (
+            "Reply to a post"
+        ),
+        "",
+        "reply_command_cb",
+        ""
+    )
+
 
     weechat.hook_focus("chat", "channel_click_cb", "")
 
