@@ -426,7 +426,9 @@ def is_post_line_data(line_data, post_id):
     post_id_tag = "post_id_{}".format(post_id)
     tags = get_line_data_tags(line_data)
 
-    return post_id_tag in tags
+    for tag in tags:
+        if tag.startswith(post_id_tag):
+            return True
 
 def find_buffer_last_post_line_data(buffer, post_id):
     lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), buffer, "lines")
@@ -524,6 +526,14 @@ def remove_reaction_from_post(buffer, reaction):
 def short_post_id(post_id):
     return post_id[:4]
 
+def find_full_post_id(buffer, short_post_id):
+    line_data = find_buffer_last_post_line_data(buffer, short_post_id)
+    if None == line_data:
+        return
+
+    tags = get_line_data_tags(line_data)
+    return find_post_id_in_tags(tags)
+
 def find_post_id_in_tags(tags):
     for tag in tags:
         if tag.startswith("post_id_"):
@@ -547,6 +557,8 @@ def handle_post_click(data, info):
     old_position = weechat.buffer_get_integer(buffer, "input_pos")
     new_position = old_position + len(post_id)
     weechat.buffer_set(buffer, "input_pos", str(new_position))
+
+    find_full_post_id(buffer, post_id)
 
 def channel_click_cb(data, info):
     if not "_buffer_localvar_script_name" in info or "wee-matter" != info["_buffer_localvar_script_name"]:
