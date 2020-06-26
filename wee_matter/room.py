@@ -556,12 +556,10 @@ def handle_post_click(data, info):
     buffer = info["_buffer"]
 
     old_input = weechat.buffer_get_string(buffer, "input")
-    new_input = old_input + post_id
+    new_input = old_input + post_id + " "
     weechat.buffer_set(buffer, "input", new_input)
 
-    old_position = weechat.buffer_get_integer(buffer, "input_pos")
-    new_position = old_position + len(post_id)
-    weechat.buffer_set(buffer, "input_pos", str(new_position))
+    weechat.buffer_set(buffer, "input_pos", str(len(new_input)))
 
     find_full_post_id(buffer, post_id)
 
