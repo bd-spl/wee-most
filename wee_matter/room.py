@@ -174,9 +174,10 @@ def write_message_lines(buffer, post):
         if write_parent_message_lines(buffer, post):
             parent_line_data = find_buffer_first_post_line_data(buffer, post.parent_id)
             parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
+            parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
             own_prefix = weechat.buffer_get_string(buffer, "localvar_nick")
 
-            if weechat.string_remove_color(parent_message_prefix, "") == own_prefix and post.user.username != weechat.string_remove_color(parent_message_prefix, ""):
+            if parent_message_prefix == own_prefix and parent_message_prefix != post.user.username:
                 tags += ",notify_highlight"
 
     if not post.reactions:
