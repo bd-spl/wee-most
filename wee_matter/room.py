@@ -136,7 +136,7 @@ def handle_multiline_message_cb(data, modifier, buffer, string):
     return string
 
 def build_reaction_message(reaction):
-    return "[:{}:]".format(reaction.emoji_name)
+    return "[:{}:]".format(colorize_sentence(reaction.emoji_name, reaction.user.color))
 
 def build_reaction_line(post):
     reaction_line = ""
