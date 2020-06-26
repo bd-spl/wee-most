@@ -5,7 +5,7 @@ from wee_matter.server import (connect_server, disconnect_server,
                                get_server_from_buffer)
 from wee_matter.room import (build_post_from_input_data, get_line_data_tags,
                              find_buffer_last_post_line_data, find_reply_to_in_tags,
-                             find_post_id_in_tags)
+                             find_post_id_in_tags, find_full_post_id)
 
 from wee_matter.http import (run_post_post, run_post_reaction,
                              run_delete_reaction)
