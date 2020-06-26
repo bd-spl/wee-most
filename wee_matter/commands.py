@@ -122,47 +122,9 @@ def setup_commands():
         ""
     )
 
-    weechat.hook_command(
-        "reply",
-        "Reply to a post",
-        (
-            "<post-id> <message> ||"
-        ),
-        (
-            "Reply to a post"
-        ),
-        "",
-        "reply_command_cb",
-        ""
-    )
-
-    weechat.hook_command(
-        "react",
-        "React to a post",
-        (
-            "<post-id> <emoji-name> ||"
-        ),
-        (
-            "React to a post"
-        ),
-        "",
-        "react_command_cb",
-        ""
-    )
-
-    weechat.hook_command(
-        "unreact",
-        "Unreact to a post",
-        (
-            "<post-id> <emoji-name> ||"
-        ),
-        (
-            "Unreact to a post"
-        ),
-        "",
-        "unreact_command_cb",
-        ""
-    )
+    weechat.hook_command("reply", "Reply to a post", "<post-id> <message>", "Reply to a post", "", "reply_command_cb", "")
+    weechat.hook_command("react", "React to a post", "<post-id> <emoji-name>", "React to a post", "", "react_command_cb", "")
+    weechat.hook_command("unreact", "Unreact to a post", "<post-id> <emoji-name>", "Unreact to a post", "", "unreact_command_cb", "")
 
 
     weechat.hook_focus("chat", "channel_click_cb", "")
