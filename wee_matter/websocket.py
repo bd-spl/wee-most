@@ -155,6 +155,12 @@ def handle_reaction_removed_message(server, message):
 
     remove_reaction_from_post(buffer, reaction)
 
+def handle_post_edited_message(server, message):
+    data = message["data"]
+
+    post_data = json.loads(data["post"])
+    write_post_from_post_data(post_data)
+
 def handle_ws_event_message(server, message):
     if "posted" == message["event"]:
         return handle_posted_message(server, message)
@@ -162,6 +168,8 @@ def handle_ws_event_message(server, message):
         return handle_reaction_added_message(server, message)
     if "reaction_removed" == message["event"]:
         return handle_reaction_removed_message(server, message)
+    if "post_edited" == message["event"]:
+        return handle_post_edited_message(server, message)
 
 def handle_ws_message(server, message):
     if "event" in message:

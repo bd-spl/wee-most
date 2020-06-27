@@ -144,6 +144,41 @@ def build_reaction_line(post):
 
     return reaction_line.strip()
 
+def write_edited_message_lines(buffer, post):
+    tags = "post_id_%s" % post.id
+
+    first_initial_line_data = find_buffer_first_post_line_data(buffer, post.id)
+    last_initial_line_data = find_buffer_last_post_line_data(buffer, post.id)
+    if not first_initial_line_data or not last_initial_line_data:
+        return
+
+    initial_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), first_initial_line_data, "date")
+    initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
+
+    initial_message = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "message").rsplit(' | ', 1)[0]
+    _, initial_reactions = weechat.hdata_string(weechat.hdata_get("line_data"), last_initial_line_data, "message").rsplit(' | ', 1)
+    initial_message = weechat.string_remove_color(initial_message, "")
+
+    weechat.prnt_date_tags(
+        buffer,
+        initial_message_date,
+        "edited_post",
+        initial_message_prefix + "	" + colorize_sentence(initial_message, "yellow")
+    )
+
+    if initial_reactions:
+        new_message = post.message + " | " + initial_reactions
+        tags += ",reactions"
+    else:
+        new_message = post.message
+
+    weechat.prnt_date_tags(
+        buffer,
+        post.date,
+        tags,
+        colorize_sentence(post.user.username, post.user.color) + "	" + new_message
+    )
+
 def write_reply_message_lines(buffer, post):
     if not post.parent_id:
         return
@@ -226,7 +261,9 @@ def write_file_lines(buffer, post):
 def write_post(buffer, post):
     server = get_server_from_buffer(buffer)
 
-    if post.parent_id:
+    if post.id in post_buffers:
+        write_edited_message_lines(buffer, post)
+    elif post.parent_id:
         write_reply_message_lines(buffer, post)
     else:
         write_message_lines(buffer, post)
@@ -291,7 +328,7 @@ def write_post_from_post_data(post_data):
         parent_id= post_data["parent_id"],
         channel_id= post_data["channel_id"],
         message= post_data["message"],
-        date= int(post_data["create_at"]/1000),
+        date= int(post_data["update_at"]/1000),
         files= get_files_from_post_data(post_data, server),
         reactions= get_reactions_from_post_data(post_data, server),
         user= user,
