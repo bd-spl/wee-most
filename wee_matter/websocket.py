@@ -8,7 +8,7 @@ from wee_matter.room import (get_post_from_post_data, build_buffer_channel_name,
                              mark_channel_as_read, get_reaction_from_reaction_data,
                              add_reaction_to_post, remove_reaction_from_post,
                              get_buffer_from_post_id, get_buffer_from_channel_id,
-                             write_post)
+                             write_post, remove_room_user)
 from wee_matter.http import (run_get_channel_posts_after, run_get_channel,
                              run_get_channel_member)
 from typing import NamedTuple
@@ -191,6 +191,18 @@ def handle_user_added_message(server, message):
             return
         run_get_channel_member(broadcast["channel_id"], data["user_id"], server, "hidrate_room_user_cb", buffer)
 
+def handle_user_removed_message(server, message):
+    data = message["data"]
+    broadcast = message["broadcast"]
+
+    if broadcast["channel_id"]:
+        if data["user_id"] not in server.users:
+            weechat.prnt("", "Can't remove user. User not found in server")
+            return
+        user = server.users[data["user_id"]]
+        buffer = get_buffer_from_channel_id(broadcast["channel_id"])
+        remove_room_user(buffer, user)
+
 def handle_ws_event_message(server, message):
     if "posted" == message["event"]:
         return handle_posted_message(server, message)
@@ -206,6 +218,8 @@ def handle_ws_event_message(server, message):
         return handle_channel_created_message(server, message)
     if "user_added" == message["event"]:
         return handle_user_added_message(server, message)
+    if "user_removed" == message["event"]:
+        return handle_user_removed_message(server, message)
 
 def handle_ws_message(server, message):
     if "event" in message:

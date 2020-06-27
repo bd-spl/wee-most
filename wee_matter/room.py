@@ -454,6 +454,10 @@ def hidrate_room_user_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def remove_room_user(buffer, user):
+    nick = weechat.nicklist_search_nick(buffer, "", user.username)
+    weechat.nicklist_remove_nick(buffer, nick)
+
 def build_buffer_channel_name(channel_id):
     return "weematter." + channel_id
 
