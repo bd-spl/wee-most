@@ -226,8 +226,6 @@ def handle_added_to_team_message(server, message):
 def handle_leave_team_message(server, message):
     data = message["data"]
 
-    weechat.prnt("", str(data))
-
     if data["user_id"] not in server.users:
         return
     user = server.users[data["user_id"]]
