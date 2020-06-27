@@ -164,6 +164,14 @@ def handle_post_edited_message(server, message):
     post = get_post_from_post_data(post_data)
     write_post(post)
 
+def handle_post_deleted_message(server, message):
+    data = message["data"]
+
+    post_data = json.loads(data["post"])
+    post = get_post_from_post_data(post_data)
+    post = post._replace(deleted=True)
+    write_post(post)
+
 def handle_ws_event_message(server, message):
     if "posted" == message["event"]:
         return handle_posted_message(server, message)
@@ -173,6 +181,8 @@ def handle_ws_event_message(server, message):
         return handle_reaction_removed_message(server, message)
     if "post_edited" == message["event"]:
         return handle_post_edited_message(server, message)
+    if "post_deleted" == message["event"]:
+        return handle_post_deleted_message(server, message)
 
 def handle_ws_message(server, message):
     if "event" in message:

@@ -29,6 +29,7 @@ Post = NamedTuple(
         ("channel_id", str),
         ("message", str),
         ("date", int),
+        ("deleted", bool),
         ("files", list),
         ("reactions", list),
         ("user", any),
@@ -110,6 +111,7 @@ def build_post_from_input_data(buffer, input_data):
         channel_id= weechat.buffer_get_string(buffer, "localvar_channel_id"),
         message= input_data,
         date= 0,
+        deleted= False,
         files= [],
         reactions= [],
         user= server.user,
@@ -143,6 +145,20 @@ def build_reaction_line(post):
         reaction_line += " " + build_reaction_message(reaction)
 
     return reaction_line.strip()
+
+def write_deleted_message_lines(buffer, post):
+    first_initial_line_data = find_buffer_first_post_line_data(buffer, post.id)
+    if not first_initial_line_data:
+        return
+
+    initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
+    initial_message = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "message").rsplit(' | ', 1)[0]
+    weechat.prnt_date_tags(
+        buffer,
+        post.date,
+        "deleted_post",
+        initial_message_prefix + "	" + colorize_sentence(initial_message, "red")
+    )
 
 def write_edited_message_lines(buffer, post):
     tags = "post_id_%s" % post.id
@@ -263,7 +279,9 @@ def write_post(post):
     buffer = weechat.buffer_search("", buffer_name)
     server = get_server_from_buffer(buffer)
 
-    if post.id in post_buffers:
+    if post.deleted:
+        write_deleted_message_lines(buffer, post)
+    elif post.id in post_buffers:
         write_edited_message_lines(buffer, post)
     elif post.parent_id:
         write_reply_message_lines(buffer, post)
@@ -330,6 +348,7 @@ def get_post_from_post_data(post_data):
         channel_id= post_data["channel_id"],
         message= post_data["message"],
         date= int(post_data["update_at"]/1000),
+        deleted= False,
         files= get_files_from_post_data(post_data, server),
         reactions= get_reactions_from_post_data(post_data, server),
         user= user,
