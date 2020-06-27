@@ -258,7 +258,9 @@ def write_file_lines(buffer, post):
             "	[{}]({})".format(file.name, file.url)
         )
 
-def write_post(buffer, post):
+def write_post(post):
+    buffer_name = build_buffer_channel_name(post.channel_id)
+    buffer = weechat.buffer_search("", buffer_name)
     server = get_server_from_buffer(buffer)
 
     if post.id in post_buffers:
@@ -311,10 +313,9 @@ def get_reactions_from_post_data(post_data, server):
 
     return []
 
-def write_post_from_post_data(post_data):
+def get_post_from_post_data(post_data):
     buffer_name = build_buffer_channel_name(post_data["channel_id"])
     buffer = weechat.buffer_search("", buffer_name)
-
     server = get_server_from_buffer(buffer)
 
     if post_data["user_id"] not in server.users:
@@ -334,8 +335,6 @@ def write_post_from_post_data(post_data):
         user= user,
     )
 
-    write_post(buffer, post)
-
     return post
 
 def hidrate_room_posts_cb(buffer, command, rc, out, err):
@@ -349,7 +348,8 @@ def hidrate_room_posts_cb(buffer, command, rc, out, err):
 
     response["order"].reverse()
     for post_id in response["order"]:
-        post = write_post_from_post_data(response["posts"][post_id])
+        post = get_post_from_post_data(response["posts"][post_id])
+        write_post(post)
 
     if "" != response["next_post_id"]:
         run_get_channel_posts_after(post.id, post.channel_id, server, "hidrate_room_posts_cb", buffer)
@@ -367,7 +367,8 @@ def hidrate_room_read_posts_cb(buffer, command, rc, out, err):
 
     response["order"].reverse()
     for post_id in response["order"]:
-        post = write_post_from_post_data(response["posts"][post_id])
+        post = get_post_from_post_data(response["posts"][post_id])
+        write_post(post)
 
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", post.id)
     weechat.buffer_set(buffer, "unread", "-")

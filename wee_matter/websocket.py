@@ -4,10 +4,11 @@ import time
 from wee_matter.server import get_server, update_server_worker, is_connected
 from websocket import (create_connection, WebSocketConnectionClosedException,
                        WebSocketTimeoutException, ABNF)
-from wee_matter.room import (write_post_from_post_data, build_buffer_channel_name,
+from wee_matter.room import (get_post_from_post_data, build_buffer_channel_name,
                              mark_channel_as_read, get_reaction_from_reaction_data,
                              add_reaction_to_post, remove_reaction_from_post,
-                             get_buffer_from_post_id, get_buffer_from_channel_id)
+                             get_buffer_from_post_id, get_buffer_from_channel_id,
+                             write_post)
 from wee_matter.http import run_get_channel_posts_after
 from typing import NamedTuple
 import json
@@ -120,7 +121,8 @@ def handle_posted_message(server, message):
     data = message["data"]
     post = json.loads(data["post"])
 
-    write_post_from_post_data(post)
+    post = get_post_from_post_data(post)
+    write_post(post)
 
     buffer = get_buffer_from_channel_id(post["channel_id"])
     if not buffer:
@@ -159,7 +161,8 @@ def handle_post_edited_message(server, message):
     data = message["data"]
 
     post_data = json.loads(data["post"])
-    write_post_from_post_data(post_data)
+    post = get_post_from_post_data(post_data)
+    write_post(post)
 
 def handle_ws_event_message(server, message):
     if "posted" == message["event"]:
