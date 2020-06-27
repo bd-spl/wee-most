@@ -121,6 +121,11 @@ def server_completion_cb(data, completion_item, current_buffer, completion):
         weechat.hook_completion_list_add(completion, server_name, 0, weechat.WEECHAT_LIST_POS_SORT)
     return weechat.WEECHAT_RC_OK
 
+def unload_team(team):
+    for buffer in team.buffers:
+        weechat.buffer_close(buffer)
+    weechat.buffer_close(team.buffer)
+
 from wee_matter.room import create_room_from_channel_data
 from wee_matter.websocket import create_worker, close_worker
 from wee_matter.http import (run_get_user_teams, run_get_users,
@@ -178,9 +183,7 @@ def unload_server(server_name):
     for buffer in server.buffers:
         weechat.buffer_close(buffer)
     for team in server.teams.values():
-        for buffer in team.buffers:
-            weechat.buffer_close(buffer)
-        weechat.buffer_close(team.buffer)
+        unload_team(team)
 
     weechat.buffer_close(server.buffer)
 

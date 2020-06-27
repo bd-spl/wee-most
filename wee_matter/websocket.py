@@ -1,7 +1,8 @@
 
 import weechat
 import time
-from wee_matter.server import get_server, update_server_worker, is_connected
+from wee_matter.server import (get_server, update_server_worker,
+                               is_connected, unload_team)
 from websocket import (create_connection, WebSocketConnectionClosedException,
                        WebSocketTimeoutException, ABNF)
 from wee_matter.room import (get_post_from_post_data, build_buffer_channel_name,
@@ -222,6 +223,21 @@ def handle_added_to_team_message(server, message):
 
     run_get_team(data["team_id"], server, "connect_server_team_cb", server.name)
 
+def handle_leave_team_message(server, message):
+    data = message["data"]
+
+    weechat.prnt("", str(data))
+
+    user = server.users[data["user_id"]]
+    if user != server.user:
+        return
+
+    if data["team_id"] not in server.teams:
+        return
+
+    team = server.teams.pop(data["team_id"])
+    unload_team(team)
+
 def handle_ws_event_message(server, message):
     if "posted" == message["event"]:
         return handle_posted_message(server, message)
@@ -241,6 +257,8 @@ def handle_ws_event_message(server, message):
         return handle_user_removed_message(server, message)
     if "added_to_team" == message["event"] and 4 == message["seq"]:
         return handle_added_to_team_message(server, message)
+    if "leave_team" == message["event"]:
+        return handle_leave_team_message(server, message)
 
 def handle_ws_message(server, message):
     if "event" in message:
