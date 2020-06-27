@@ -124,7 +124,7 @@ def handle_posted_message(server, message):
     post = get_post_from_post_data(post)
     write_post(post)
 
-    buffer = get_buffer_from_channel_id(post["channel_id"])
+    buffer = get_buffer_from_channel_id(post.channel_id)
     if not buffer:
         return
 
