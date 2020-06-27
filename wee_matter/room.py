@@ -157,8 +157,13 @@ def write_deleted_message_lines(buffer, post):
         buffer,
         post.date,
         "deleted_post",
-        initial_message_prefix + "	" + colorize_sentence(initial_message, "red")
+        initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), "red")
     )
+
+def build_quote_message(message):
+    if 69 < len(message):
+        message = "%s…" % message[:69].strip()
+    return "> %s" % message
 
 def write_edited_message_lines(buffer, post):
     tags = "post_id_%s" % post.id
@@ -179,7 +184,7 @@ def write_edited_message_lines(buffer, post):
         buffer,
         initial_message_date,
         "edited_post",
-        initial_message_prefix + "	" + colorize_sentence(initial_message, "yellow")
+        initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), "yellow")
     )
 
     if initial_reactions:
@@ -216,7 +221,7 @@ def write_reply_message_lines(buffer, post):
         buffer,
         parent_message_date,
         "quote",
-        parent_message_prefix + "	" + colorize_sentence("> {}".format(parent_message), "lightgreen")
+        parent_message_prefix + "	" + colorize_sentence(build_quote_message(parent_message), "lightgreen")
     )
 
     parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
