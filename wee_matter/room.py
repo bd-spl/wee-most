@@ -172,7 +172,7 @@ def write_edited_message_lines(buffer, post):
     initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
 
     initial_message = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "message").rsplit(' | ', 1)[0]
-    _, initial_reactions = weechat.hdata_string(weechat.hdata_get("line_data"), last_initial_line_data, "message").rsplit(' | ', 1)
+    _, _, initial_reactions = weechat.hdata_string(weechat.hdata_get("line_data"), last_initial_line_data, "message").partition(' | ')
     initial_message = weechat.string_remove_color(initial_message, "")
 
     weechat.prnt_date_tags(
