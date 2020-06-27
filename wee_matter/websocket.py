@@ -212,14 +212,14 @@ def handle_user_removed_message(server, message):
 
 def handle_added_to_team_message(server, message):
     data = message["data"]
-    weechat.prnt("", str(data))
 
-    user = server.users[data["user_id"]]
-    if user != server.user:
+    if data["user_id"] not in server.users:
         return
+    user = server.users[data["user_id"]]
 
     if data["team_id"] in server.teams:
         return
+    server.teams[data["team_id"]] = None
 
     run_get_team(data["team_id"], server, "connect_server_team_cb", server.name)
 
@@ -228,9 +228,9 @@ def handle_leave_team_message(server, message):
 
     weechat.prnt("", str(data))
 
-    user = server.users[data["user_id"]]
-    if user != server.user:
+    if data["user_id"] not in server.users:
         return
+    user = server.users[data["user_id"]]
 
     if data["team_id"] not in server.teams:
         return
@@ -255,7 +255,7 @@ def handle_ws_event_message(server, message):
         return handle_user_added_message(server, message)
     if "user_removed" == message["event"]:
         return handle_user_removed_message(server, message)
-    if "added_to_team" == message["event"] and 4 == message["seq"]:
+    if "added_to_team" == message["event"]:
         return handle_added_to_team_message(server, message)
     if "leave_team" == message["event"]:
         return handle_leave_team_message(server, message)
