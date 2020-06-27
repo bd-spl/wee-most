@@ -244,6 +244,20 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def connect_server_team_cb(server_name, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occured when connecting team")
+        return weechat.WEECHAT_RC_ERROR
+
+    server = get_server(server_name)
+
+    team_data = json.loads(out)
+
+    server.teams[team_data["id"]] = create_team_from_team_data(team_data, server)
+    run_get_user_team_channels(server.user.id, team_data["id"], server, "connect_server_team_channels_cb", server.name)
+
+    return weechat.WEECHAT_RC_OK
+
 def connect_server_cb(server_name, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occured when connecting")

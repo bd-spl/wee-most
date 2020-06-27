@@ -10,7 +10,7 @@ from wee_matter.room import (get_post_from_post_data, build_buffer_channel_name,
                              get_buffer_from_post_id, get_buffer_from_channel_id,
                              write_post, remove_room_user)
 from wee_matter.http import (run_get_channel_posts_after, run_get_channel,
-                             run_get_channel_member)
+                             run_get_channel_member, run_get_team)
 from typing import NamedTuple
 import json
 import socket
@@ -122,6 +122,9 @@ def handle_posted_message(server, message):
     data = message["data"]
     post = json.loads(data["post"])
 
+    if data["team_id"] not in server.teams:
+        return
+
     post = get_post_from_post_data(post)
     if not post:
         return
@@ -184,6 +187,9 @@ def handle_user_added_message(server, message):
     data = message["data"]
     broadcast = message["broadcast"]
 
+    if data["team_id"] not in server.teams:
+        return
+
     if broadcast["channel_id"]:
         buffer = get_buffer_from_channel_id(broadcast["channel_id"])
         if not buffer:
@@ -203,6 +209,19 @@ def handle_user_removed_message(server, message):
         buffer = get_buffer_from_channel_id(broadcast["channel_id"])
         remove_room_user(buffer, user)
 
+def handle_added_to_team_message(server, message):
+    data = message["data"]
+    weechat.prnt("", str(data))
+
+    user = server.users[data["user_id"]]
+    if user != server.user:
+        return
+
+    if data["team_id"] in server.teams:
+        return
+
+    run_get_team(data["team_id"], server, "connect_server_team_cb", server.name)
+
 def handle_ws_event_message(server, message):
     if "posted" == message["event"]:
         return handle_posted_message(server, message)
@@ -220,6 +239,8 @@ def handle_ws_event_message(server, message):
         return handle_user_added_message(server, message)
     if "user_removed" == message["event"]:
         return handle_user_removed_message(server, message)
+    if "added_to_team" == message["event"] and 4 == message["seq"]:
+        return handle_added_to_team_message(server, message)
 
 def handle_ws_message(server, message):
     if "event" in message:

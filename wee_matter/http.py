@@ -27,6 +27,19 @@ def run_get_user_teams(user_id, server, cb, cb_data):
         cb_data
     )
 
+def run_get_team(team_id, server, cb, cb_data):
+    url = server_root_url(server) + "/api/v4/teams/" + team_id
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "failonerror": "1",
+            "httpheader": "Authorization: Bearer " + server.user_token,
+        },
+        30 * 1000,
+        cb,
+        cb_data
+    )
+
 def run_get_users(server, cb, cb_data):
     url = server_root_url(server) + "/api/v4/users"
     weechat.hook_process_hashtable(
