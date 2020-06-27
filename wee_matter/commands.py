@@ -8,7 +8,7 @@ from wee_matter.room import (build_post_from_input_data, get_line_data_tags,
                              find_post_id_in_tags, find_full_post_id)
 
 from wee_matter.http import (run_post_post, run_post_reaction,
-                             run_delete_reaction)
+                             run_delete_reaction, run_delete_post)
 
 server_default_config = {
     "username": "",
@@ -177,6 +177,25 @@ def unreact_command_cb(data, buffer, args):
 
     return weechat.WEECHAT_RC_OK
 
+def delete_post_command_cb_usage(buffer):
+    weechat.prnt(buffer, "Usage: /delete <post-id>")
+
+def delete_post_command_cb(data, buffer, args):
+    if 1 != len(args.split()):
+        delete_post_command_usage(buffer)
+        return weechat.WEECHAT_RC_ERROR
+
+    post_id = find_full_post_id(buffer, args)
+    if not post_id:
+        weechat.prnt(buffer, "Can't find post id for \"%s\"" % args)
+        return weechat.WEECHAT_RC_ERROR
+
+    server = get_server_from_buffer(buffer)
+
+    run_delete_post(post_id, server, "singularity_cb", buffer)
+
+    return weechat.WEECHAT_RC_OK
+
 def setup_commands():
     weechat.hook_command(
         "matter",
@@ -206,6 +225,7 @@ def setup_commands():
     weechat.hook_command("reply", "Reply to a post", "<post-id> <message>", "Reply to a post", "", "reply_command_cb", "")
     weechat.hook_command("react", "React to a post", "<post-id> <emoji-name>", "React to a post", "", "react_command_cb", "")
     weechat.hook_command("unreact", "Unreact to a post", "<post-id> <emoji-name>", "Unreact to a post", "", "unreact_command_cb", "")
+    weechat.hook_command("delete", "Delete a post", "<post-id>", "Delete a post", "", "delete_post_command_cb", "")
 
     weechat.hook_focus("chat", "channel_click_cb", "")
 
