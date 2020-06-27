@@ -184,6 +184,18 @@ def unload_server(server_name):
 
     weechat.buffer_close(server.buffer)
 
+def connect_server_team_channel_cb(server_name, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occured when connecting team channel")
+        return weechat.WEECHAT_RC_ERROR
+
+    server = get_server(server_name)
+
+    channel_data = json.loads(out)
+    create_room_from_channel_data(channel_data, server)
+
+    return weechat.WEECHAT_RC_OK
+
 def connect_server_team_channels_cb(server_name, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occured when connecting team channels")

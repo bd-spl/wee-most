@@ -9,7 +9,7 @@ from wee_matter.room import (get_post_from_post_data, build_buffer_channel_name,
                              add_reaction_to_post, remove_reaction_from_post,
                              get_buffer_from_post_id, get_buffer_from_channel_id,
                              write_post)
-from wee_matter.http import run_get_channel_posts_after
+from wee_matter.http import run_get_channel_posts_after, run_get_channel
 from typing import NamedTuple
 import json
 import socket
@@ -174,6 +174,12 @@ def handle_post_deleted_message(server, message):
     post = post._replace(deleted=True)
     write_post(post)
 
+def handle_channel_created_message(server, message):
+    weechat.prnt("", str(message))
+    data = message["data"]
+
+    run_get_channel(data["channel_id"], server, "connect_server_team_channel_cb", server.name)
+
 def handle_ws_event_message(server, message):
     if "posted" == message["event"]:
         return handle_posted_message(server, message)
@@ -185,6 +191,8 @@ def handle_ws_event_message(server, message):
         return handle_post_edited_message(server, message)
     if "post_deleted" == message["event"]:
         return handle_post_deleted_message(server, message)
+    if "channel_created" == message["event"]:
+        return handle_channel_created_message(server, message)
 
 def handle_ws_message(server, message):
     if "event" in message:
