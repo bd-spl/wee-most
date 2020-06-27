@@ -9,7 +9,8 @@ from wee_matter.room import (get_post_from_post_data, build_buffer_channel_name,
                              add_reaction_to_post, remove_reaction_from_post,
                              get_buffer_from_post_id, get_buffer_from_channel_id,
                              write_post)
-from wee_matter.http import run_get_channel_posts_after, run_get_channel
+from wee_matter.http import (run_get_channel_posts_after, run_get_channel,
+                             run_get_channel_member)
 from typing import NamedTuple
 import json
 import socket
@@ -175,10 +176,20 @@ def handle_post_deleted_message(server, message):
     write_post(post)
 
 def handle_channel_created_message(server, message):
-    weechat.prnt("", str(message))
     data = message["data"]
 
     run_get_channel(data["channel_id"], server, "connect_server_team_channel_cb", server.name)
+
+def handle_user_added_message(server, message):
+    data = message["data"]
+    broadcast = message["broadcast"]
+
+    if broadcast["channel_id"]:
+        buffer = get_buffer_from_channel_id(broadcast["channel_id"])
+        if not buffer:
+            run_get_channel(broadcast["channel_id"], server, "connect_server_team_channel_cb", server.name)
+            return
+        run_get_channel_member(broadcast["channel_id"], data["user_id"], server, "hidrate_room_user_cb", buffer)
 
 def handle_ws_event_message(server, message):
     if "posted" == message["event"]:
@@ -193,6 +204,8 @@ def handle_ws_event_message(server, message):
         return handle_post_deleted_message(server, message)
     if "channel_created" == message["event"]:
         return handle_channel_created_message(server, message)
+    if "user_added" == message["event"]:
+        return handle_user_added_message(server, message)
 
 def handle_ws_message(server, message):
     if "event" in message:

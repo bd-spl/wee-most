@@ -441,6 +441,19 @@ def hidrate_room_users_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def hidrate_room_user_cb(buffer, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occured when hidrating room user")
+        return weechat.WEECHAT_RC_ERROR
+
+    user_data = json.loads(out)
+
+    server = get_server_from_buffer(buffer)
+
+    create_room_user_from_user_data(user_data, buffer, server)
+
+    return weechat.WEECHAT_RC_OK
+
 def build_buffer_channel_name(channel_id):
     return "weematter." + channel_id
 
