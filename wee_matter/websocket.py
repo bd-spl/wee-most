@@ -122,6 +122,8 @@ def handle_posted_message(server, message):
     post = json.loads(data["post"])
 
     post = get_post_from_post_data(post)
+    if not post:
+        return
     write_post(post)
 
     buffer = get_buffer_from_channel_id(post.channel_id)

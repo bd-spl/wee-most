@@ -339,6 +339,10 @@ def get_reactions_from_post_data(post_data, server):
 def get_post_from_post_data(post_data):
     buffer_name = build_buffer_channel_name(post_data["channel_id"])
     buffer = weechat.buffer_search("", buffer_name)
+    if not buffer:
+        weechat.prnt("", "Channel not found in server")
+        return
+
     server = get_server_from_buffer(buffer)
 
     if post_data["user_id"] not in server.users:
