@@ -144,9 +144,11 @@ def build_reaction_line(post):
 
     return reaction_line.strip()
 
-def write_parent_message_lines(buffer, post):
+def write_reply_message_lines(buffer, post):
     if not post.parent_id:
         return
+
+    tags = "post_id_%s" % post.id
 
     parent_line_data = find_buffer_first_post_line_data(buffer, post.parent_id)
     if not parent_line_data:
@@ -166,26 +168,35 @@ def write_parent_message_lines(buffer, post):
         parent_message_prefix + "	" + colorize_sentence("> {}".format(parent_message), "lightgreen")
     )
 
-    return True
+    parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
+    own_prefix = weechat.buffer_get_string(buffer, "localvar_nick")
+
+    parent_post_id = find_post_id_in_tags(parent_tags)
+    tags += ",reply_to_{}".format(parent_post_id)
+
+    # if somebody (not us) reply to our post
+    if parent_message_prefix == own_prefix and parent_message_prefix != post.user.username:
+        tags += ",notify_highlight"
+
+    if post.reactions:
+        tags += ",reactions"
+        weechat.prnt_date_tags(
+            buffer,
+            post.date,
+            tags,
+            colorize_sentence(post.user.username, post.user.color) + "	" + post.message + " | " + build_reaction_line(post)
+        )
+        return
+
+    weechat.prnt_date_tags(
+        buffer,
+        post.date,
+        tags,
+        colorize_sentence(post.user.username, post.user.color) + "	" + post.message
+    )
 
 def write_message_lines(buffer, post):
     tags = "post_id_%s" % post.id
-
-    if post.parent_id:
-        if write_parent_message_lines(buffer, post):
-            parent_line_data = find_buffer_first_post_line_data(buffer, post.parent_id)
-            parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
-            parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
-            own_prefix = weechat.buffer_get_string(buffer, "localvar_nick")
-
-            parent_tags = get_line_data_tags(parent_line_data)
-            parent_post_id = find_post_id_in_tags(parent_tags)
-            tags += ",reply_to_{}".format(parent_post_id)
-
-            # if somebody (not us) reply to our post
-            if parent_message_prefix == own_prefix and parent_message_prefix != post.user.username:
-                tags += ",notify_highlight"
-
     if post.reactions:
         tags += ",reactions"
         weechat.prnt_date_tags(
@@ -215,7 +226,10 @@ def write_file_lines(buffer, post):
 def write_post(buffer, post):
     server = get_server_from_buffer(buffer)
 
-    write_message_lines(buffer, post)
+    if post.parent_id:
+        write_reply_message_lines(buffer, post)
+    else:
+        write_message_lines(buffer, post)
     write_file_lines(buffer, post)
 
     weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
