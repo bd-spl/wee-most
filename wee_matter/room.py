@@ -3,9 +3,12 @@ import weechat
 import json
 from wee_matter.server import get_servers, get_server_from_buffer
 from typing import NamedTuple
+from wee_matter import config
+from wee_matter.file import (prepare_download_location, open_file,
+                             handle_file_click)
 import re
 import tempfile
-import os, platform
+import os
 
 channel_buffers = {}
 
@@ -641,11 +644,6 @@ def find_post_id_in_tags(tags):
         if tag.startswith("post_id_"):
             return tag[8:]
 
-def find_file_id_in_tags(tags):
-    for tag in tags:
-        if tag.startswith("file_id_"):
-            return tag[8:]
-
 def find_reply_to_in_tags(tags):
     for tag in tags:
         if tag.startswith("reply_to_"):
@@ -675,58 +673,6 @@ def handle_post_click(data, info):
 
     new_position = old_position + len(post_id)
     weechat.buffer_set(buffer, "input_pos", str(new_position))
-
-def open_file(file_path):
-    if platform.system() == 'Darwin':       # macOS
-        weechat.hook_process("open \"{}\"".format(file_path), 100, "", "")
-    elif platform.system() == 'Windows':    # Windows
-        os.startfile(file_path)
-        weechat.hook_process(file_path, 100, "", "")
-    else:                                   # linux variants
-        weechat.hook_process("xdg-open \"{}\"".format(file_path), 100, "", "")
-
-def file_get_cb(file_path, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occured when downloading file")
-        return weechat.WEECHAT_RC_ERROR
-
-    open_file(file_path)
-
-    return weechat.WEECHAT_RC_OK
-
-def prepare_download_location():
-    if not weechat.config_is_set_plugin("download_location"):
-        cache_root = weechat.string_eval_expression("${env:XDG_CACHE_HOME}/wee-matter", {}, {}, {})
-        if not cache_root:
-            cache_root = weechat.string_eval_path_home("~/.cache/wee-matter", {}, {}, {})
-
-        weechat.config_set_plugin("download_location", cache_root + "/downloads")
-    location = weechat.config_get_plugin("download_location")
-
-    if not os.path.exists(location):
-        try:
-            os.makedirs(location)
-        except:
-            w.prnt('', 'ERROR: Failed to create directory at files_download_location: {}'
-                    .format(format_exc_only()))
-
-    return location
-
-def handle_file_click(data, info):
-    tags = info["_chat_line_tags"].split(",")
-
-    file_id = find_file_id_in_tags(tags)
-    if not file_id:
-        return
-
-    server = get_server_from_buffer(info["_buffer"])
-
-    file_path = prepare_download_location() + "/" + file_id
-
-    if os.path.isfile(file_path):
-        open_file(file_path)
-    else:
-        run_get_file(file_id, file_path, server, "file_get_cb", file_path)
 
 def channel_click_cb(data, info):
     if not "_buffer_localvar_script_name" in info or "wee-matter" != info["_buffer_localvar_script_name"]:

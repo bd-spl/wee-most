@@ -17,10 +17,11 @@ from wee_matter.room import (hidrate_room_read_posts_cb, hidrate_room_posts_cb,
                              hidrate_room_users_cb, room_input_cb,
                              post_post_cb, handle_multiline_message_cb,
                              buffer_switch_cb, channel_completion_cb, private_completion_cb,
-                             channel_switch_cb, channel_click_cb, hidrate_room_user_cb,
-                             file_get_cb)
+                             channel_switch_cb, channel_click_cb, hidrate_room_user_cb)
 
 from wee_matter.http import singularity_cb
+from wee_matter.file import file_get_cb
+from wee_matter import config
 
 WEECHAT_SCRIPT_NAME = "wee-matter"
 WEECHAT_SCRIPT_DESCRIPTION = "mattermost chat plugin"
@@ -39,6 +40,7 @@ weechat.register(
 )
 
 setup_commands()
+config.setup()
 auto_connect()
 
 weechat.hook_modifier("input_text_for_buffer", "handle_multiline_message_cb", "")
