@@ -1,9 +1,6 @@
 
 import weechat
 from typing import NamedTuple
-import json
-import time
-import re
 
 servers = {}
 
@@ -76,6 +73,23 @@ def get_server_from_buffer(buffer):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
     return get_server(server_name)
 
+def is_connected(server: Server):
+    return server.worker
+
+def unload_team(team):
+    for buffer in team.buffers:
+        weechat.buffer_close(buffer)
+    weechat.buffer_close(team.buffer)
+
+from wee_matter.room import create_room_from_channel_data
+from wee_matter.websocket import create_worker, close_worker
+from wee_matter.http import (run_get_user_teams, run_get_users,
+                            run_user_login, run_user_logout,
+                            run_get_user_team_channels)
+from wee_matter.config import (get_server_config)
+import json
+import re
+
 def create_team_from_team_data(team_data, server):
     server_number = weechat.buffer_get_integer(server.buffer, "number")
 
@@ -112,34 +126,11 @@ def create_user_from_user_data(user_data, server):
         color= color_for_username(user_data["username"]),
     )
 
-def is_connected(server: Server):
-    return server.worker
-
 def server_completion_cb(data, completion_item, current_buffer, completion):
     servers = get_servers()
     for server_name in servers:
         weechat.hook_completion_list_add(completion, server_name, 0, weechat.WEECHAT_LIST_POS_SORT)
     return weechat.WEECHAT_RC_OK
-
-def unload_team(team):
-    for buffer in team.buffers:
-        weechat.buffer_close(buffer)
-    weechat.buffer_close(team.buffer)
-
-from wee_matter.room import create_room_from_channel_data
-from wee_matter.websocket import create_worker, close_worker
-from wee_matter.http import (run_get_user_teams, run_get_users,
-                            run_user_login, run_user_logout,
-                            run_get_user_team_channels)
-
-def get_server_config(server_name, key):
-    key_prefix = "server." + server_name + "."
-
-    config_key = key_prefix + key
-    config_value = weechat.config_get_plugin(key_prefix + key)
-    expanded_value = weechat.string_eval_expression(config_value, {}, {}, {})
-
-    return expanded_value
 
 def load_server(server_name):
     user = User(
