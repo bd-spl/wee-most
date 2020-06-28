@@ -5,10 +5,9 @@ from wee_matter.server import get_servers, get_server_from_buffer
 from typing import NamedTuple
 from wee_matter import config
 from wee_matter.file import (prepare_download_location, open_file,
-                             handle_file_click)
+                             handle_file_click, write_file_lines,
+                             File)
 import re
-import tempfile
-import os
 
 channel_buffers = {}
 
@@ -38,15 +37,6 @@ Post = NamedTuple(
         ("files", list),
         ("reactions", list),
         ("user", any),
-    ]
-)
-
-File = NamedTuple(
-    "File",
-    [
-        ("id", str),
-        ("name", str),
-        ("url", str),
     ]
 )
 
@@ -275,15 +265,6 @@ def write_message_lines(buffer, post):
         tags,
         colorize_sentence(post.user.username, post.user.color) + "	" + post.message
     )
-
-def write_file_lines(buffer, post):
-    for file in post.files:
-        weechat.prnt_date_tags(
-            buffer,
-            post.date,
-            "file_id_" + file.id,
-            "	[{}]({})".format(file.name, file.url)
-        )
 
 def write_post(post):
     buffer_name = build_buffer_channel_name(post.channel_id)

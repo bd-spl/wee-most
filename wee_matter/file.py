@@ -3,6 +3,25 @@ import weechat
 from wee_matter import config
 import os, platform
 from wee_matter.server import get_server_from_buffer
+from typing import NamedTuple
+
+File = NamedTuple(
+    "File",
+    [
+        ("id", str),
+        ("name", str),
+        ("url", str),
+    ]
+)
+
+def write_file_lines(buffer, post):
+    for file in post.files:
+        weechat.prnt_date_tags(
+            buffer,
+            post.date,
+            "file_id_" + file.id,
+            "	[{}]({})".format(file.name, file.url)
+        )
 
 def prepare_download_location():
     location = config.download_location()
