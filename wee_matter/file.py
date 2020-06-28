@@ -3,6 +3,7 @@ import weechat
 from wee_matter import config
 import os, platform
 from wee_matter.server import get_server_from_buffer
+from wee_matter.http import build_file_url
 from typing import NamedTuple
 
 File = NamedTuple(
@@ -73,3 +74,19 @@ def find_file_id_in_tags(tags):
     for tag in tags:
         if tag.startswith("file_id_"):
             return tag[8:]
+
+def get_files_from_post_data(post_data, server):
+    if "files" in post_data["metadata"]:
+        files = []
+        for file_data in post_data["metadata"]["files"]:
+            files.append(
+                File(
+                    id= file_data["id"],
+                    name= file_data["name"],
+                    url= build_file_url(file_data["id"], server)
+                )
+            )
+        return files
+
+    return []
+
