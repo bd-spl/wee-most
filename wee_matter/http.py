@@ -267,3 +267,19 @@ def run_delete_post(post_id, server, cb, cb_data):
         cb_data
     )
 
+def run_get_file(file_id, file_out_path, server, cb, cb_data):
+    weechat.prnt("", "downloading")
+    url = server_root_url(server) + "/api/v4/files/" + file_id
+
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "failonerror": "1",
+            "file_out": file_out_path,
+            "httpheader": "Authorization: Bearer " + server.user_token,
+        },
+        30 * 1000,
+        cb,
+        cb_data
+    )
+
