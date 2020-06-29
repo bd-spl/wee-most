@@ -123,7 +123,7 @@ def handle_posted_message(server, message):
     data = message["data"]
     post = json.loads(data["post"])
 
-    if data["team_id"] not in server.teams:
+    if data["team_id"] and data["team_id"] not in server.teams:
         return
 
     post = get_post_from_post_data(post)
