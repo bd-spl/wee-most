@@ -3,7 +3,7 @@ import weechat
 from wee_matter import config
 import os, platform
 from wee_matter.server import get_server_from_buffer
-from wee_matter.http import build_file_url
+from wee_matter.http import build_file_url, run_get_file
 from typing import NamedTuple
 
 File = NamedTuple(
