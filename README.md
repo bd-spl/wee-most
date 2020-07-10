@@ -43,3 +43,7 @@ Some command uses this id to interact with posts.
 /react abc 100
 /remove abc
 ```
+
+## Deal with files
+
+Mouse click or select a file line download it and open it.
