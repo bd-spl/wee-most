@@ -41,7 +41,7 @@ Some command uses this id to interact with posts.
 /reply abc Yeah you right !
 /react abc rofl
 /react abc 100
-/remove abc
+/delete abc
 ```
 
 ## Deal with files
