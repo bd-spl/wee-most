@@ -203,11 +203,13 @@ def connect_server_team_channels_cb(server_name, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def connect_server_users_cb(server_name, command, rc, out, err):
+def connect_server_users_cb(data, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occured when connecting users")
         return weechat.WEECHAT_RC_ERROR
 
+    server_name, page = data.split("|")
+    page = int(page)
     server = get_server(server_name)
 
     response = json.loads(out)
@@ -217,7 +219,10 @@ def connect_server_users_cb(server_name, command, rc, out, err):
         else:
             server.users[user["id"]] = create_user_from_user_data(user, server)
 
-    run_get_user_teams(server.user.id, server, "connect_server_teams_cb", server.name)
+    if len(response) == 60:
+        run_get_users(server, page+1, "connect_server_users_cb", "{}|{}".format(server.name, page+1))
+    else:
+        run_get_user_teams(server.user.id, server, "connect_server_teams_cb", server.name)
 
     return weechat.WEECHAT_RC_OK
 
@@ -291,7 +296,7 @@ def connect_server_cb(server_name, command, rc, out, err):
 
     weechat.prnt("", "Connected to " + server_name)
 
-    run_get_users(server, "connect_server_users_cb", server.name)
+    run_get_users(server, 0, "connect_server_users_cb", "{}|0".format(server.name))
 
     return weechat.WEECHAT_RC_OK
 

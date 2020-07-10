@@ -40,8 +40,8 @@ def run_get_team(team_id, server, cb, cb_data):
         cb_data
     )
 
-def run_get_users(server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/users"
+def run_get_users(server, page, cb, cb_data):
+    url = server_root_url(server) + "/api/v4/users?page=" + str(page)
     weechat.hook_process_hashtable(
         "url:" + url,
         {
