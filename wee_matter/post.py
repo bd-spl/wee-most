@@ -72,7 +72,7 @@ def build_reaction_line(post):
 def build_quote_message(message):
     if 69 < len(message):
         message = "%s…" % message[:69].strip()
-    return "> %s" % message
+    return message
 
 def write_deleted_message_lines(buffer, post):
     first_initial_line_data = find_buffer_first_post_line_data(buffer, post.id)
