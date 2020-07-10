@@ -10,6 +10,9 @@ $ make install # WEECHAT_HOME=$HOME/.another-weechat
 
 ## Usage
 
+
+## Connection
+
 ```
 /script load wee_matter.py
 /matter server add a_banal_server a.banal.server
@@ -26,4 +29,17 @@ Then you can connect/disconnect to servers
 ```
 /matter connect a_banal_server
 /matter disconnect a_banal_server
+```
+
+## Reply, React, Remove
+
+Mouse click or select a line print the short post id in the input field.
+
+Some command uses this id to interact with posts.
+
+```
+/reply abc Yeah you right !
+/react abc rofl
+/react abc 100
+/remove abc
 ```
