@@ -1,9 +1,7 @@
 
 import weechat
+import wee_matter
 from typing import NamedTuple
-from wee_matter.file import write_file_lines, get_files_from_post_data
-from wee_matter.room import build_buffer_channel_name, colorize_sentence
-from wee_matter.server import get_servers, get_server_from_buffer
 
 Post = NamedTuple(
     "Post",
@@ -45,7 +43,7 @@ def post_post_cb(buffer, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def build_post_from_input_data(buffer, input_data):
-    server = get_server_from_buffer(buffer)
+    server = wee_matter.server.get_server_from_buffer(buffer)
 
     return Post(
         id= "",
@@ -60,7 +58,7 @@ def build_post_from_input_data(buffer, input_data):
     )
 
 def build_reaction_message(reaction):
-    return "[:{}:]".format(colorize_sentence(reaction.emoji_name, reaction.user.color))
+    return "[:{}:]".format(wee_matter.wee_matter.room.colorize_sentence(reaction.emoji_name, reaction.user.color))
 
 def build_reaction_line(post):
     reaction_line = ""
@@ -85,7 +83,7 @@ def write_deleted_message_lines(buffer, post):
         buffer,
         post.date,
         "deleted_post",
-        initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), "red")
+        initial_message_prefix + "	" + wee_matter.room.colorize_sentence(build_quote_message(initial_message), "red")
     )
 
 def write_edited_message_lines(buffer, post):
@@ -107,7 +105,7 @@ def write_edited_message_lines(buffer, post):
         buffer,
         initial_message_date,
         "edited_post",
-        initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), "yellow")
+        initial_message_prefix + "	" + wee_matter.room.colorize_sentence(build_quote_message(initial_message), "yellow")
     )
 
     if initial_reactions:
@@ -120,7 +118,7 @@ def write_edited_message_lines(buffer, post):
         buffer,
         post.date,
         tags,
-        colorize_sentence(post.user.username, post.user.color) + "	" + new_message
+        wee_matter.room.colorize_sentence(post.user.username, post.user.color) + "	" + new_message
     )
 
 def write_reply_message_lines(buffer, post):
@@ -144,7 +142,7 @@ def write_reply_message_lines(buffer, post):
         buffer,
         parent_message_date,
         "quote",
-        parent_message_prefix + "	" + colorize_sentence(build_quote_message(parent_message), "lightgreen")
+        parent_message_prefix + "	" + wee_matter.room.colorize_sentence(build_quote_message(parent_message), "lightgreen")
     )
 
     parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
@@ -163,7 +161,7 @@ def write_reply_message_lines(buffer, post):
             buffer,
             post.date,
             tags,
-            colorize_sentence(post.user.username, post.user.color) + "	" + post.message + " | " + build_reaction_line(post)
+            wee_matter.room.colorize_sentence(post.user.username, post.user.color) + "	" + post.message + " | " + build_reaction_line(post)
         )
         return
 
@@ -171,7 +169,7 @@ def write_reply_message_lines(buffer, post):
         buffer,
         post.date,
         tags,
-        colorize_sentence(post.user.username, post.user.color) + "	" + post.message
+        wee_matter.room.colorize_sentence(post.user.username, post.user.color) + "	" + post.message
     )
 
 def write_message_lines(buffer, post):
@@ -182,7 +180,7 @@ def write_message_lines(buffer, post):
             buffer,
             post.date,
             tags,
-            colorize_sentence(post.user.username, post.user.color) + "	" + post.message + " | " + build_reaction_line(post)
+            wee_matter.room.colorize_sentence(post.user.username, post.user.color) + "	" + post.message + " | " + build_reaction_line(post)
         )
         return
 
@@ -190,13 +188,13 @@ def write_message_lines(buffer, post):
         buffer,
         post.date,
         tags,
-        colorize_sentence(post.user.username, post.user.color) + "	" + post.message
+        wee_matter.room.colorize_sentence(post.user.username, post.user.color) + "	" + post.message
     )
 
 def write_post(post):
-    buffer_name = build_buffer_channel_name(post.channel_id)
+    buffer_name = wee_matter.room.build_buffer_channel_name(post.channel_id)
     buffer = weechat.buffer_search("", buffer_name)
-    server = get_server_from_buffer(buffer)
+    server = wee_matter.server.get_server_from_buffer(buffer)
 
     if post.deleted:
         write_deleted_message_lines(buffer, post)
@@ -206,7 +204,7 @@ def write_post(post):
         write_reply_message_lines(buffer, post)
     else:
         write_message_lines(buffer, post)
-    write_file_lines(buffer, post)
+    wee_matter.file.write_file_lines(buffer, post)
 
     weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
     post_buffers[post.id] = buffer
@@ -236,13 +234,13 @@ def get_reactions_from_post_data(post_data, server):
     return []
 
 def get_post_from_post_data(post_data):
-    buffer_name = build_buffer_channel_name(post_data["channel_id"])
+    buffer_name = wee_matter.room.build_buffer_channel_name(post_data["channel_id"])
     buffer = weechat.buffer_search("", buffer_name)
     if not buffer:
         weechat.prnt("", "Channel not found in server")
         return
 
-    server = get_server_from_buffer(buffer)
+    server = wee_matter.server.get_server_from_buffer(buffer)
 
     if post_data["user_id"] not in server.users:
         weechat.prnt("", "User not found in server")
@@ -257,7 +255,7 @@ def get_post_from_post_data(post_data):
         message= post_data["message"],
         date= int(post_data["update_at"]/1000),
         deleted= False,
-        files= get_files_from_post_data(post_data, server),
+        files= wee_matter.file.get_files_from_post_data(post_data, server),
         reactions= get_reactions_from_post_data(post_data, server),
         user= user,
     )

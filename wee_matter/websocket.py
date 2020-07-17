@@ -1,20 +1,12 @@
 
 import weechat
 import time
-from wee_matter.server import (get_server, update_server_worker,
-                               is_connected, unload_team)
-from websocket import (create_connection, WebSocketConnectionClosedException,
-                       WebSocketTimeoutException, ABNF)
-from wee_matter.room import (build_buffer_channel_name, mark_channel_as_read,
-                             get_buffer_from_channel_id, write_post, remove_room_user)
-from wee_matter.http import (run_get_channel_posts_after, run_get_channel,
-                             run_get_channel_member, run_get_team)
-from wee_matter.post import (get_reaction_from_reaction_data, add_reaction_to_post,
-                          get_post_from_post_data, remove_reaction_from_post,
-                          get_buffer_from_post_id)
-from typing import NamedTuple
+import wee_matter
 import json
 import socket
+from websocket import (create_connection, WebSocketConnectionClosedException,
+                       WebSocketTimeoutException, ABNF)
+from typing import NamedTuple
 from ssl import SSLWantReadError
 
 Worker = NamedTuple(
@@ -73,18 +65,18 @@ def rehidrate_server_buffers(server):
     for buffer in server.buffers:
         last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
         channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
-        run_get_channel_posts_after(last_post_id, channel_id, server, "hidrate_room_posts_cb", buffer)
+        wee_matter.http.run_get_channel_posts_after(last_post_id, channel_id, server, "hidrate_room_posts_cb", buffer)
 
 def reconnection_loop_cb(server_name, remaining_calls):
-    server = get_server(server_name)
-    if server != None and is_connected(server):
+    server = wee_matter.server.get_server(server_name)
+    if server != None and wee_matter.server.is_connected(server):
         return weechat.WEECHAT_RC_OK
 
     weechat.prnt("", "Reconnecting...")
 
     new_worker = create_worker(server)
     if new_worker:
-        update_server_worker(server, new_worker)
+        wee_matter.server.update_server_worker(server, new_worker)
         weechat.prnt("", "Connected back.")
         rehidrate_server_buffers(server)
         return weechat.WEECHAT_RC_OK
@@ -100,10 +92,10 @@ def close_worker(worker):
 def handle_loosed_connection(server):
     weechat.prnt("", "Loosed connection.")
     close_worker(server.worker)
-    update_server_worker(server, None)
+    wee_matter.server.update_server_worker(server, None)
 
 def ws_ping_cb(server_name, remaining_calls):
-    server = get_server(server_name)
+    server = wee_matter.server.get_server(server_name)
     worker = server.worker
 
     if worker.last_pong_time < worker.last_ping_time:
@@ -113,7 +105,7 @@ def ws_ping_cb(server_name, remaining_calls):
     try:
         worker.ws.ping()
         worker = worker._replace(last_ping_time=time.time())
-        update_server_worker(server, worker)
+        wee_matter.server.update_server_worker(server, worker)
     except (WebSocketConnectionClosedException, socket.error) as e:
         handle_loosed_connection(server)
 
@@ -126,63 +118,63 @@ def handle_posted_message(server, message):
     if data["team_id"] and data["team_id"] not in server.teams:
         return
 
-    post = get_post_from_post_data(post)
+    post = wee_matter.post.get_post_from_post_data(post)
     if not post:
         return
-    write_post(post)
+    wee_matter.post.write_post(post)
 
-    buffer = get_buffer_from_channel_id(post.channel_id)
+    buffer = wee_matter.room.get_buffer_from_channel_id(post.channel_id)
     if not buffer:
         return
 
     if buffer == weechat.current_buffer():
-        mark_channel_as_read(buffer)
+        wee_matter.room.mark_channel_as_read(buffer)
 
 def handle_reaction_added_message(server, message):
     data = message["data"]
 
     reaction_data = json.loads(data["reaction"])
 
-    reaction = get_reaction_from_reaction_data(reaction_data, server)
-    buffer = get_buffer_from_post_id(reaction_data["post_id"])
+    reaction = wee_matter.post.get_reaction_from_reaction_data(reaction_data, server)
+    buffer = wee_matter.post.get_buffer_from_post_id(reaction_data["post_id"])
 
     if not buffer or not reaction:
         return
 
-    add_reaction_to_post(buffer, reaction)
+    wee_matter.post.add_reaction_to_post(buffer, reaction)
 
 def handle_reaction_removed_message(server, message):
     data = message["data"]
 
     reaction_data = json.loads(data["reaction"])
 
-    reaction = get_reaction_from_reaction_data(reaction_data, server)
-    buffer = get_buffer_from_post_id(reaction_data["post_id"])
+    reaction = wee_matter.post.get_reaction_from_reaction_data(reaction_data, server)
+    buffer = wee_matter.post.get_buffer_from_post_id(reaction_data["post_id"])
 
     if not buffer or not reaction:
         return
 
-    remove_reaction_from_post(buffer, reaction)
+    wee_matter.post.remove_reaction_from_post(buffer, reaction)
 
 def handle_post_edited_message(server, message):
     data = message["data"]
 
     post_data = json.loads(data["post"])
-    post = get_post_from_post_data(post_data)
-    write_post(post)
+    post = wee_matter.post.get_post_from_post_data(post_data)
+    wee_matter.post.write_post(post)
 
 def handle_post_deleted_message(server, message):
     data = message["data"]
 
     post_data = json.loads(data["post"])
-    post = get_post_from_post_data(post_data)
+    post = wee_matter.post.get_post_from_post_data(post_data)
     post = post._replace(deleted=True)
-    write_post(post)
+    wee_matter.post.write_post(post)
 
 def handle_channel_created_message(server, message):
     data = message["data"]
 
-    run_get_channel(data["channel_id"], server, "connect_server_team_channel_cb", server.name)
+    wee_matter.http.run_get_channel(data["channel_id"], server, "connect_server_team_channel_cb", server.name)
 
 def handle_user_added_message(server, message):
     data = message["data"]
@@ -192,11 +184,11 @@ def handle_user_added_message(server, message):
         return
 
     if broadcast["channel_id"]:
-        buffer = get_buffer_from_channel_id(broadcast["channel_id"])
+        buffer = wee_matter.room.get_buffer_from_channel_id(broadcast["channel_id"])
         if not buffer:
-            run_get_channel(broadcast["channel_id"], server, "connect_server_team_channel_cb", server.name)
+            wee_matter.http.run_get_channel(broadcast["channel_id"], server, "connect_server_team_channel_cb", server.name)
             return
-        run_get_channel_member(broadcast["channel_id"], data["user_id"], server, "hidrate_room_user_cb", buffer)
+        wee_matter.http.run_get_channel_member(broadcast["channel_id"], data["user_id"], server, "hidrate_room_user_cb", buffer)
 
 def handle_user_removed_message(server, message):
     data = message["data"]
@@ -207,8 +199,8 @@ def handle_user_removed_message(server, message):
             weechat.prnt("", "Can't remove user. User not found in server")
             return
         user = server.users[data["user_id"]]
-        buffer = get_buffer_from_channel_id(broadcast["channel_id"])
-        remove_room_user(buffer, user)
+        buffer = wee_matter.room.get_buffer_from_channel_id(broadcast["channel_id"])
+        wee_matter.room.remove_room_user(buffer, user)
 
 def handle_added_to_team_message(server, message):
     data = message["data"]
@@ -221,7 +213,7 @@ def handle_added_to_team_message(server, message):
         return
     server.teams[data["team_id"]] = None
 
-    run_get_team(data["team_id"], server, "connect_server_team_cb", server.name)
+    wee_matter.http.run_get_team(data["team_id"], server, "connect_server_team_cb", server.name)
 
 def handle_leave_team_message(server, message):
     data = message["data"]
@@ -234,7 +226,7 @@ def handle_leave_team_message(server, message):
         return
 
     team = server.teams.pop(data["team_id"])
-    unload_team(team)
+    wee_matter.server.unload_team(team)
 
 def handle_ws_event_message(server, message):
     if "posted" == message["event"]:
@@ -263,7 +255,7 @@ def handle_ws_message(server, message):
         handle_ws_event_message(server, message)
 
 def receive_ws_callback(server_name, data):
-    server = get_server(server_name)
+    server = wee_matter.server.get_server(server_name)
     worker = server.worker
 
     while True:
@@ -276,7 +268,7 @@ def receive_ws_callback(server_name, data):
 
         if opcode == ABNF.OPCODE_PONG:
             worker = worker._replace(last_pong_time=time.time())
-            update_server_worker(server, worker)
+            wee_matter.server.update_server_worker(server, worker)
             return weechat.WEECHAT_RC_OK
 
         if data:

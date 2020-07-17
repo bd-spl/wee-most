@@ -1,11 +1,11 @@
 
 import weechat
-from wee_matter.server import server_root_url
+import wee_matter
 import json
 import time
 
 def build_file_url(file_id, server):
-    return server_root_url(server) + "/api/v4/files/" + file_id
+    return wee_matter.server.server_root_url(server) + "/api/v4/files/" + file_id
 
 def singularity_cb(data, command, rc, out, err):
     if rc != 0:
@@ -15,7 +15,7 @@ def singularity_cb(data, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def run_get_user_teams(user_id, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/users/" + user_id + "/teams"
+    url = wee_matter.server.server_root_url(server) + "/api/v4/users/" + user_id + "/teams"
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -41,7 +41,7 @@ def run_get_team(team_id, server, cb, cb_data):
     )
 
 def run_get_users(server, page, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/users?page=" + str(page)
+    url = wee_matter.server.server_root_url(server) + "/api/v4/users?page=" + str(page)
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -54,7 +54,7 @@ def run_get_users(server, page, cb, cb_data):
     )
 
 def run_user_logout(server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/users/logout"
+    url = wee_matter.server.server_root_url(server) + "/api/v4/users/logout"
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -71,7 +71,7 @@ def run_user_logout(server, cb, cb_data):
     )
 
 def run_user_login(server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/users/login"
+    url = wee_matter.server.server_root_url(server) + "/api/v4/users/login"
     params = {
         "login_id": server.username,
         "password": server.password,
@@ -90,7 +90,7 @@ def run_user_login(server, cb, cb_data):
     )
 
 def run_get_channel(channel_id, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/channels/" + channel_id
+    url = wee_matter.server.server_root_url(server) + "/api/v4/channels/" + channel_id
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -103,7 +103,7 @@ def run_get_channel(channel_id, server, cb, cb_data):
     )
 
 def run_get_user_team_channels(user_id, team_id, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/users/" + user_id + "/teams/" + team_id + "/channels"
+    url = wee_matter.server.server_root_url(server) + "/api/v4/users/" + user_id + "/teams/" + team_id + "/channels?page=0&per_page=5"
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -116,7 +116,7 @@ def run_get_user_team_channels(user_id, team_id, server, cb, cb_data):
     )
 
 def run_post_post(post, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/posts"
+    url = wee_matter.server.server_root_url(server) + "/api/v4/posts"
     params = {
         "channel_id": post.channel_id,
         "message": post.message,
@@ -138,7 +138,7 @@ def run_post_post(post, server, cb, cb_data):
     )
 
 def run_get_channel_posts(channel_id, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/channels/" + channel_id + "/posts"
+    url = wee_matter.server.server_root_url(server) + "/api/v4/channels/" + channel_id + "/posts"
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -151,7 +151,7 @@ def run_get_channel_posts(channel_id, server, cb, cb_data):
     )
 
 def run_get_read_channel_posts(user_id, channel_id, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/users/" + user_id + "/channels/" + channel_id + "/posts/unread?limit_after=1"
+    url = wee_matter.server.server_root_url(server) + "/api/v4/users/" + user_id + "/channels/" + channel_id + "/posts/unread?limit_after=1"
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -164,7 +164,7 @@ def run_get_read_channel_posts(user_id, channel_id, server, cb, cb_data):
     )
 
 def run_get_channel_posts_after(post_id, channel_id, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/channels/" + channel_id + "/posts?after=" + post_id
+    url = wee_matter.server.server_root_url(server) + "/api/v4/channels/" + channel_id + "/posts?after=" + post_id
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -177,7 +177,7 @@ def run_get_channel_posts_after(post_id, channel_id, server, cb, cb_data):
     )
 
 def run_get_channel_members(channel_id, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/channels/" + channel_id + "/members"
+    url = wee_matter.server.server_root_url(server) + "/api/v4/channels/" + channel_id + "/members"
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -190,7 +190,7 @@ def run_get_channel_members(channel_id, server, cb, cb_data):
     )
 
 def run_get_channel_member(channel_id, member_id, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/channels/" + channel_id + "/members/" + member_id
+    url = wee_matter.server.server_root_url(server) + "/api/v4/channels/" + channel_id + "/members/" + member_id
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -203,7 +203,7 @@ def run_get_channel_member(channel_id, member_id, server, cb, cb_data):
     )
 
 def run_post_user_post_unread(user_id, post_id, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/users/" + user_id + "/posts/" + post_id + "/set_unread"
+    url = wee_matter.server.server_root_url(server) + "/api/v4/users/" + user_id + "/posts/" + post_id + "/set_unread"
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -217,7 +217,7 @@ def run_post_user_post_unread(user_id, post_id, server, cb, cb_data):
     )
 
 def run_post_reaction(emoji_name, post_id, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/reactions"
+    url = wee_matter.server.server_root_url(server) + "/api/v4/reactions"
     params = {
         "user_id": server.user.id,
         "post_id": post_id,
@@ -238,7 +238,7 @@ def run_post_reaction(emoji_name, post_id, server, cb, cb_data):
     )
 
 def run_delete_reaction(emoji_name, post_id, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/users/" + server.user.id + "/posts/" + post_id + "/reactions/" + emoji_name
+    url = wee_matter.server.server_root_url(server) + "/api/v4/users/" + server.user.id + "/posts/" + post_id + "/reactions/" + emoji_name
 
     weechat.hook_process_hashtable(
         "url:" + url,
@@ -253,7 +253,7 @@ def run_delete_reaction(emoji_name, post_id, server, cb, cb_data):
     )
 
 def run_delete_post(post_id, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/posts/" + post_id
+    url = wee_matter.server.server_root_url(server) + "/api/v4/posts/" + post_id
 
     weechat.hook_process_hashtable(
         "url:" + url,
@@ -268,7 +268,7 @@ def run_delete_post(post_id, server, cb, cb_data):
     )
 
 def run_get_file(file_id, file_out_path, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/files/" + file_id
+    url = wee_matter.server.server_root_url(server) + "/api/v4/files/" + file_id
 
     weechat.hook_process_hashtable(
         "url:" + url,

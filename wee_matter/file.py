@@ -1,9 +1,7 @@
 
 import weechat
-from wee_matter import config
+import wee_matter
 import os, platform
-from wee_matter.server import get_server_from_buffer
-from wee_matter.http import build_file_url, run_get_file
 from typing import NamedTuple
 
 File = NamedTuple(
@@ -25,7 +23,7 @@ def write_file_lines(buffer, post):
         )
 
 def prepare_download_location():
-    location = config.download_location()
+    location = wee_matter.config.download_location()
 
     if not os.path.exists(location):
         try:
@@ -61,14 +59,14 @@ def handle_file_click(data, info):
     if not file_id:
         return
 
-    server = get_server_from_buffer(info["_buffer"])
+    server = wee_matter.server.get_server_from_buffer(info["_buffer"])
 
     file_path = prepare_download_location() + "/" + file_id
 
     if os.path.isfile(file_path):
         open_file(file_path)
     else:
-        run_get_file(file_id, file_path, server, "file_get_cb", file_path)
+        wee_matter.http.run_get_file(file_id, file_path, server, "file_get_cb", file_path)
 
 def find_file_id_in_tags(tags):
     for tag in tags:
@@ -83,7 +81,7 @@ def get_files_from_post_data(post_data, server):
                 File(
                     id= file_data["id"],
                     name= file_data["name"],
-                    url= build_file_url(file_data["id"], server)
+                    url= wee_matter.http.build_file_url(file_data["id"], server)
                 )
             )
         return files

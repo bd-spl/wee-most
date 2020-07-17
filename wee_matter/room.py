@@ -1,5 +1,8 @@
 
 import weechat
+import json
+import wee_matter
+import re
 
 channel_buffers = {}
 
@@ -15,24 +18,13 @@ def build_buffer_channel_name(channel_id):
 def colorize_sentence(sentence, color):
     return "{}{}{}".format(weechat.color(color), sentence, weechat.color("reset"))
 
-import json
-from wee_matter.server import get_servers, get_server_from_buffer
-from wee_matter.file import handle_file_click
-import re
-
-from wee_matter.http import (run_post_post, run_get_read_channel_posts,
-                             run_get_channel_members, run_get_channel_posts_after,
-                             run_post_user_post_unread)
-
-from wee_matter.post import (get_post_from_post_data, build_post_from_input_data,
-                             write_post, handle_post_click)
 
 def channel_switch_cb(buffer, current_buffer, args):
     weechat.buffer_set(buffer, "display", "1")
     return weechat.WEECHAT_RC_OK_EAT
 
 def private_completion_cb(data, completion_item, current_buffer, completion):
-    servers = get_servers()
+    servers = wee_matter.server.get_servers()
     for server in servers.values():
         for buffer in server.buffers:
             buffer_name = weechat.buffer_get_string(buffer, "short_name")
@@ -40,7 +32,7 @@ def private_completion_cb(data, completion_item, current_buffer, completion):
     return weechat.WEECHAT_RC_OK
 
 def channel_completion_cb(data, completion_item, current_buffer, completion):
-    servers = get_servers()
+    servers = wee_matter.server.get_servers()
     for server in servers.values():
         weechat.hook_completion_list_add(completion, server.name, 0, weechat.WEECHAT_LIST_POS_SORT)
         for team in server.teams.values():
@@ -51,22 +43,22 @@ def channel_completion_cb(data, completion_item, current_buffer, completion):
     return weechat.WEECHAT_RC_OK
 
 def mark_channel_as_read(buffer):
-    server = get_server_from_buffer(buffer)
+    server = wee_matter.server.get_server_from_buffer(buffer)
 
     last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
     last_read_post_id = weechat.buffer_get_string(buffer, "localvar_last_read_post_id")
     if last_post_id == last_read_post_id: # prevent spamming on buffer switch
         return
 
-    run_post_user_post_unread(server.user.id, last_post_id, server, "singularity_cb", "")
+    wee_matter.http.run_post_user_post_unread(server.user.id, last_post_id, server, "singularity_cb", "")
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", last_post_id)
 
 def room_input_cb(data, buffer, input_data):
-    server = get_server_from_buffer(buffer)
+    server = wee_matter.server.get_server_from_buffer(buffer)
 
-    post = build_post_from_input_data(buffer, input_data)
+    builded_post = wee_matter.post.build_post_from_input_data(buffer, input_data)
 
-    run_post_post(post, server, "post_post_cb", buffer)
+    wee_matter.http.run_post_post(builded_post, server, "post_post_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -75,17 +67,17 @@ def hidrate_room_posts_cb(buffer, command, rc, out, err):
         weechat.prnt("", "An error occured when hidrating room")
         return weechat.WEECHAT_RC_ERROR
 
-    server = get_server_from_buffer(buffer)
+    server = wee_matter.server.get_server_from_buffer(buffer)
 
     response = json.loads(out)
 
     response["order"].reverse()
     for post_id in response["order"]:
-        post = get_post_from_post_data(response["posts"][post_id])
-        write_post(post)
+        builded_post = wee_matter.post.get_post_from_post_data(response["posts"][post_id])
+        wee_matter.post.write_post(builded_post)
 
     if "" != response["next_post_id"]:
-        run_get_channel_posts_after(post.id, post.channel_id, server, "hidrate_room_posts_cb", buffer)
+        wee_matter.http.run_get_channel_posts_after(builded_post.id, builded_post.channel_id, server, "hidrate_room_posts_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -94,21 +86,21 @@ def hidrate_room_read_posts_cb(buffer, command, rc, out, err):
         weechat.prnt("", "An error occured when hidrating room")
         return weechat.WEECHAT_RC_ERROR
 
-    server = get_server_from_buffer(buffer)
+    server = wee_matter.server.get_server_from_buffer(buffer)
 
     response = json.loads(out)
 
     response["order"].reverse()
     for post_id in response["order"]:
-        post = get_post_from_post_data(response["posts"][post_id])
-        write_post(post)
+        post = wee_matter.post.get_post_from_post_data(response["posts"][post_id])
+        wee_matter.post.write_post(post)
 
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", post.id)
     weechat.buffer_set(buffer, "unread", "-")
     weechat.buffer_set(buffer, "hotlist", "-1")
 
     if "" != response["next_post_id"]:
-        run_get_channel_posts_after(post.id, post.channel_id, server, "hidrate_room_posts_cb", buffer)
+        wee_matter.http.run_get_channel_posts_after(post.id, post.channel_id, server, "hidrate_room_posts_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -139,7 +131,7 @@ def hidrate_room_users_cb(buffer, command, rc, out, err):
 
     response = json.loads(out)
 
-    server = get_server_from_buffer(buffer)
+    server = wee_matter.server.get_server_from_buffer(buffer)
 
     for user_data in response:
         create_room_user_from_user_data(user_data, buffer, server)
@@ -153,7 +145,7 @@ def hidrate_room_user_cb(buffer, command, rc, out, err):
 
     user_data = json.loads(out)
 
-    server = get_server_from_buffer(buffer)
+    server = wee_matter.server.get_server_from_buffer(buffer)
 
     create_room_user_from_user_data(user_data, buffer, server)
 
@@ -214,8 +206,8 @@ def create_room_from_channel_data(channel_data, server):
 
     weechat.buffer_set(buffer, "number", str(number))
 
-    run_get_read_channel_posts(server.user.id, channel_data["id"], server, "hidrate_room_read_posts_cb", buffer)
-    run_get_channel_members(channel_data["id"], server, "hidrate_room_users_cb", buffer)
+    wee_matter.http.run_get_read_channel_posts(server.user.id, channel_data["id"], server, "hidrate_room_read_posts_cb", buffer)
+    wee_matter.http.run_get_channel_members(channel_data["id"], server, "hidrate_room_users_cb", buffer)
 
 def buffer_switch_cb(data, signal, buffer):
     if buffer not in channel_buffers.values():
@@ -230,9 +222,9 @@ def channel_click_cb(data, info):
         return info
 
     if "post_id_" in info["_chat_line_tags"]:
-        handle_post_click(data, info)
+        wee_matter.post.handle_post_click(data, info)
     elif "file_id_" in info["_chat_line_tags"]:
-        handle_file_click(data, info)
+        wee_matter.file.handle_file_click(data, info)
 
 def handle_multiline_message_cb(data, modifier, buffer, string):
     if buffer not in channel_buffers.values():
