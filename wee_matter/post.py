@@ -1,6 +1,8 @@
 
 import weechat
-import wee_matter
+import wee_matter.server
+import wee_matter.post
+import wee_matter.file
 from typing import NamedTuple
 
 Post = NamedTuple(
@@ -58,7 +60,7 @@ def build_post_from_input_data(buffer, input_data):
     )
 
 def build_reaction_message(reaction):
-    return "[:{}:]".format(wee_matter.wee_matter.room.colorize_sentence(reaction.emoji_name, reaction.user.color))
+    return "[:{}:]".format(wee_matter.room.colorize_sentence(reaction.emoji_name, reaction.user.color))
 
 def build_reaction_line(post):
     reaction_line = ""
