@@ -235,7 +235,7 @@ def get_reactions_from_post_data(post_data, server):
 
     return []
 
-def get_post_from_post_data(post_data):
+def build_post_from_post_data(post_data):
     buffer_name = wee_matter.room.build_buffer_channel_name(post_data["channel_id"])
     buffer = weechat.buffer_search("", buffer_name)
     if not buffer:

@@ -118,7 +118,7 @@ def handle_posted_message(server, message):
     if data["team_id"] and data["team_id"] not in server.teams:
         return
 
-    post = wee_matter.post.get_post_from_post_data(post)
+    post = wee_matter.post.build_post_from_post_data(post)
     if not post:
         return
     wee_matter.post.write_post(post)
@@ -160,14 +160,14 @@ def handle_post_edited_message(server, message):
     data = message["data"]
 
     post_data = json.loads(data["post"])
-    post = wee_matter.post.get_post_from_post_data(post_data)
+    post = wee_matter.post.build_post_from_post_data(post_data)
     wee_matter.post.write_post(post)
 
 def handle_post_deleted_message(server, message):
     data = message["data"]
 
     post_data = json.loads(data["post"])
-    post = wee_matter.post.get_post_from_post_data(post_data)
+    post = wee_matter.post.build_post_from_post_data(post_data)
     post = post._replace(deleted=True)
     wee_matter.post.write_post(post)
 
