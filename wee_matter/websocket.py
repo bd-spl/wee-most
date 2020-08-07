@@ -180,15 +180,10 @@ def handle_user_added_message(server, message):
     data = message["data"]
     broadcast = message["broadcast"]
 
-    if data["team_id"] not in server.teams:
-        return
+    buffer = wee_matter.room.get_buffer_from_channel_id(broadcast["channel_id"])
 
-    if broadcast["channel_id"]:
-        buffer = wee_matter.room.get_buffer_from_channel_id(broadcast["channel_id"])
-        if not buffer:
-            wee_matter.http.run_get_channel(broadcast["channel_id"], server, "connect_server_team_channel_cb", server.name)
-            return
-        wee_matter.http.run_get_channel_member(broadcast["channel_id"], data["user_id"], server, "hidrate_room_user_cb", buffer)
+    user = server.users[data["user_id"]]
+    weechat.nicklist_add_nick(buffer, "", user.username, user.color, "@", user.color, 1)
 
 def handle_new_user_message(server, message):
     user_id = message["data"]["user_id"]
