@@ -10,7 +10,8 @@ from wee_matter.websocket import (receive_ws_callback, ws_ping_cb,
 from wee_matter.server import (connect_server_cb, connect_server_teams_cb,
                                connect_server_team_channels_cb, disconnect_server_cb,
                                connect_server_users_cb, server_completion_cb,
-                               connect_server_team_channel_cb, connect_server_team_cb)
+                               connect_server_team_channel_cb, connect_server_team_cb,
+                               new_user_cb)
 
 from wee_matter.room import (hidrate_room_read_posts_cb, hidrate_room_posts_cb,
                              hidrate_room_users_cb, room_input_cb,

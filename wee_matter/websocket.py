@@ -190,6 +190,10 @@ def handle_user_added_message(server, message):
             return
         wee_matter.http.run_get_channel_member(broadcast["channel_id"], data["user_id"], server, "hidrate_room_user_cb", buffer)
 
+def handle_new_user_message(server, message):
+    user_id = message["data"]["user_id"]
+    wee_matter.http.run_get_user(server, user_id, "new_user_cb", server.name)
+
 def handle_user_removed_message(server, message):
     data = message["data"]
     broadcast = message["broadcast"]
@@ -241,6 +245,8 @@ def handle_ws_event_message(server, message):
         return handle_post_deleted_message(server, message)
     if "channel_created" == message["event"]:
         return handle_channel_created_message(server, message)
+    if "new_user" == message["event"]:
+        return handle_new_user_message(server, message)
     if "user_added" == message["event"]:
         return handle_user_added_message(server, message)
     if "user_removed" == message["event"]:

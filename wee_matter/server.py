@@ -253,6 +253,18 @@ def connect_server_team_cb(server_name, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def new_user_cb(server_name, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occured when adding a new user")
+        return weechat.WEECHAT_RC_ERROR
+
+    server = get_server(server_name)
+
+    response = json.loads(out)
+    server.users[response["id"]] = create_user_from_user_data(response, server)
+
+    return weechat.WEECHAT_RC_OK
+
 def connect_server_cb(server_name, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occured when connecting")

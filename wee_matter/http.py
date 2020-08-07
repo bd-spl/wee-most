@@ -53,6 +53,19 @@ def run_get_users(server, page, cb, cb_data):
         cb_data
     )
 
+def run_get_user(server, user_id, cb, cb_data):
+    url = wee_matter.server.server_root_url(server) + "/api/v4/users/" + user_id
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "failonerror": "1",
+            "httpheader": "Authorization: Bearer " + server.user_token,
+        },
+        30 * 1000,
+        cb,
+        cb_data
+    )
+
 def run_user_logout(server, cb, cb_data):
     url = wee_matter.server.server_root_url(server) + "/api/v4/users/logout"
     weechat.hook_process_hashtable(
