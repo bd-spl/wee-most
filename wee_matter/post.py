@@ -120,6 +120,8 @@ def write_reply_message_lines(buffer, post):
     tags = "post_id_%s" % post.id
 
     parent_line_data = find_buffer_first_post_line_data(buffer, post.parent_id)
+    if not parent_line_data:
+        return # probably replying a out of range message
 
     parent_tags = get_line_data_tags(parent_line_data)
     parent_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), parent_line_data, "date")
