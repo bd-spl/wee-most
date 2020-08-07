@@ -169,11 +169,8 @@ def handle_channel_created_message(server, message):
 def handle_user_added_message(server, message):
     data = message["data"]
     broadcast = message["broadcast"]
-
     buffer = wee_matter.room.get_buffer_from_channel_id(broadcast["channel_id"])
-
-    user = server.users[data["user_id"]]
-    weechat.nicklist_add_nick(buffer, "", user.username, user.color, "@", user.color, 1)
+    wee_matter.room.create_room_user_from_user_data(data, buffer, server)
 
 def handle_new_user_message(server, message):
     user_id = message["data"]["user_id"]

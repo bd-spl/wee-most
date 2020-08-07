@@ -111,11 +111,7 @@ def create_room_group(group_name, buffer):
 def create_room_user_from_user_data(user_data, buffer, server):
     user = server.users[user_data["user_id"]]
 
-    for role in user_data["roles"].split():
-        group_name = role.replace("channel_", "")
-        group = create_room_group(group_name, buffer)
-
-        weechat.nicklist_add_nick(buffer, group, user.username, user.color, "@", user.color, 1)
+    weechat.nicklist_add_nick(buffer, "", user.username, user.color, "@", user.color, 1)
 
 def hidrate_room_users_cb(buffer, command, rc, out, err):
     if rc != 0:
