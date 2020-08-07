@@ -119,13 +119,9 @@ def handle_posted_message(server, message):
         return
 
     post = wee_matter.post.build_post_from_post_data(post)
-    if not post:
-        return
     wee_matter.post.write_post(post)
 
     buffer = wee_matter.room.get_buffer_from_channel_id(post.channel_id)
-    if not buffer:
-        return
 
     if buffer == weechat.current_buffer():
         wee_matter.room.mark_channel_as_read(buffer)
@@ -138,9 +134,6 @@ def handle_reaction_added_message(server, message):
     reaction = wee_matter.post.get_reaction_from_reaction_data(reaction_data, server)
     buffer = wee_matter.post.get_buffer_from_post_id(reaction_data["post_id"])
 
-    if not buffer or not reaction:
-        return
-
     wee_matter.post.add_reaction_to_post(buffer, reaction)
 
 def handle_reaction_removed_message(server, message):
@@ -150,9 +143,6 @@ def handle_reaction_removed_message(server, message):
 
     reaction = wee_matter.post.get_reaction_from_reaction_data(reaction_data, server)
     buffer = wee_matter.post.get_buffer_from_post_id(reaction_data["post_id"])
-
-    if not buffer or not reaction:
-        return
 
     wee_matter.post.remove_reaction_from_post(buffer, reaction)
 
@@ -194,9 +184,6 @@ def handle_user_removed_message(server, message):
     broadcast = message["broadcast"]
 
     if broadcast["channel_id"]:
-        if data["user_id"] not in server.users:
-            weechat.prnt("", "Can't remove user. User not found in server")
-            return
         user = server.users[data["user_id"]]
         buffer = wee_matter.room.get_buffer_from_channel_id(broadcast["channel_id"])
         wee_matter.room.remove_room_user(buffer, user)
@@ -204,12 +191,8 @@ def handle_user_removed_message(server, message):
 def handle_added_to_team_message(server, message):
     data = message["data"]
 
-    if data["user_id"] not in server.users:
-        return
     user = server.users[data["user_id"]]
 
-    if data["team_id"] in server.teams:
-        return
     server.teams[data["team_id"]] = None
 
     wee_matter.http.run_get_team(data["team_id"], server, "connect_server_team_cb", server.name)
@@ -217,13 +200,7 @@ def handle_added_to_team_message(server, message):
 def handle_leave_team_message(server, message):
     data = message["data"]
 
-    if data["user_id"] not in server.users:
-        return
     user = server.users[data["user_id"]]
-
-    if data["team_id"] not in server.teams:
-        return
-
     team = server.teams.pop(data["team_id"])
     wee_matter.server.unload_team(team)
 

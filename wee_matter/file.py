@@ -56,8 +56,6 @@ def handle_file_click(data, info):
     tags = info["_chat_line_tags"].split(",")
 
     file_id = find_file_id_in_tags(tags)
-    if not file_id:
-        return
 
     server = wee_matter.server.get_server_from_buffer(info["_buffer"])
 

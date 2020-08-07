@@ -7,9 +7,6 @@ import re
 channel_buffers = {}
 
 def get_buffer_from_channel_id(channel_id):
-    if channel_id not in channel_buffers:
-        return
-
     return channel_buffers[channel_id]
 
 def build_buffer_channel_name(channel_id):
@@ -112,10 +109,6 @@ def create_room_group(group_name, buffer):
     return group
 
 def create_room_user_from_user_data(user_data, buffer, server):
-    if user_data["user_id"] not in server.users:
-        weechat.prnt("", "User not found in server")
-        return
-
     user = server.users[user_data["user_id"]]
 
     for role in user_data["roles"].split():

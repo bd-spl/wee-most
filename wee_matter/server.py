@@ -58,10 +58,10 @@ def server_root_url(server: Server):
 
     return root_url
 
-def get_server(server_name):
-    if server_name not in servers:
-        return
+def has_server(server_name):
+    return server_name in servers
 
+def get_server(server_name):
     return servers[server_name]
 
 def get_servers():
@@ -192,7 +192,6 @@ def connect_server_team_channels_cb(server_name, command, rc, out, err):
 
     server = get_server(server_name)
 
-
     response = json.loads(out)
     for channel_data in response:
         wee_matter.room.create_room_from_channel_data(channel_data, server)
@@ -271,9 +270,6 @@ def connect_server_cb(server_name, command, rc, out, err):
         return weechat.WEECHAT_RC_ERROR
 
     token_search = re.search('[tT]oken: (\w*)', out)
-    if None == token_search:
-        weechat.prnt("", "User token not present in response")
-        return weechat.WEECHAT_RC_ERROR
 
     out = out.splitlines()[-1] # we remove the headers line
     response = json.loads(out)
@@ -318,14 +314,15 @@ def create_server_buffer(server_name):
     return buffer
 
 def connect_server(server_name):
-    server = get_server(server_name)
+    if has_server(server_name):
+        server = get_server(server_name)
 
-    if server != None and is_connected(server):
-        weechat.prnt("", "Already connected")
-        return weechat.WEECHAT_RC_ERROR
+        if server != None and is_connected(server):
+            weechat.prnt("", "Already connected")
+            return weechat.WEECHAT_RC_ERROR
 
-    if server != None:
-        unload_server(server_name)
+        if server != None:
+            unload_server(server_name)
 
     server = load_server(server_name)
 

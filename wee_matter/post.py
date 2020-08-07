@@ -32,9 +32,6 @@ Reaction = NamedTuple(
 post_buffers = {}
 
 def get_buffer_from_post_id(post_id):
-    if post_id not in post_buffers:
-        return
-
     return post_buffers[post_id]
 
 def post_post_cb(buffer, command, rc, out, err):
@@ -76,8 +73,6 @@ def build_quote_message(message):
 
 def write_deleted_message_lines(buffer, post):
     first_initial_line_data = find_buffer_first_post_line_data(buffer, post.id)
-    if not first_initial_line_data:
-        return
 
     initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
     initial_message = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "message").rsplit(' | ', 1)[0]
@@ -93,8 +88,6 @@ def write_edited_message_lines(buffer, post):
 
     first_initial_line_data = find_buffer_first_post_line_data(buffer, post.id)
     last_initial_line_data = find_buffer_last_post_line_data(buffer, post.id)
-    if not first_initial_line_data or not last_initial_line_data:
-        return
 
     initial_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), first_initial_line_data, "date")
     initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
@@ -124,14 +117,9 @@ def write_edited_message_lines(buffer, post):
     )
 
 def write_reply_message_lines(buffer, post):
-    if not post.parent_id:
-        return
-
     tags = "post_id_%s" % post.id
 
     parent_line_data = find_buffer_first_post_line_data(buffer, post.parent_id)
-    if not parent_line_data:
-        return
 
     parent_tags = get_line_data_tags(parent_line_data)
     parent_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), parent_line_data, "date")
@@ -212,9 +200,6 @@ def write_post(post):
     post_buffers[post.id] = buffer
 
 def get_reaction_from_reaction_data(reaction_data, server):
-    if reaction_data["user_id"] not in server.users:
-        weechat.prnt("", "User not found in server")
-        return
     user = server.users[reaction_data["user_id"]]
 
     return Reaction(
@@ -238,15 +223,8 @@ def get_reactions_from_post_data(post_data, server):
 def build_post_from_post_data(post_data):
     buffer_name = wee_matter.room.build_buffer_channel_name(post_data["channel_id"])
     buffer = weechat.buffer_search("", buffer_name)
-    if not buffer:
-        weechat.prnt("", "Channel not found in server")
-        return
 
     server = wee_matter.server.get_server_from_buffer(buffer)
-
-    if post_data["user_id"] not in server.users:
-        weechat.prnt("", "User not found in server")
-        return
 
     user = server.users[post_data["user_id"]]
 
@@ -311,9 +289,6 @@ def find_buffer_first_post_line_data(buffer, post_id):
 def add_reaction_to_post(buffer, reaction):
     line_data = find_buffer_last_post_line_data(buffer, reaction.post_id)
 
-    if None == line_data:
-        return
-
     tags = get_line_data_tags(line_data)
     old_message = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message")
 
@@ -335,12 +310,7 @@ def add_reaction_to_post(buffer, reaction):
 def remove_reaction_from_post(buffer, reaction):
     line_data = find_buffer_last_post_line_data(buffer, reaction.post_id)
 
-    if None == line_data:
-        return
-
     tags = get_line_data_tags(line_data)
-    if not "reactions" in tags:
-        return
 
     old_message, _, old_reactions = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message").partition(' | ')
 
@@ -368,8 +338,6 @@ def short_post_id(post_id):
 
 def find_full_post_id(buffer, short_post_id):
     line_data = find_buffer_last_post_line_data(buffer, short_post_id)
-    if None == line_data:
-        return
 
     tags = get_line_data_tags(line_data)
     return find_post_id_in_tags(tags)
@@ -388,8 +356,6 @@ def handle_post_click(data, info):
     tags = info["_chat_line_tags"].split(",")
 
     post_id = find_post_id_in_tags(tags)
-    if not post_id:
-        return
 
     buffer = info["_buffer"]
 
