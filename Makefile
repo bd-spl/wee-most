@@ -28,7 +28,3 @@ $(WEECHAT_HOME)/python/wee_matter.py: main.py
 
 $(WEECHAT_HOME)/python/wee_matter/%.py: wee_matter/%.py
 	install -m644 $< $@
-
-.PHONY: test
-test:
-	pytest tests -vv
