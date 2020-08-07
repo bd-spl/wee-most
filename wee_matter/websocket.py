@@ -172,6 +172,10 @@ def handle_user_added_message(server, message):
     buffer = wee_matter.room.get_buffer_from_channel_id(broadcast["channel_id"])
     wee_matter.room.create_room_user_from_user_data(data, buffer, server)
 
+def handle_direct_added_message(server, message):
+    broadcast = message["broadcast"]
+    wee_matter.http.run_get_channel(broadcast["channel_id"], server, "connect_server_team_channel_cb", server.name)
+
 def handle_new_user_message(server, message):
     user_id = message["data"]["user_id"]
     wee_matter.http.run_get_user(server, user_id, "new_user_cb", server.name)
@@ -216,6 +220,8 @@ def handle_ws_event_message(server, message):
         return handle_channel_created_message(server, message)
     if "new_user" == message["event"]:
         return handle_new_user_message(server, message)
+    if "direct_added" == message["event"]:
+        return handle_direct_added_message(server, message)
     if "user_added" == message["event"]:
         return handle_user_added_message(server, message)
     if "user_removed" == message["event"]:

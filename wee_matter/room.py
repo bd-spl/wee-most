@@ -87,6 +87,9 @@ def hidrate_room_read_posts_cb(buffer, command, rc, out, err):
 
     response = json.loads(out)
 
+    if not response["order"]:
+        return weechat.WEECHAT_RC_OK
+
     response["order"].reverse()
     for post_id in response["order"]:
         post = wee_matter.post.build_post_from_post_data(response["posts"][post_id])
