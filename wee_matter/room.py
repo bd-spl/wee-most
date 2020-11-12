@@ -147,10 +147,15 @@ def remove_room_user(buffer, user):
     nick = weechat.nicklist_search_nick(buffer, "", user.username)
     weechat.nicklist_remove_nick(buffer, nick)
 
+FORMATS = {
+    "O": "~{}",
+    "P": "(~{})",
+}
 def build_room_name_from_channel_data(channel_data, server):
     room_name = channel_data["name"]
     if "" != channel_data["display_name"]:
-        room_name = channel_data["display_name"]
+        formt = FORMATS.get(channel_data["type"], "{}")
+        room_name = formt.format(channel_data["display_name"])
     else:
         match = re.match('(\w+)__(\w+)', channel_data["name"])
         if match:
