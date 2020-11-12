@@ -28,7 +28,7 @@ def run_get_user_teams(user_id, server, cb, cb_data):
     )
 
 def run_get_team(team_id, server, cb, cb_data):
-    url = server_root_url(server) + "/api/v4/teams/" + team_id
+    url = wee_matter.server.server_root_url(server) + "/api/v4/teams/" + team_id
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -116,7 +116,7 @@ def run_get_channel(channel_id, server, cb, cb_data):
     )
 
 def run_get_user_team_channels(user_id, team_id, server, cb, cb_data):
-    url = wee_matter.server.server_root_url(server) + "/api/v4/users/" + user_id + "/teams/" + team_id + "/channels?page=0&per_page=5"
+    url = wee_matter.server.server_root_url(server) + "/api/v4/users/" + user_id + "/teams/" + team_id + "/channels"
     weechat.hook_process_hashtable(
         "url:" + url,
         {
