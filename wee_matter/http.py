@@ -215,12 +215,16 @@ def run_get_channel_member(channel_id, member_id, server, cb, cb_data):
         cb_data
     )
 
-def run_post_user_post_unread(user_id, post_id, server, cb, cb_data):
-    url = wee_matter.server.server_root_url(server) + "/api/v4/users/" + user_id + "/posts/" + post_id + "/set_unread"
+def run_post_channel_view(user_id, channel_id, server, cb, cb_data):
+    url = wee_matter.server.server_root_url(server) + "/api/v4/channels/members/" + user_id + "/view"
+    params = {
+        "channel_id": channel_id,
+    }
+
     weechat.hook_process_hashtable(
         "url:" + url,
         {
-            "post": "1",
+            "postfields": json.dumps(params),
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.user_token,
         },

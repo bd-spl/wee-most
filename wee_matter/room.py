@@ -41,13 +41,15 @@ def channel_completion_cb(data, completion_item, current_buffer, completion):
 
 def mark_channel_as_read(buffer):
     server = wee_matter.server.get_server_from_buffer(buffer)
+    channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
 
     last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
     last_read_post_id = weechat.buffer_get_string(buffer, "localvar_last_read_post_id")
     if last_post_id == last_read_post_id: # prevent spamming on buffer switch
         return
 
-    wee_matter.http.run_post_user_post_unread(server.user.id, last_post_id, server, "singularity_cb", "")
+    wee_matter.http.run_post_channel_view(server.user.id, channel_id, server, "singularity_cb", "")
+
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", last_post_id)
 
 def room_input_cb(data, buffer, input_data):
