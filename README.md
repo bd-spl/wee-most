@@ -4,6 +4,10 @@ Wee-Matter is a Mattermost backend to Weechat.
 
 ## Installation
 
+Python dependencies from PyPi:
+
+* [websocket_client](https://pypi.org/project/websocket_client/)
+
 ```bash
 $ make install # WEECHAT_HOME=$HOME/.another-weechat
 ```
