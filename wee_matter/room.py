@@ -183,10 +183,7 @@ def create_room_from_channel_data(channel_data, server):
 
     weechat.buffer_set(buffer, "nicklist", "1")
 
-    room_name = build_room_name_from_channel_data(channel_data, server)
-    weechat.buffer_set(buffer, "short_name", room_name)
-    weechat.buffer_set(buffer, "title", channel_data["header"])
-    weechat.hook_command_run("/buffer %s" % room_name, 'channel_switch_cb', buffer)
+    set_room_properties_from_channel_data(channel_data, server)
 
     weechat.buffer_set(buffer, "highlight_words", "@{0},{0},@here,@channel,@all".format(server.user.username))
     weechat.buffer_set(buffer, "localvar_set_nick", server.user.username)
@@ -220,6 +217,15 @@ def create_room_from_channel_data(channel_data, server):
         "run_get_channel_members",
         channel_data["id"], server, "hydrate_room_users_cb", buffer
     )
+
+def set_room_properties_from_channel_data(channel_data, server):
+    buffer = channel_buffers[channel_data["id"]]
+
+    room_name = build_room_name_from_channel_data(channel_data, server)
+    weechat.buffer_set(buffer, "short_name", room_name)
+    weechat.buffer_set(buffer, "title", channel_data["header"])
+    weechat.hook_command_run("/buffer %s" % room_name, 'channel_switch_cb', buffer)
+
 
 def buffer_switch_cb(data, signal, buffer):
     if buffer not in channel_buffers.values():

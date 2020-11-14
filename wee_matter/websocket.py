@@ -172,6 +172,12 @@ def handle_channel_created_message(server, message):
         data["channel_id"], server, "connect_server_team_channel_cb", server.name
     )
 
+def handle_channel_updated_message(server, message):
+    data = message["data"]
+
+    channel_data = json.loads(data["channel"])
+    wee_matter.room.set_room_properties_from_channel_data(channel_data, server)
+
 def handle_user_added_message(server, message):
     data = message["data"]
     broadcast = message["broadcast"]
@@ -233,6 +239,8 @@ def handle_ws_event_message(server, message):
         return handle_post_deleted_message(server, message)
     if "channel_created" == message["event"]:
         return handle_channel_created_message(server, message)
+    if "channel_updated" == message["event"]:
+        return handle_channel_updated_message(server, message)
     if "new_user" == message["event"]:
         return handle_new_user_message(server, message)
     if "direct_added" == message["event"]:
