@@ -185,6 +185,7 @@ def create_room_from_channel_data(channel_data, server):
 
     room_name = build_room_name_from_channel_data(channel_data, server)
     weechat.buffer_set(buffer, "short_name", room_name)
+    weechat.buffer_set(buffer, "title", channel_data["header"])
     weechat.hook_command_run("/buffer %s" % room_name, 'channel_switch_cb', buffer)
 
     weechat.buffer_set(buffer, "highlight_words", "@{0},{0},@here,@channel,@all".format(server.user.username))
