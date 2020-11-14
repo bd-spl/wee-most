@@ -5,8 +5,8 @@ import json
 import time
 import re
 
-from wee_matter.room import (hidrate_room_read_posts_cb, hidrate_room_posts_cb,
-                             hidrate_room_users_cb, hidrate_room_user_cb)
+from wee_matter.room import (hydrate_room_read_posts_cb, hydrate_room_posts_cb,
+                             hydrate_room_users_cb, hydrate_room_user_cb)
 
 from wee_matter.post import post_post_cb
 
@@ -24,7 +24,7 @@ def build_file_url(file_id, server):
 
 def singularity_cb(data, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occured when performing a request")
+        weechat.prnt("", "An error occurred while performing a request")
         return weechat.WEECHAT_RC_ERROR
 
     return weechat.WEECHAT_RC_OK

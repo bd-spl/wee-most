@@ -175,7 +175,7 @@ def unload_server(server_name):
 
 def connect_server_team_channel_cb(server_name, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occured when connecting team channel")
+        weechat.prnt("", "An error occurred while connecting team channel")
         return weechat.WEECHAT_RC_ERROR
 
     server = get_server(server_name)
@@ -187,7 +187,7 @@ def connect_server_team_channel_cb(server_name, command, rc, out, err):
 
 def connect_server_team_channels_cb(server_name, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occured when connecting team channels")
+        weechat.prnt("", "An error occurred while connecting team channels")
         return weechat.WEECHAT_RC_ERROR
 
     server = get_server(server_name)
@@ -200,7 +200,7 @@ def connect_server_team_channels_cb(server_name, command, rc, out, err):
 
 def connect_server_users_cb(data, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occured when connecting users")
+        weechat.prnt("", "An error occurred while connecting users")
         return weechat.WEECHAT_RC_ERROR
 
     server_name, page = data.split("|")
@@ -229,7 +229,7 @@ def connect_server_users_cb(data, command, rc, out, err):
 
 def connect_server_teams_cb(server_name, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occured when connecting teams")
+        weechat.prnt("", "An error occurred while connecting teams")
         return weechat.WEECHAT_RC_ERROR
 
     server = get_server(server_name)
@@ -249,7 +249,7 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
 
 def connect_server_team_cb(server_name, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occured when connecting team")
+        weechat.prnt("", "An error occurred while connecting team")
         return weechat.WEECHAT_RC_ERROR
 
     server = get_server(server_name)
@@ -266,7 +266,7 @@ def connect_server_team_cb(server_name, command, rc, out, err):
 
 def new_user_cb(server_name, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occured when adding a new user")
+        weechat.prnt("", "An error occurred while adding a new user")
         return weechat.WEECHAT_RC_ERROR
 
     server = get_server(server_name)
@@ -278,7 +278,7 @@ def new_user_cb(server_name, command, rc, out, err):
 
 def connect_server_cb(server_name, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occured when connecting")
+        weechat.prnt("", "An error occurred while connecting")
         return weechat.WEECHAT_RC_ERROR
 
     token_search = re.search('[tT]oken: (\w*)', out)
@@ -359,7 +359,7 @@ def connect_server(server_name):
 
 def disconnect_server_cb(server_name, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occured when disconnecting")
+        weechat.prnt("", "An error occurred while disconnecting")
         return weechat.WEECHAT_RC_ERROR
 
     unload_server(server_name)

@@ -61,9 +61,9 @@ def room_input_cb(data, buffer, input_data):
 
     return weechat.WEECHAT_RC_OK
 
-def hidrate_room_posts_cb(buffer, command, rc, out, err):
+def hydrate_room_posts_cb(buffer, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occured when hidrating room")
+        weechat.prnt("", "An error occurred while hydrating room")
         return weechat.WEECHAT_RC_ERROR
 
     server = wee_matter.server.get_server_from_buffer(buffer)
@@ -78,14 +78,14 @@ def hidrate_room_posts_cb(buffer, command, rc, out, err):
     if "" != response["next_post_id"]:
         wee_matter.http.enqueue_request(
             "run_get_channel_posts_after",
-            builded_post.id, builded_post.channel_id, server, "hidrate_room_posts_cb", buffer
+            builded_post.id, builded_post.channel_id, server, "hydrate_room_posts_cb", buffer
         )
 
     return weechat.WEECHAT_RC_OK
 
-def hidrate_room_read_posts_cb(buffer, command, rc, out, err):
+def hydrate_room_read_posts_cb(buffer, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occured when hidrating room")
+        weechat.prnt("", "An error occurred while hydrating room")
         return weechat.WEECHAT_RC_ERROR
 
     server = wee_matter.server.get_server_from_buffer(buffer)
@@ -107,7 +107,7 @@ def hidrate_room_read_posts_cb(buffer, command, rc, out, err):
     if "" != response["next_post_id"]:
         wee_matter.http.enqueue_request(
             "run_get_channel_posts_after",
-            post.id, post.channel_id, server, "hidrate_room_posts_cb", buffer
+            post.id, post.channel_id, server, "hydrate_room_posts_cb", buffer
         )
 
     return weechat.WEECHAT_RC_OK
@@ -124,9 +124,9 @@ def create_room_user_from_user_data(user_data, buffer, server):
 
     weechat.nicklist_add_nick(buffer, "", user.username, user.color, "@", user.color, 1)
 
-def hidrate_room_users_cb(buffer, command, rc, out, err):
+def hydrate_room_users_cb(buffer, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occured when hidrating room users")
+        weechat.prnt("", "An error occurred while hydrating room users")
         return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
@@ -138,9 +138,9 @@ def hidrate_room_users_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def hidrate_room_user_cb(buffer, command, rc, out, err):
+def hydrate_room_user_cb(buffer, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occured when hidrating room user")
+        weechat.prnt("", "An error occurred while hydrating room user")
         return weechat.WEECHAT_RC_ERROR
 
     user_data = json.loads(out)
@@ -213,11 +213,11 @@ def create_room_from_channel_data(channel_data, server):
 
     wee_matter.http.enqueue_request(
         "run_get_read_channel_posts",
-        server.user.id, channel_data["id"], server, "hidrate_room_read_posts_cb", buffer
+        server.user.id, channel_data["id"], server, "hydrate_room_read_posts_cb", buffer
     )
     wee_matter.http.enqueue_request(
         "run_get_channel_members",
-        channel_data["id"], server, "hidrate_room_users_cb", buffer
+        channel_data["id"], server, "hydrate_room_users_cb", buffer
     )
 
 def buffer_switch_cb(data, signal, buffer):

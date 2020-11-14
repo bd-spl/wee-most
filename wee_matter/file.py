@@ -45,7 +45,7 @@ def open_file(file_path):
 
 def file_get_cb(file_path, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occured when downloading file")
+        weechat.prnt("", "An error occurred while downloading file")
         return weechat.WEECHAT_RC_ERROR
 
     open_file(file_path)

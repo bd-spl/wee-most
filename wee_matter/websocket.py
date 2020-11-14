@@ -60,14 +60,14 @@ def create_worker(server):
         last_pong_time= 0,
     )
 
-def rehidrate_server_buffers(server):
+def rehydrate_server_buffers(server):
     weechat.prnt("", "Syncing...")
     for buffer in server.buffers:
         last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
         channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
         wee_matter.http.enqueue_request(
             "run_get_channel_posts_after",
-            last_post_id, channel_id, server, "hidrate_room_posts_cb", buffer
+            last_post_id, channel_id, server, "hydrate_room_posts_cb", buffer
         )
 
 def reconnection_loop_cb(server_name, remaining_calls):
@@ -80,11 +80,11 @@ def reconnection_loop_cb(server_name, remaining_calls):
     new_worker = create_worker(server)
     if new_worker:
         wee_matter.server.update_server_worker(server, new_worker)
-        weechat.prnt("", "Connected back.")
-        rehidrate_server_buffers(server)
+        weechat.prnt("", "Reconnected.")
+        rehydrate_server_buffers(server)
         return weechat.WEECHAT_RC_OK
 
-    weechat.prnt("", "Reconnection issue. Trying again in some seconds...")
+    weechat.prnt("", "Reconnection issue. Trying again in a few seconds...")
     return weechat.WEECHAT_RC_ERROR
 
 def close_worker(worker):
@@ -92,8 +92,8 @@ def close_worker(worker):
     weechat.unhook(worker.hook_ping)
     worker.ws.close()
 
-def handle_loosed_connection(server):
-    weechat.prnt("", "Loosed connection.")
+def handle_lost_connection(server):
+    weechat.prnt("", "Connection lost.")
     close_worker(server.worker)
     wee_matter.server.update_server_worker(server, None)
 
@@ -102,7 +102,7 @@ def ws_ping_cb(server_name, remaining_calls):
     worker = server.worker
 
     if worker.last_pong_time < worker.last_ping_time:
-        handle_loosed_connection(server)
+        handle_lost_connection(server)
         return weechat.WEECHAT_RC_OK
 
     try:
@@ -110,7 +110,7 @@ def ws_ping_cb(server_name, remaining_calls):
         worker = worker._replace(last_ping_time=time.time())
         wee_matter.server.update_server_worker(server, worker)
     except (WebSocketConnectionClosedException, socket.error) as e:
-        handle_loosed_connection(server)
+        handle_lost_connection(server)
 
     return weechat.WEECHAT_RC_OK
 
