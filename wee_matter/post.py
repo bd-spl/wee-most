@@ -166,6 +166,13 @@ def write_reply_message_lines(buffer, post):
 
 def write_message_lines(buffer, post):
     tags = "post_id_%s" % post.id
+
+    channel_type = weechat.buffer_get_string(buffer, "localvar_type")
+    if channel_type == "channel":
+        tags += ",notify_message"
+    else:
+        tags += ",notify_private"
+
     if post.reactions:
         tags += ",reactions"
         weechat.prnt_date_tags(
