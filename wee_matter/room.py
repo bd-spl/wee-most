@@ -156,8 +156,8 @@ def remove_room_user(buffer, user):
     weechat.nicklist_remove_nick(buffer, nick)
 
 FORMATS = {
-    "O": "~{}",
-    "P": "(~{})",
+    "O": "#{}",
+    "P": "~{}",
 }
 def build_room_name_from_channel_data(channel_data, server):
     room_name = channel_data["name"]
