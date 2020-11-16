@@ -178,6 +178,17 @@ def handle_channel_updated_message(server, message):
     channel_data = json.loads(data["channel"])
     wee_matter.room.set_room_properties_from_channel_data(channel_data, server)
 
+def handle_channel_viewed_message(server, message):
+    data = message["data"]
+
+    buffer = wee_matter.room.get_buffer_from_channel_id(data["channel_id"])
+    if buffer:
+        weechat.buffer_set(buffer, "unread", "-")
+        weechat.buffer_set(buffer, "hotlist", "-1")
+
+        last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
+        weechat.buffer_set(buffer, "localvar_set_last_read_post_id", last_post_id)
+
 def handle_user_added_message(server, message):
     data = message["data"]
     broadcast = message["broadcast"]
@@ -241,6 +252,8 @@ def handle_ws_event_message(server, message):
         return handle_channel_created_message(server, message)
     if "channel_updated" == message["event"]:
         return handle_channel_updated_message(server, message)
+    if "channel_viewed" == message["event"]:
+        return handle_channel_viewed_message(server, message)
     if "new_user" == message["event"]:
         return handle_new_user_message(server, message)
     if "direct_added" == message["event"]:
