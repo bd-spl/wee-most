@@ -229,8 +229,11 @@ def buffer_switch_cb(data, signal, buffer):
     return weechat.WEECHAT_RC_OK
 
 def channel_click_cb(data, info):
-    if not "_buffer_localvar_script_name" in info or "wee-matter" != info["_buffer_localvar_script_name"]:
+    if "wee-matter" != info.get("_buffer_localvar_script_name"):
         return info
+
+    if info["_key"] != "button1":
+        return
 
     if "post_id_" in info["_chat_line_tags"]:
         wee_matter.post.handle_post_click(data, info)
