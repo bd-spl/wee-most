@@ -143,6 +143,12 @@ def write_reply_message_lines(buffer, post):
     parent_post_id = find_post_id_in_tags(parent_tags)
     tags += ",reply_to_{}".format(parent_post_id)
 
+    channel_type = weechat.buffer_get_string(buffer, "localvar_type")
+    if channel_type == "channel":
+        tags += ",notify_message"
+    else:
+        tags += ",notify_private"
+
     # if somebody (not us) reply to our post
     if parent_message_prefix == own_prefix and parent_message_prefix != post.user.username:
         tags += ",notify_highlight"
