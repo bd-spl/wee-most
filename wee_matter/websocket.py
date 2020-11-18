@@ -65,7 +65,10 @@ def rehidrate_server_buffers(server):
     for buffer in server.buffers:
         last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
         channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
-        wee_matter.http.run_get_channel_posts_after(last_post_id, channel_id, server, "hidrate_room_posts_cb", buffer)
+        wee_matter.http.enqueue_request(
+            "run_get_channel_posts_after",
+            last_post_id, channel_id, server, "hidrate_room_posts_cb", buffer
+        )
 
 def reconnection_loop_cb(server_name, remaining_calls):
     server = wee_matter.server.get_server(server_name)
@@ -164,7 +167,10 @@ def handle_post_deleted_message(server, message):
 def handle_channel_created_message(server, message):
     data = message["data"]
 
-    wee_matter.http.run_get_channel(data["channel_id"], server, "connect_server_team_channel_cb", server.name)
+    wee_matter.http.enqueue_request(
+        "run_get_channel",
+        data["channel_id"], server, "connect_server_team_channel_cb", server.name
+    )
 
 def handle_user_added_message(server, message):
     data = message["data"]
@@ -174,11 +180,17 @@ def handle_user_added_message(server, message):
 
 def handle_direct_added_message(server, message):
     broadcast = message["broadcast"]
-    wee_matter.http.run_get_channel(broadcast["channel_id"], server, "connect_server_team_channel_cb", server.name)
+    wee_matter.http.enqueue_request(
+        "run_get_channel",
+        broadcast["channel_id"], server, "connect_server_team_channel_cb", server.name
+    )
 
 def handle_new_user_message(server, message):
     user_id = message["data"]["user_id"]
-    wee_matter.http.run_get_user(server, user_id, "new_user_cb", server.name)
+    wee_matter.http.enqueue_request(
+        "run_get_user",
+        server, user_id, "new_user_cb", server.name
+    )
 
 def handle_user_removed_message(server, message):
     data = message["data"]
@@ -196,7 +208,10 @@ def handle_added_to_team_message(server, message):
 
     server.teams[data["team_id"]] = None
 
-    wee_matter.http.run_get_team(data["team_id"], server, "connect_server_team_cb", server.name)
+    wee_matter.http.enqueue_request(
+        "run_get_team",
+        data["team_id"], server, "connect_server_team_cb", server.name
+    )
 
 def handle_leave_team_message(server, message):
     data = message["data"]
