@@ -76,7 +76,10 @@ def hidrate_room_posts_cb(buffer, command, rc, out, err):
         wee_matter.post.write_post(builded_post)
 
     if "" != response["next_post_id"]:
-        wee_matter.http.run_get_channel_posts_after(builded_post.id, builded_post.channel_id, server, "hidrate_room_posts_cb", buffer)
+        wee_matter.http.enqueue_request(
+            "run_get_channel_posts_after",
+            builded_post.id, builded_post.channel_id, server, "hidrate_room_posts_cb", buffer
+        )
 
     return weechat.WEECHAT_RC_OK
 
@@ -102,7 +105,10 @@ def hidrate_room_read_posts_cb(buffer, command, rc, out, err):
     weechat.buffer_set(buffer, "hotlist", "-1")
 
     if "" != response["next_post_id"]:
-        wee_matter.http.run_get_channel_posts_after(post.id, post.channel_id, server, "hidrate_room_posts_cb", buffer)
+        wee_matter.http.enqueue_request(
+            "run_get_channel_posts_after",
+            post.id, post.channel_id, server, "hidrate_room_posts_cb", buffer
+        )
 
     return weechat.WEECHAT_RC_OK
 
@@ -205,8 +211,14 @@ def create_room_from_channel_data(channel_data, server):
 
     weechat.buffer_set(buffer, "number", str(number))
 
-    wee_matter.http.run_get_read_channel_posts(server.user.id, channel_data["id"], server, "hidrate_room_read_posts_cb", buffer)
-    wee_matter.http.run_get_channel_members(channel_data["id"], server, "hidrate_room_users_cb", buffer)
+    wee_matter.http.enqueue_request(
+        "run_get_read_channel_posts",
+        server.user.id, channel_data["id"], server, "hidrate_room_read_posts_cb", buffer
+    )
+    wee_matter.http.enqueue_request(
+        "run_get_channel_members",
+        channel_data["id"], server, "hidrate_room_users_cb", buffer
+    )
 
 def buffer_switch_cb(data, signal, buffer):
     if buffer not in channel_buffers.values():

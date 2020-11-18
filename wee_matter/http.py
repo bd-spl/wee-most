@@ -54,6 +54,18 @@ def buffered_response_cb(data, command, rc, out, err):
 def build_buffer_cb_data(url, cb, cb_data):
     return "{}|{}|{}".format(url, cb, cb_data)
 
+enqueued_requests = []
+def enqueue_request(method, *params):
+    enqueued_requests.append([method, params])
+
+def handle_queued_request_cb(data, remaining_calls):
+    if not enqueued_requests:
+        return weechat.WEECHAT_RC_OK
+
+    request = enqueued_requests.pop(0)
+    eval(request[0])(*request[1])
+    return weechat.WEECHAT_RC_OK
+
 def run_get_user_teams(user_id, server, cb, cb_data):
     url = wee_matter.server.server_root_url(server) + "/api/v4/users/" + user_id + "/teams"
     weechat.hook_process_hashtable(

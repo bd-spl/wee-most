@@ -215,9 +215,15 @@ def connect_server_users_cb(data, command, rc, out, err):
             server.users[user["id"]] = create_user_from_user_data(user, server)
 
     if len(response) == 60:
-        wee_matter.http.run_get_users(server, page+1, "connect_server_users_cb", "{}|{}".format(server.name, page+1))
+        wee_matter.http.enqueue_request(
+            "run_get_users",
+            server, page+1, "connect_server_users_cb", "{}|{}".format(server.name, page+1)
+        )
     else:
-        wee_matter.http.run_get_user_teams(server.user.id, server, "connect_server_teams_cb", server.name)
+        wee_matter.http.enqueue_request(
+            "run_get_user_teams",
+            server.user.id, server, "connect_server_teams_cb", server.name
+        )
 
     return weechat.WEECHAT_RC_OK
 
@@ -234,7 +240,10 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
         server.teams[team_data["id"]] = create_team_from_team_data(team_data, server)
 
     for team_data in response:
-        wee_matter.http.run_get_user_team_channels(server.user.id, team_data["id"], server, "connect_server_team_channels_cb", server.name)
+        wee_matter.http.enqueue_request(
+            "run_get_user_team_channels",
+            server.user.id, team_data["id"], server, "connect_server_team_channels_cb", server.name
+        )
 
     return weechat.WEECHAT_RC_OK
 
@@ -248,7 +257,10 @@ def connect_server_team_cb(server_name, command, rc, out, err):
     team_data = json.loads(out)
 
     server.teams[team_data["id"]] = create_team_from_team_data(team_data, server)
-    wee_matter.http.run_get_user_team_channels(server.user.id, team_data["id"], server, "connect_server_team_channels_cb", server.name)
+    wee_matter.http.enqueue_request(
+        "run_get_user_team_channels",
+        server.user.id, team_data["id"], server, "connect_server_team_channels_cb", server.name
+    )
 
     return weechat.WEECHAT_RC_OK
 
@@ -300,7 +312,10 @@ def connect_server_cb(server_name, command, rc, out, err):
 
     weechat.prnt("", "Connected to " + server_name)
 
-    wee_matter.http.run_get_users(server, 0, "connect_server_users_cb", "{}|0".format(server.name))
+    wee_matter.http.enqueue_request(
+        "run_get_users",
+        server, 0, "connect_server_users_cb", "{}|0".format(server.name)
+    )
 
     return weechat.WEECHAT_RC_OK
 
@@ -335,7 +350,10 @@ def connect_server(server_name):
     )
     servers[server_name] = server
 
-    wee_matter.http.run_user_login(server, "connect_server_cb", server.name)
+    wee_matter.http.enqueue_request(
+        "run_user_login",
+        server, "connect_server_cb", server.name
+    )
 
     return weechat.WEECHAT_RC_OK
 
