@@ -45,7 +45,7 @@ def mark_channel_as_read(buffer):
 
     last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
     last_read_post_id = weechat.buffer_get_string(buffer, "localvar_last_read_post_id")
-    if last_post_id == last_read_post_id: # prevent spamming on buffer switch
+    if last_post_id and last_post_id == last_read_post_id: # prevent spamming on buffer switch
         return
 
     wee_matter.http.run_post_channel_view(server.user.id, channel_id, server, "singularity_cb", "")
