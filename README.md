@@ -51,3 +51,16 @@ Some command uses this id to interact with posts.
 ## Deal with files
 
 Mouse click or select a file line download it and open it.
+
+## Send multiline messages
+
+The multiline perl script is correctly handled by Wee-Matter :
+
+https://weechat.org/scripts/source/multiline.pl.html/
+
+You would still have issues with multiline pasted text. Add this :
+
+```
+/set plugins.var.perl.multiline.weechat_paste_fix "off"
+/key bind ctrl-J /input insert \n
+```
