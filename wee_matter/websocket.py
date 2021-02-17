@@ -27,7 +27,7 @@ def server_root_url(server):
 
     root_url = "{}://{}:{}".format(protocol, server.host, server.port)
     if server.path:
-        root_url += "/{}".format(server.port)
+        root_url += "/{}".format(server.path)
 
     return root_url
 
