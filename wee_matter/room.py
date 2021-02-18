@@ -5,6 +5,16 @@ import wee_matter
 import re
 
 channel_buffers = {}
+hydrating_buffers = []
+
+def is_buffer_hydratating(channel_id):
+    return channel_id in hydrating_buffers
+
+def register_buffer_hydratating(channel_id):
+    hydrating_buffers.append(channel_id)
+
+def remove_buffer_hydratating(channel_id):
+    hydrating_buffers.remove(channel_id)
 
 def get_buffer_from_channel_id(channel_id):
     return channel_buffers[channel_id]

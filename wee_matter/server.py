@@ -173,6 +173,13 @@ def unload_server(server_name):
 
     weechat.buffer_close(server.buffer)
 
+def connect_server_team_channel(channel_id, server):
+    wee_matter.room.register_buffer_hydratating(channel_id)
+    wee_matter.http.enqueue_request(
+        "run_get_channel",
+        channel_id, server, "connect_server_team_channel_cb", server.name
+    )
+
 def connect_server_team_channel_cb(server_name, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occurred while connecting team channel")
@@ -181,6 +188,7 @@ def connect_server_team_channel_cb(server_name, command, rc, out, err):
     server = get_server(server_name)
 
     channel_data = json.loads(out)
+    wee_matter.room.remove_buffer_hydratating(channel_data["id"])
     wee_matter.room.create_room_from_channel_data(channel_data, server)
 
     return weechat.WEECHAT_RC_OK
