@@ -30,7 +30,7 @@ def prepare_download_location():
             os.makedirs(location)
         except:
             weechat.prnt('', 'ERROR: Failed to create directory at files_download_location: {}'
-                    .format(format_exc_only()))
+                    .format(location))
 
     return location
 
