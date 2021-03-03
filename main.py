@@ -7,7 +7,7 @@ from wee_matter.room import (handle_multiline_message_cb, room_input_cb,
 
 from wee_matter.commands import (matter_command_cb, reply_command_cb,
                                  react_command_cb, unreact_command_cb,
-                                 delete_post_command_cb)
+                                 delete_post_command_cb, matter_command_cb)
 
 from wee_matter.websocket import (receive_ws_callback, ws_ping_cb,
                                   reconnection_loop_cb)

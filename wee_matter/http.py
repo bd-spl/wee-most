@@ -202,6 +202,25 @@ def run_post_post(post, server, cb, cb_data):
         build_buffer_cb_data(url, cb, cb_data)
     )
 
+def run_post_command(channel_id, command, server, cb, cb_data):
+    url = wee_matter.server.server_root_url(server) + "/api/v4/commands/execute"
+    params = {
+        "channel_id": channel_id,
+        "command": command,
+    }
+
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "failonerror": "1",
+            "httpheader": "Authorization: Bearer " + server.user_token,
+            "postfields": json.dumps(params),
+        },
+        30 * 1000,
+        "buffered_response_cb",
+        build_buffer_cb_data(url, cb, cb_data)
+    )
+
 def run_get_channel_posts(channel_id, server, cb, cb_data):
     url = wee_matter.server.server_root_url(server) + "/api/v4/channels/" + channel_id + "/posts"
     weechat.hook_process_hashtable(

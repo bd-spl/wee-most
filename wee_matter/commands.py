@@ -188,6 +188,14 @@ def delete_post_command_cb(data, buffer, args):
 
     return weechat.WEECHAT_RC_OK
 
+def matter_command_cb(data, buffer, command):
+    server = wee_matter.server.get_server_from_buffer(buffer)
+    channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
+
+    wee_matter.http.run_post_command(channel_id, "/{}".format(command), server, "singularity_cb", buffer)
+
+    return weechat.WEECHAT_RC_OK
+
 def setup_commands():
     weechat.hook_command(
         "matter",
@@ -218,6 +226,8 @@ def setup_commands():
     weechat.hook_command("react", "React to a post", "<post-id> <emoji-name>", "React to a post", "", "react_command_cb", "")
     weechat.hook_command("unreact", "Unreact to a post", "<post-id> <emoji-name>", "Unreact to a post", "", "unreact_command_cb", "")
     weechat.hook_command("delete", "Delete a post", "<post-id>", "Delete a post", "", "delete_post_command_cb", "")
+
+    weechat.hook_command("matter", "Send a command", "<message>", "Send a command", "", "matter_command_cb", "")
 
     weechat.hook_focus("chat", "channel_click_cb", "")
 
