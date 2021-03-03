@@ -35,6 +35,14 @@ Then you can connect/disconnect to servers
 /matter disconnect a_banal_server
 ```
 
+## Mattermost commands
+
+You can send Mattermost commands using this prefix.
+
+```
+/matter me Aya ! :3
+```
+
 ## Reply, React, Remove
 
 Mouse click or select a line print the short post id in the input field.
