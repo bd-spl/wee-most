@@ -14,6 +14,7 @@ Post = NamedTuple(
         ("message", str),
         ("date", int),
         ("deleted", bool),
+        ("read", bool),
         ("files", list),
         ("reactions", list),
         ("user", any),
@@ -51,6 +52,7 @@ def build_post_from_input_data(buffer, input_data):
         message= input_data,
         date= 0,
         deleted= False,
+        read= True,
         files= [],
         reactions= [],
         user= server.user,
@@ -79,7 +81,7 @@ def write_deleted_message_lines(buffer, post):
     weechat.prnt_date_tags(
         buffer,
         post.date,
-        "deleted_post",
+        "deleted_post,notify_none",
         initial_message_prefix + "	" + wee_matter.room.colorize_sentence(build_quote_message(initial_message), "red")
     )
 
@@ -99,7 +101,7 @@ def write_edited_message_lines(buffer, post):
     weechat.prnt_date_tags(
         buffer,
         initial_message_date,
-        "edited_post",
+        "edited_post,notify_none",
         initial_message_prefix + "	" + wee_matter.room.colorize_sentence(build_quote_message(initial_message), "yellow")
     )
 
@@ -108,6 +110,9 @@ def write_edited_message_lines(buffer, post):
         tags += ",reactions"
     else:
         new_message = post.message
+
+    if post.read:
+        tags += ",notify_none"
 
     weechat.prnt_date_tags(
         buffer,
@@ -133,7 +138,7 @@ def write_reply_message_lines(buffer, post):
     weechat.prnt_date_tags(
         buffer,
         parent_message_date,
-        "quote",
+        "quote,notify_none",
         parent_message_prefix + "	" + wee_matter.room.colorize_sentence(build_quote_message(parent_message), "lightgreen")
     )
 
@@ -148,6 +153,9 @@ def write_reply_message_lines(buffer, post):
         tags += ",notify_message"
     else:
         tags += ",notify_private"
+
+    if post.read:
+        tags += ",notify_none"
 
     # if somebody (not us) reply to our post
     if parent_message_prefix == own_prefix and parent_message_prefix != post.user.username:
@@ -178,6 +186,9 @@ def write_message_lines(buffer, post):
         tags += ",notify_message"
     else:
         tags += ",notify_private"
+
+    if post.read:
+        tags += ",notify_none"
 
     if post.reactions:
         tags += ",reactions"
@@ -235,7 +246,7 @@ def get_reactions_from_post_data(post_data, server):
 
     return []
 
-def build_post_from_post_data(post_data):
+def build_post_from_post_data(post_data, is_read = False):
     buffer_name = wee_matter.room.build_buffer_channel_name(post_data["channel_id"])
     buffer = weechat.buffer_search("", buffer_name)
 
@@ -250,6 +261,7 @@ def build_post_from_post_data(post_data):
         message= post_data["message"],
         date= int(post_data["update_at"]/1000),
         deleted= False,
+        read= is_read,
         files= wee_matter.file.get_files_from_post_data(post_data, server),
         reactions= get_reactions_from_post_data(post_data, server),
         user= user,

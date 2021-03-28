@@ -107,7 +107,7 @@ def hydrate_room_read_posts_cb(buffer, command, rc, out, err):
 
     response["order"].reverse()
     for post_id in response["order"]:
-        post = wee_matter.post.build_post_from_post_data(response["posts"][post_id])
+        post = wee_matter.post.build_post_from_post_data(response["posts"][post_id], True)
         wee_matter.post.write_post(post)
 
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", post.id)
