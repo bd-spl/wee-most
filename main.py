@@ -5,9 +5,12 @@ from wee_matter.room import (handle_multiline_message_cb, room_input_cb,
                              private_completion_cb, channel_switch_cb,
                              channel_click_cb)
 
+
+from wee_matter.server import server_completion_cb
+
 from wee_matter.commands import (matter_command_cb, reply_command_cb,
                                  react_command_cb, unreact_command_cb,
-                                 delete_post_command_cb)
+                                 delete_post_command_cb, slash_command_completion_cb)
 
 from wee_matter.websocket import (receive_ws_callback, ws_ping_cb,
                                   reconnection_loop_cb)

@@ -199,6 +199,13 @@ def delete_post_command_cb(data, buffer, args):
 
     return weechat.WEECHAT_RC_OK
 
+def slash_command_completion_cb(data, completion_item, current_buffer, completion):
+    slash_commands = ["away", "code", "collapse", "dnd", "echo", "expand", "groupmsg", "header", "help", "invite", "invite_people", "join", "kick", "leave", "logout", "me", "msg", "mute", "offline", "online", "purpose", "rename", "search", "settings", "shortcuts", "shrug", "status"]
+
+    for slash_command in slash_commands:
+        weechat.hook_completion_list_add(completion, slash_command, 0, weechat.WEECHAT_LIST_POS_SORT)
+    return weechat.WEECHAT_RC_OK
+
 def setup_commands():
     weechat.hook_command(
         "matter",
@@ -222,6 +229,7 @@ def setup_commands():
             "server add ||"
             "connect ||"
             "disconnect %(mattermost_server_commands) ||"
+            "command %(mattermost_slash_commands) ||"
         ),
         "matter_command_cb",
         ""
@@ -237,3 +245,4 @@ def setup_commands():
     weechat.hook_completion("irc_channels", "complete channels for mattermost", "channel_completion_cb", "")
     weechat.hook_completion("irc_privates", "complete dms/mpdms for mattermost", "private_completion_cb", "")
     weechat.hook_completion("mattermost_server_commands", "complete server names for mattermost", "server_completion_cb", "")
+    weechat.hook_completion("mattermost_slash_commands", "complete mattermost slash commands", "slash_command_completion_cb", "")
