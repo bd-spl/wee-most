@@ -75,6 +75,14 @@ def server_command(args, buffer):
 
     return weechat.WEECHAT_RC_OK
 
+def slash_command(args, buffer):
+    server = wee_matter.server.get_server_from_buffer(buffer)
+    channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
+
+    wee_matter.http.run_post_command(channel_id, "/{}".format(args), server, "singularity_cb", buffer)
+
+    return weechat.WEECHAT_RC_OK
+
 def matter_command_usage(buffer):
     weechat.prnt(buffer,
         (
@@ -82,6 +90,7 @@ def matter_command_usage(buffer):
             "    /matter server add <server-name> <server-domain>\n"
             "    /matter connect <server-name>\n"
             "    /matter disconnect <server-name>\n"
+            "    /matter command <mattermost-command>\n"
         )
     )
 
@@ -98,15 +107,10 @@ def matter_command_cb(data, buffer, command):
         return connect_command(args, buffer)
     if prefix == "disconnect":
         return disconnect_command(args, buffer)
+    if prefix == "command":
+        return slash_command(args, buffer)
 
-    # Send a plain mattermost command
-
-    server = wee_matter.server.get_server_from_buffer(buffer)
-    channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
-
-    wee_matter.http.run_post_command(channel_id, "/{}".format(command), server, "singularity_cb", buffer)
-
-    return weechat.WEECHAT_RC_OK
+    return weechat.WEECHAT_RC_ERROR
 
 def reply_command_usage(buffer):
     weechat.prnt(buffer, "Usage: /reply <post-id> <message>")
