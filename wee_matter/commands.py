@@ -85,19 +85,26 @@ def matter_command_usage(buffer):
         )
     )
 
-def matter_command_cb(data, buffer, args):
-    if 0 == len(args.split()):
+def matter_command_cb(data, buffer, command):
+    if 0 == len(command.split()):
         matter_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
 
-    command, _, args = args.partition(" ")
+    prefix, _, args = command.partition(" ")
 
-    if command == "server":
-        server_command(args, buffer)
-    if command == "connect":
-        connect_command(args, buffer)
-    if command == "disconnect":
-        disconnect_command(args, buffer)
+    if prefix == "server":
+        return server_command(args, buffer)
+    if prefix == "connect":
+        return connect_command(args, buffer)
+    if prefix == "disconnect":
+        return disconnect_command(args, buffer)
+
+    # Send a plain mattermost command
+
+    server = wee_matter.server.get_server_from_buffer(buffer)
+    channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
+
+    wee_matter.http.run_post_command(channel_id, "/{}".format(command), server, "singularity_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -188,14 +195,6 @@ def delete_post_command_cb(data, buffer, args):
 
     return weechat.WEECHAT_RC_OK
 
-def matter_command_cb(data, buffer, command):
-    server = wee_matter.server.get_server_from_buffer(buffer)
-    channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
-
-    wee_matter.http.run_post_command(channel_id, "/{}".format(command), server, "singularity_cb", buffer)
-
-    return weechat.WEECHAT_RC_OK
-
 def setup_commands():
     weechat.hook_command(
         "matter",
@@ -205,12 +204,14 @@ def setup_commands():
             "server add <server-name> <hostname> ||"
             "connect <server-name> ||"
             "disconnect <server-name> ||"
+            "<mattermost-command>"
         ),
         # Description
         (
             "server: add Matrix servers\n"
             "connect Matrix servers\n"
             "disconnect Matrix servers\n"
+            "send a plain mattermost command\n"
         ),
         # Completions
         (
@@ -226,8 +227,6 @@ def setup_commands():
     weechat.hook_command("react", "React to a post", "<post-id> <emoji-name>", "React to a post", "", "react_command_cb", "")
     weechat.hook_command("unreact", "Unreact to a post", "<post-id> <emoji-name>", "Unreact to a post", "", "unreact_command_cb", "")
     weechat.hook_command("delete", "Delete a post", "<post-id>", "Delete a post", "", "delete_post_command_cb", "")
-
-    weechat.hook_command("matter", "Send a command", "<message>", "Send a command", "", "matter_command_cb", "")
 
     weechat.hook_focus("chat", "channel_click_cb", "")
 
