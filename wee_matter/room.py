@@ -22,10 +22,6 @@ def get_buffer_from_channel_id(channel_id):
 def build_buffer_channel_name(channel_id):
     return "weematter." + channel_id
 
-def colorize_sentence(sentence, color):
-    return "{}{}{}".format(weechat.color(color), sentence, weechat.color("reset"))
-
-
 def channel_switch_cb(buffer, current_buffer, args):
     weechat.buffer_set(buffer, "display", "1")
     return weechat.WEECHAT_RC_OK_EAT

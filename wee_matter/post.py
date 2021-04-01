@@ -59,7 +59,7 @@ def build_post_from_input_data(buffer, input_data):
     )
 
 def build_reaction_message(reaction):
-    return "[:{}:]".format(wee_matter.room.colorize_sentence(reaction.emoji_name, reaction.user.color))
+    return "[:{}:]".format(colorize_sentence(reaction.emoji_name, reaction.user.color))
 
 def build_reaction_line(post):
     reaction_line = ""
@@ -73,6 +73,9 @@ def build_quote_message(message):
         message = "%s…" % message[:69].strip()
     return message
 
+def colorize_sentence(sentence, color):
+    return "{}{}{}".format(weechat.color(color), sentence, weechat.color("reset"))
+
 def wrap_nick_with_prefix_suffix(nick):
     nick_prefix = weechat.config_string(weechat.config_get("weechat.look.nick_prefix"))
     nick_prefix_color_name = weechat.config_string(
@@ -85,9 +88,9 @@ def wrap_nick_with_prefix_suffix(nick):
     )
 
     return (
-        wee_matter.room.colorize_sentence(nick_prefix, nick_prefix_color_name)
+        colorize_sentence(nick_prefix, nick_prefix_color_name)
         + nick
-        + wee_matter.room.colorize_sentence(nick_suffix, nick_suffix_color_name)
+        + colorize_sentence(nick_suffix, nick_suffix_color_name)
     )
 
 def write_deleted_message_lines(buffer, post):
@@ -99,7 +102,7 @@ def write_deleted_message_lines(buffer, post):
         buffer,
         post.date,
         "deleted_post,notify_none",
-        initial_message_prefix + "	" + wee_matter.room.colorize_sentence(build_quote_message(initial_message), "red")
+        initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), "red")
     )
 
 def write_edited_message_lines(buffer, post):
@@ -119,7 +122,7 @@ def write_edited_message_lines(buffer, post):
         buffer,
         initial_message_date,
         "edited_post,notify_none",
-        initial_message_prefix + "	" + wee_matter.room.colorize_sentence(build_quote_message(initial_message), "yellow")
+        initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), "yellow")
     )
 
     if initial_reactions:
@@ -137,7 +140,7 @@ def write_edited_message_lines(buffer, post):
         tags,
         (
             wrap_nick_with_prefix_suffix(
-                wee_matter.room.colorize_sentence(post.user.username, post.user.color)
+                colorize_sentence(post.user.username, post.user.color)
             )
             + "	"
             + new_message
@@ -162,7 +165,7 @@ def write_reply_message_lines(buffer, post):
         buffer,
         parent_message_date,
         "quote,notify_none",
-        parent_message_prefix + "	" + wee_matter.room.colorize_sentence(build_quote_message(parent_message), "lightgreen")
+        parent_message_prefix + "	" + colorize_sentence(build_quote_message(parent_message), "lightgreen")
     )
 
     parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
@@ -191,7 +194,7 @@ def write_reply_message_lines(buffer, post):
             post.date,
             tags,
             (
-                wrap_nick_with_prefix_suffix(wee_matter.room.colorize_sentence(post.user.username, post.user.color))
+                wrap_nick_with_prefix_suffix(colorize_sentence(post.user.username, post.user.color))
                 + "	"
                 + post.message
                 + " | "
@@ -205,7 +208,7 @@ def write_reply_message_lines(buffer, post):
         post.date,
         tags,
         (
-            wrap_nick_with_prefix_suffix(wee_matter.room.colorize_sentence(post.user.username, post.user.color))
+            wrap_nick_with_prefix_suffix(colorize_sentence(post.user.username, post.user.color))
             + "	"
             + post.message
         )
@@ -230,7 +233,7 @@ def write_message_lines(buffer, post):
             post.date,
             tags,
             (
-                wrap_nick_with_prefix_suffix(wee_matter.room.colorize_sentence(post.user.username, post.user.color))
+                wrap_nick_with_prefix_suffix(colorize_sentence(post.user.username, post.user.color))
                 + "	"
                 + post.message
                 + " | "
@@ -243,7 +246,7 @@ def write_message_lines(buffer, post):
         buffer,
         post.date,
         tags,
-        wrap_nick_with_prefix_suffix(wee_matter.room.colorize_sentence(post.user.username, post.user.color)) + "	" + post.message
+        wrap_nick_with_prefix_suffix(colorize_sentence(post.user.username, post.user.color)) + "	" + post.message
     )
 
 def write_post(post):
