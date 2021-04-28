@@ -202,6 +202,8 @@ def connect_server_team_channels_cb(server_name, command, rc, out, err):
 
     response = json.loads(out)
     for channel_data in response:
+        if wee_matter.room.already_loaded_buffer(channel_data["id"]):
+            continue
         wee_matter.room.create_room_from_channel_data(channel_data, server)
 
     return weechat.WEECHAT_RC_OK

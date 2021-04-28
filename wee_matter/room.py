@@ -7,6 +7,9 @@ import re
 channel_buffers = {}
 hydrating_buffers = []
 
+def already_loaded_buffer(channel_id):
+    return channel_id in channel_buffers
+
 def is_buffer_hydratating(channel_id):
     return channel_id in hydrating_buffers
 
