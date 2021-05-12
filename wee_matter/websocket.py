@@ -60,15 +60,21 @@ def create_worker(server):
         last_pong_time= 0,
     )
 
+def rehydrate_server_buffer(server, buffer):
+    last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
+    channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
+    wee_matter.http.enqueue_request(
+        "run_get_channel_posts_after",
+        last_post_id, channel_id, server, "hydrate_room_posts_cb", buffer
+    )
+
 def rehydrate_server_buffers(server):
     weechat.prnt("", "Syncing...")
     for buffer in server.buffers:
-        last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
-        channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
-        wee_matter.http.enqueue_request(
-            "run_get_channel_posts_after",
-            last_post_id, channel_id, server, "hydrate_room_posts_cb", buffer
-        )
+        rehydrate_server_buffer(server, buffer)
+    for team in server.teams.values():
+        for buffer in team.buffers:
+            rehydrate_server_buffer(server, buffer)
 
 def reconnection_loop_cb(server_name, remaining_calls):
     server = wee_matter.server.get_server(server_name)
