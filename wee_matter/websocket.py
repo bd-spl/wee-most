@@ -63,6 +63,7 @@ def create_worker(server):
 def rehydrate_server_buffer(server, buffer):
     last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
     channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
+    wee_matter.room.register_buffer_hydratating(channel_id)
     wee_matter.http.enqueue_request(
         "run_get_channel_posts_after",
         last_post_id, channel_id, server, "hydrate_room_posts_cb", buffer

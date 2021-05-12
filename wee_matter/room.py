@@ -14,9 +14,19 @@ def is_buffer_hydratating(channel_id):
     return channel_id in hydrating_buffers
 
 def register_buffer_hydratating(channel_id):
+    if is_buffer_hydratating(channel_id):
+        return
     hydrating_buffers.append(channel_id)
 
+    buffer = get_buffer_from_channel_id(channel_id)
+    old_name = weechat.buffer_get_string(buffer, "short_name")
+    weechat.buffer_set(buffer, "short_name", "⚠️ {}".format(old_name))
+
 def remove_buffer_hydratating(channel_id):
+    buffer = get_buffer_from_channel_id(channel_id)
+    old_name = weechat.buffer_get_string(buffer, "short_name")
+    weechat.buffer_set(buffer, "short_name", re.sub("⚠️ ", "", old_name))
+
     hydrating_buffers.remove(channel_id)
 
 def get_buffer_from_channel_id(channel_id):
@@ -89,6 +99,9 @@ def hydrate_room_posts_cb(buffer, command, rc, out, err):
             "run_get_channel_posts_after",
             builded_post.id, builded_post.channel_id, server, "hydrate_room_posts_cb", buffer
         )
+    else:
+        channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
+        remove_buffer_hydratating(channel_id)
 
     return weechat.WEECHAT_RC_OK
 
@@ -118,6 +131,8 @@ def hydrate_room_read_posts_cb(buffer, command, rc, out, err):
             "run_get_channel_posts_after",
             post.id, post.channel_id, server, "hydrate_room_posts_cb", buffer
         )
+    else:
+        remove_buffer_hydratating(post.channel_id)
 
     return weechat.WEECHAT_RC_OK
 
@@ -218,6 +233,7 @@ def create_room_from_channel_data(channel_data, server):
 
     weechat.buffer_set(buffer, "number", str(number))
 
+    register_buffer_hydratating(channel_data["id"])
     wee_matter.http.enqueue_request(
         "run_get_read_channel_posts",
         server.user.id, channel_data["id"], server, "hydrate_room_read_posts_cb", buffer
