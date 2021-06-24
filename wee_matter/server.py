@@ -405,9 +405,6 @@ def reconnect_server(server_name):
     return weechat.WEECHAT_RC_OK
 
 def auto_connect_servers():
-    if not weechat.config_is_set_plugin("autoconnect"):
-        weechat.config_set_plugin("autoconnect", "")
-
     auto_connect = weechat.config_get_plugin("autoconnect")
     return list(filter(bool, auto_connect.split(",")))
 

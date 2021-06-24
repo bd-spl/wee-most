@@ -2,22 +2,6 @@
 import weechat
 import wee_matter
 
-server_default_config = {
-    "username": "",
-    "password": "",
-    "port": "443",
-    "protocol": "https",
-}
-
-def setup_server_config(server_name, key, value, override=False):
-    config_key = "server." + server_name + "." + key
-
-    if not weechat.config_is_set_plugin(config_key) or override:
-        weechat.config_set_plugin(
-            config_key,
-            value
-        )
-
 def server_add_command_usage(buffer):
     weechat.prnt(buffer, "Usage: /matter server add <server-name> <server-domain>")
 
@@ -28,10 +12,7 @@ def server_add_command(args, buffer):
 
     server_name, _, server_url = args.partition(" ")
 
-    for config, default_value in server_default_config.items():
-        setup_server_config(server_name, config, default_value)
-
-    setup_server_config(server_name, "address", server_url)
+    wee_matter.config.add_server_options(server_name, server_url)
 
     weechat.prnt(buffer, "Server added. You should now configure your username and password.")
     weechat.prnt(buffer, "/set plugins.var.python.wee-matter.server.%s.*" % server_name)
