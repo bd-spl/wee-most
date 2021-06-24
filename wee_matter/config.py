@@ -1,5 +1,6 @@
 
 import weechat
+import os
 
 def download_location():
     return weechat.config_get_plugin("download_location")
@@ -15,11 +16,11 @@ def get_server_config(server_name, key):
 
 def setup_download_location():
     if not weechat.config_is_set_plugin("download_location"):
-        cache_root = weechat.string_eval_expression("${env:XDG_CACHE_HOME}/wee-matter", {}, {}, {})
-        if not cache_root:
-            cache_root = weechat.string_eval_path_home("~/.cache/wee-matter", {}, {}, {})
+        cache_dir = os.environ.get('XDG_CACHE_HOME')
+        if not cache_dir:
+            cache_dir = '~/.cache'
 
-        weechat.config_set_plugin("download_location", cache_root + "/downloads")
+        weechat.config_set_plugin("download_location", cache_dir + "/wee-matter/downloads")
 
 def setup():
     setup_download_location()
