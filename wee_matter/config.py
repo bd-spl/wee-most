@@ -52,6 +52,10 @@ server_settings = {
 def download_location():
     return weechat.config_get_plugin("download_location")
 
+def auto_connect_servers():
+    auto_connect = weechat.config_get_plugin("autoconnect")
+    return list(filter(bool, auto_connect.split(",")))
+
 def get_server_config(server_name, key):
     key_prefix = "server." + server_name + "."
 

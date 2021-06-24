@@ -404,12 +404,8 @@ def reconnect_server(server_name):
 
     return weechat.WEECHAT_RC_OK
 
-def auto_connect_servers():
-    auto_connect = weechat.config_get_plugin("autoconnect")
-    return list(filter(bool, auto_connect.split(",")))
-
 def auto_connect():
-    for server_name in auto_connect_servers():
+    for server_name in wee_matter.config.auto_connect_servers():
         connect_server(server_name)
 
 def disconnect_all():
