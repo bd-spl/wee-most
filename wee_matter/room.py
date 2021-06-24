@@ -146,6 +146,9 @@ def create_room_group(group_name, buffer):
 def create_room_user_from_user_data(user_data, buffer, server):
     user = server.users[user_data["user_id"]]
 
+    if user.deleted:
+        return
+
     weechat.nicklist_add_nick(buffer, "", user.username, user.color, "@", user.color, 1)
 
 def hydrate_room_users_cb(buffer, command, rc, out, err):

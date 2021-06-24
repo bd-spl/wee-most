@@ -34,6 +34,7 @@ User = NamedTuple(
         ("id", str),
         ("username", str),
         ("color", str),
+        ("deleted", bool)
     ]
 )
 
@@ -119,6 +120,7 @@ def create_user_from_user_data(user_data, server):
         id= user_data["id"],
         username= user_data["username"],
         color= color_for_username(user_data["username"]),
+        deleted = (user_data["delete_at"] != 0),
     )
 
 def server_completion_cb(data, completion_item, current_buffer, completion):
@@ -132,6 +134,7 @@ def load_server(server_name):
         id = "",
         username = "",
         color = "",
+        deleted = False,
     )
     servers[server_name] = Server(
         name= server_name,
@@ -301,6 +304,7 @@ def connect_server_cb(server_name, command, rc, out, err):
         id= response["id"],
         username= response["username"],
         color= weechat.config_string(weechat.config_get("weechat.color.chat_nick_self")),
+        deleted = False,
     )
 
     server = server._replace(
