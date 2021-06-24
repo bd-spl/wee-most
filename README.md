@@ -8,8 +8,12 @@ Python dependencies from PyPi:
 
 * [websocket_client](https://pypi.org/project/websocket_client/)
 
+Set the WEECHAT_DATA_DIR Makefile variable to match your configuration.
+- default is `~/.local/share/weechat` in newer versions (starting with 3.2)
+- default is `~/.weechat` in older versions
+
 ```bash
-$ make install # WEECHAT_HOME=$HOME/.another-weechat
+$ make install # WEECHAT_DATA_DIR=~/.weechat
 ```
 
 ## Usage

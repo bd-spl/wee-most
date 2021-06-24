@@ -1,30 +1,32 @@
 .PHONY: install run-dev
 
-WEECHAT_HOME ?= $(HOME)/.weechat
+WEECHAT_DATA_DIR = $(HOME)/.local/share/weechat
 
-libs := $(patsubst wee_matter/%.py, $(WEECHAT_HOME)/python/wee_matter/%.py, \
+SCRIPT_DIR = $(WEECHAT_DATA_DIR)/python
+
+libs := $(patsubst wee_matter/%.py, $(SCRIPT_DIR)/wee_matter/%.py, \
 	$(wildcard wee_matter/*.py))
 
-install: $(WEECHAT_HOME)/python/wee_matter/ $(libs) $(WEECHAT_HOME)/python/wee_matter.py
+install: $(SCRIPT_DIR)/wee_matter/ $(libs) $(SCRIPT_DIR)/wee_matter.py
 
 uninstall:
-	rm $(WEECHAT_HOME)/python/wee_matter/*
-	rm $(WEECHAT_HOME)/python/wee_matter.py
-	rmdir $(WEECHAT_HOME)/python/wee_matter
+	rm $(SCRIPT_DIR)/wee_matter/*
+	rm $(SCRIPT_DIR)/wee_matter.py
+	rmdir $(SCRIPT_DIR)/wee_matter
 
 .weechat:
-	mkdir -p .weechat/python/autoload
-	ln -s ../wee_matter.py .weechat/python/autoload/wee_matter.py
+	mkdir -p $(SCRIPT_DIR)/autoload
+	ln -s ../wee_matter.py $(SCRIPT_DIR)/autoload/wee_matter.py
 
 run-dev: .weechat
-	make install WEECHAT_HOME=.weechat
+	make install WEECHAT_DATA_DIR=.weechat
 	weechat -d .weechat
 
-$(WEECHAT_HOME)/python/wee_matter/:
-	install -d $(WEECHAT_HOME)/python/wee_matter
+$(SCRIPT_DIR)/wee_matter/:
+	install -d $(SCRIPT_DIR)/wee_matter
 
-$(WEECHAT_HOME)/python/wee_matter.py: main.py
-	install -m644 main.py $(WEECHAT_HOME)/python/wee_matter.py
+$(SCRIPT_DIR)/wee_matter.py: main.py
+	install -m644 main.py $(SCRIPT_DIR)/wee_matter.py
 
-$(WEECHAT_HOME)/python/wee_matter/%.py: wee_matter/%.py
+$(SCRIPT_DIR)/wee_matter/%.py: wee_matter/%.py
 	install -m644 $< $@
