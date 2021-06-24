@@ -57,12 +57,9 @@ def auto_connect_servers():
     return list(filter(bool, auto_connect.split(",")))
 
 def get_server_config(server_name, key):
-    key_prefix = "server." + server_name + "."
-
-    config_key = key_prefix + key
-    config_value = weechat.config_get_plugin(key_prefix + key)
+    option = "server." + server_name + "." + key
+    config_value = weechat.config_get_plugin(option)
     expanded_value = weechat.string_eval_expression(config_value, {}, {}, {})
-
     return expanded_value
 
 def add_server_options(server_name, server_url):
