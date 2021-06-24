@@ -15,6 +15,7 @@ Post = NamedTuple(
         ("date", int),
         ("deleted", bool),
         ("read", bool),
+        ("attachments", list),
         ("files", list),
         ("reactions", list),
         ("user", any),
@@ -53,6 +54,7 @@ def build_post_from_input_data(buffer, input_data):
         date= 0,
         deleted= False,
         read= True,
+        attachments= [],
         files= [],
         reactions= [],
         user= server.user,
@@ -92,6 +94,35 @@ def wrap_nick_with_prefix_suffix(nick):
         + nick
         + colorize_sentence(nick_suffix, nick_suffix_color_name)
     )
+
+def build_message_with_attachments(message, attachments):
+    if message:
+        msg_parts = [ message ]
+    else:
+        msg_parts = []
+
+    for attachment in attachments:
+        att = []
+
+        if attachment["pretext"]:
+            att.append(attachment["pretext"])
+
+        if attachment["author_name"]:
+            att.append(attachment["author_name"])
+
+        if attachment["title"] and attachment["title_link"]:
+            att.append(attachment["title"] + " (" + attachment["title_link"] + ")")
+        elif attachment["title"]:
+            att.append(attachment["title"])
+        elif attachment["title_link"]:
+            att.append(attachment["title_link"])
+
+        if attachment["text"]:
+            att.append(attachment["text"])
+
+        msg_parts.append("\n".join(att))
+
+    return "\n\n".join(msg_parts)
 
 def write_deleted_message_lines(buffer, post):
     first_initial_line_data = find_buffer_first_post_line_data(buffer, post.id)
@@ -216,6 +247,7 @@ def write_reply_message_lines(buffer, post):
 
 def write_message_lines(buffer, post):
     tags = "post_id_%s" % post.id
+    message = post.message
 
     channel_type = weechat.buffer_get_string(buffer, "localvar_type")
     if channel_type == "channel":
@@ -226,6 +258,10 @@ def write_message_lines(buffer, post):
     if post.read:
         tags += ",notify_none"
 
+    if post.attachments:
+        tags += ",attachments"
+        message = build_message_with_attachments(message, post.attachments)
+
     if post.reactions:
         tags += ",reactions"
         weechat.prnt_date_tags(
@@ -235,7 +271,7 @@ def write_message_lines(buffer, post):
             (
                 wrap_nick_with_prefix_suffix(colorize_sentence(post.user.username, post.user.color))
                 + "	"
-                + post.message
+                + message
                 + " | "
                 + build_reaction_line(post)
             )
@@ -246,7 +282,7 @@ def write_message_lines(buffer, post):
         buffer,
         post.date,
         tags,
-        wrap_nick_with_prefix_suffix(colorize_sentence(post.user.username, post.user.color)) + "	" + post.message
+        wrap_nick_with_prefix_suffix(colorize_sentence(post.user.username, post.user.color)) + "	" + message
     )
 
 def write_post(post):
@@ -296,6 +332,11 @@ def build_post_from_post_data(post_data, is_read = False):
 
     user = server.users[post_data["user_id"]]
 
+    if 'attachments' in post_data["props"]:
+        attachments = post_data["props"]["attachments"]
+    else:
+        attachments = []
+
     post = Post(
         id= post_data["id"],
         parent_id= post_data["parent_id"],
@@ -304,6 +345,7 @@ def build_post_from_post_data(post_data, is_read = False):
         date= int(post_data["update_at"]/1000),
         deleted= False,
         read= is_read,
+        attachments= attachments,
         files= wee_matter.file.get_files_from_post_data(post_data, server),
         reactions= get_reactions_from_post_data(post_data, server),
         user= user,
