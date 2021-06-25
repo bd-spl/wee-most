@@ -26,7 +26,8 @@ $ make install # WEECHAT_DATA_DIR=~/.weechat
 /matter server add a_banal_server a.banal.server
 ```
 
-You should then edit other related configs as autoconnect servers, procotol (http/https), username, password.
+You should then edit other related configurations such as autoconnect servers, protocol (http/https), username, password.
+To store the password safely, you can make use of weechat [secured data storage](https://weechat.org/files/doc/stable/weechat_user.en.html#secured_data)
 
 ```
 /set plugins.var.python.wee-matter.* 
