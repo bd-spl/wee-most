@@ -124,17 +124,34 @@ def build_message_with_attachments(message, attachments):
 
     return "\n\n".join(msg_parts)
 
-def write_deleted_message_lines(buffer, post):
-    first_initial_line_data = find_buffer_first_post_line_data(buffer, post.id)
+def delete_message(buffer, post):
+    lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), buffer, "lines")
+    line = weechat.hdata_pointer(weechat.hdata_get("lines"), lines, "last_line")
+    line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
 
-    initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
-    initial_message = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "message").rsplit(' | ', 1)[0]
-    weechat.prnt_date_tags(
-        buffer,
-        post.date,
-        "deleted_post,notify_none",
-        initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), "red")
-    )
+    # find last line of this post
+    while line and not is_post_line_data(line_data, post.id):
+        line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "prev_line")
+        line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
+
+    # find all lines of this post
+    pointers = []
+    while line and is_post_line_data(line_data, post.id):
+        pointers.append(line)
+        line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "prev_line")
+        line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
+    pointers.reverse()
+
+    if not pointers:
+        return
+
+    lines = [""] * len(pointers)
+    lines[0] = colorize_sentence("(deleted)", "red")
+
+    for pointer, line in zip(pointers, lines):
+        line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
+        weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": line})
+
 
 def write_edited_message_lines(buffer, post):
     tags = "post_id_%s" % post.id
@@ -291,7 +308,7 @@ def write_post(post):
     server = wee_matter.server.get_server_from_buffer(buffer)
 
     if post.deleted:
-        write_deleted_message_lines(buffer, post)
+        delete_message(buffer, post)
     elif post.id in post_buffers:
         write_edited_message_lines(buffer, post)
     elif post.parent_id:
