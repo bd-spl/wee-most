@@ -3,9 +3,9 @@ import weechat
 import os
 from typing import NamedTuple
 
-cache_dir = os.environ.get('XDG_CACHE_HOME')
-if not cache_dir:
-    cache_dir = '~/.cache'
+download_dir = os.environ.get('XDG_DOWNLOAD_DIR')
+if not download_dir:
+    download_dir = '~/Downloads'
 
 Setting = NamedTuple(
         "Setting",
@@ -21,7 +21,7 @@ general_settings = {
         desc= 'Comma separated list of server names to automatically connect to at start',
     ),
     'download_location': Setting(
-        default= cache_dir + '/wee-matter/downloads',
+        default= download_dir + '/wee-matter',
         desc= 'Location for storing downloaded files',
     ),
 }
