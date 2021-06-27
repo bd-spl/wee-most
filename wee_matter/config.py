@@ -77,15 +77,13 @@ def add_setting(s):
     weechat.config_set_plugin(s.key, s.default)
     weechat.config_set_desc_plugin(s.key, '%s (default: "%s")' % (s.desc, s.default))
 
-def add_server_options(server_name, server_url):
+def add_server_options(server_name):
     for s in server_settings:
         add_setting(Setting(
             key= "server." + server_name + "." + s.key,
             default= s.default,
             desc= s.desc.format(server_name),
             ))
-
-    weechat.config_set_plugin("server." + server_name + ".address", server_url)
 
 def setup():
     for s in general_settings:

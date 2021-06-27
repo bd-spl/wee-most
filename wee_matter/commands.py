@@ -3,19 +3,17 @@ import weechat
 import wee_matter
 
 def server_add_command_usage(buffer):
-    weechat.prnt(buffer, "Usage: /matter server add <server-name> <server-domain>")
+    weechat.prnt(buffer, "Usage: /matter server add <server-name>")
 
 def server_add_command(args, buffer):
-    if 2 != len(args.split()):
+    if 1 != len(args.split()):
         server_add_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
 
-    server_name, _, server_url = args.partition(" ")
+    wee_matter.config.add_server_options(args)
 
-    wee_matter.config.add_server_options(server_name, server_url)
-
-    weechat.prnt(buffer, "Server added. You should now configure your username and password.")
-    weechat.prnt(buffer, "/set plugins.var.python.wee-matter.server.%s.*" % server_name)
+    weechat.prnt(buffer, "Server \"%s\" added. You should now configure it." % args)
+    weechat.prnt(buffer, "/set plugins.var.python.wee-matter.server.%s.*" % args)
 
     return weechat.WEECHAT_RC_OK
 
@@ -40,7 +38,7 @@ def disconnect_command(args, buffer):
 def matter_server_command_usage(buffer):
     weechat.prnt(buffer,
         (
-            "Usage: /matter server add <server-name> <server-domain>"
+            "Usage: /matter server add <server-name>"
         )
     )
 
@@ -68,7 +66,7 @@ def matter_command_usage(buffer):
     weechat.prnt(buffer,
         (
             "Usage: \n"
-            "    /matter server add <server-name> <server-domain>\n"
+            "    /matter server add <server-name>\n"
             "    /matter connect <server-name>\n"
             "    /matter disconnect <server-name>\n"
             "    /matter command <mattermost-command>\n"
@@ -193,7 +191,7 @@ def setup_commands():
         "Mattermost chat protocol command",
          # Synopsis
         (
-            "server add <server-name> <hostname> ||"
+            "server add <server-name> ||"
             "connect <server-name> ||"
             "disconnect <server-name> ||"
             "<mattermost-command>"
