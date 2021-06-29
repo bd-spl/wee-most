@@ -198,9 +198,9 @@ def setup_commands():
         ),
         # Description
         (
-            "server: add Matrix servers\n"
-            "connect Matrix servers\n"
-            "disconnect Matrix servers\n"
+            "server: add Mattermost servers\n"
+            "connect Mattermost servers\n"
+            "disconnect Mattermost servers\n"
             "send a plain mattermost command\n"
         ),
         # Completions
