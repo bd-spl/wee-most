@@ -371,17 +371,6 @@ def connect_server(server_name):
 
     return weechat.WEECHAT_RC_OK
 
-def disconnect_server_cb(server_name, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occurred while disconnecting")
-        return weechat.WEECHAT_RC_ERROR
-
-    unload_server(server_name)
-
-    weechat.prnt("", "Disconnected")
-
-    return weechat.WEECHAT_RC_OK
-
 def disconnect_server(server_name):
     server = get_server(server_name)
 
@@ -389,9 +378,12 @@ def disconnect_server(server_name):
         weechat.prnt("", "Not connected")
         return weechat.WEECHAT_RC_ERROR
 
-    wee_matter.http.run_user_logout(server, "disconnect_server_cb", server.name)
+    rc = wee_matter.http.logout_user(server)
 
-    return weechat.WEECHAT_RC_OK
+    if rc == weechat.WEECHAT_RC_OK:
+        unload_server(server_name)
+
+    return rc
 
 def reconnect_server(server_name):
     server = get_server(server_name)
@@ -409,5 +401,5 @@ def auto_connect():
         connect_server(server_name)
 
 def disconnect_all():
-    for server_name, server in servers.items():
+    for server_name in servers.copy():
         disconnect_server(server_name)

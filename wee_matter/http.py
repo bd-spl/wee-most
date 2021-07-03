@@ -4,6 +4,7 @@ import wee_matter
 import json
 import time
 import re
+import urllib.request
 
 from wee_matter.room import (hydrate_room_read_posts_cb, hydrate_room_posts_cb,
                              hydrate_room_users_cb, hydrate_room_user_cb)
@@ -13,7 +14,7 @@ from wee_matter.post import post_post_cb
 from wee_matter.file import file_get_cb
 
 from wee_matter.server import (connect_server_cb, connect_server_teams_cb,
-                               connect_server_team_channels_cb, disconnect_server_cb,
+                               connect_server_team_channels_cb,
                                connect_server_users_cb, server_completion_cb,
                                connect_server_team_channel_cb, connect_server_team_cb,
                                new_user_cb)
@@ -118,22 +119,20 @@ def run_get_user(server, user_id, cb, cb_data):
         build_buffer_cb_data(url, cb, cb_data)
     )
 
-def run_user_logout(server, cb, cb_data):
+# Logging out synchronously for usage in shutdown function
+def logout_user(server):
     url = wee_matter.server.server_root_url(server) + "/api/v4/users/logout"
-    weechat.hook_process_hashtable(
-        "url:" + url,
-        {
-            "failonerror": "1",
-            "post": "1",
-            "httpheader": "\n".join([
-                "Authorization: Bearer " + server.user_token,
-                "Content-Type:",
-            ]),
-        },
-        30 * 1000,
-        "buffered_response_cb",
-        build_buffer_cb_data(url, cb, cb_data)
-    )
+    req = urllib.request.Request(url)
+    req.add_header('Authorization', 'Bearer ' + server.user_token)
+
+    try:
+        urllib.request.urlopen(req, b'', 10 * 1000)
+    except:
+        weechat.prnt("", "An error occurred while disconnecting")
+        return weechat.WEECHAT_RC_ERROR
+
+    weechat.prnt("", "Disconnected")
+    return weechat.WEECHAT_RC_OK
 
 def run_user_login(server, cb, cb_data):
     url = wee_matter.server.server_root_url(server) + "/api/v4/users/login"
