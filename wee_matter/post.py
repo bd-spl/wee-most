@@ -20,6 +20,7 @@ Post = NamedTuple(
         ("reactions", list),
         ("user", any),
         ("from_bot", bool),
+        ("username_override", str),
     ]
 )
 
@@ -60,6 +61,7 @@ def build_post_from_input_data(buffer, input_data):
         reactions= [],
         user= server.user,
         from_bot= False,
+        username_override= None,
     )
 
 def build_reaction_message(reaction):
@@ -80,7 +82,7 @@ def build_quote_message(message):
 def colorize_sentence(sentence, color):
     return "{}{}{}".format(weechat.color(color), sentence, weechat.color("reset"))
 
-def build_nick(user, from_bot):
+def build_nick(user, from_bot, username_override):
     nick_prefix = weechat.config_string(weechat.config_get("weechat.look.nick_prefix"))
     nick_prefix_color_name = weechat.config_string(
         weechat.config_get("weechat.color.chat_nick_prefix")
@@ -91,7 +93,10 @@ def build_nick(user, from_bot):
         weechat.config_get("weechat.color.chat_nick_suffix")
     )
 
-    username = user.username
+    if username_override:
+        username = username_override
+    else:
+        username = user.username
 
     if from_bot:
         username += " [BOT]"
@@ -194,7 +199,7 @@ def write_edited_message_lines(buffer, post):
         post.date,
         tags,
         (
-            build_nick(post.user, post.from_bot)
+            build_nick(post.user, post.from_bot, post.username_override)
             + "	"
             + new_message
         )
@@ -247,7 +252,7 @@ def write_reply_message_lines(buffer, post):
             post.date,
             tags,
             (
-                build_nick(post.user, post.from_bot)
+                build_nick(post.user, post.from_bot, post.username_override)
                 + "	"
                 + post.message
                 + " | "
@@ -261,7 +266,7 @@ def write_reply_message_lines(buffer, post):
         post.date,
         tags,
         (
-            build_nick(post.user, post.from_bot)
+            build_nick(post.user, post.from_bot, post.username_override)
             + "	"
             + post.message
         )
@@ -291,7 +296,7 @@ def write_message_lines(buffer, post):
             post.date,
             tags,
             (
-                build_nick(post.user, post.from_bot)
+                build_nick(post.user, post.from_bot, post.username_override)
                 + "	"
                 + message
                 + " | "
@@ -304,7 +309,7 @@ def write_message_lines(buffer, post):
         buffer,
         post.date,
         tags,
-        build_nick(post.user, post.from_bot) + "	" + message
+        build_nick(post.user, post.from_bot, post.username_override) + "	" + message
     )
 
 def write_post(post):
@@ -361,6 +366,8 @@ def build_post_from_post_data(post_data, is_read = False):
 
     from_bot = post_data["props"].get("from_bot", False) or post_data["props"].get("from_webhook", False)
 
+    username_override = post_data["props"].get("override_username")
+
     post = Post(
         id= post_data["id"],
         parent_id= post_data["parent_id"],
@@ -374,6 +381,7 @@ def build_post_from_post_data(post_data, is_read = False):
         reactions= get_reactions_from_post_data(post_data, server),
         user= user,
         from_bot= from_bot,
+        username_override= username_override,
     )
 
     return post
