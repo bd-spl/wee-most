@@ -94,16 +94,16 @@ def build_nick(user, from_bot, username_override):
     )
 
     if username_override:
-        username = username_override
+        username = colorize_sentence(username_override, user.color)
     else:
-        username = user.username
+        username = colorize_sentence(user.username, user.color)
 
     if from_bot:
-        username += " [BOT]"
+        username += " " + colorize_sentence("[BOT]", "darkgray")
 
     return (
         colorize_sentence(nick_prefix, nick_prefix_color_name)
-        + colorize_sentence(username, user.color)
+        + username
         + colorize_sentence(nick_suffix, nick_suffix_color_name)
     )
 
