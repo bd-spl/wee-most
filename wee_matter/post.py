@@ -139,6 +139,9 @@ def build_message_with_attachments(message, attachments):
                 elif field["value"]:
                     att.append(field["value"])
 
+        if attachment["footer"]:
+            att.append(attachment["footer"])
+
         msg_parts.append("\n".join(att))
 
     return "\n\n".join(msg_parts)
