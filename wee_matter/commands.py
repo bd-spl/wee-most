@@ -1,6 +1,7 @@
 
 import weechat
 import wee_matter
+from wee_matter.globals import config
 
 def server_add_command_usage(buffer):
     weechat.prnt(buffer, "Usage: /matter server add <server-name>")
@@ -10,7 +11,7 @@ def server_add_command(args, buffer):
         server_add_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
 
-    wee_matter.config.add_server_options(args)
+    config.add_server_options(args)
 
     weechat.prnt(buffer, "Server \"%s\" added. You should now configure it." % args)
     weechat.prnt(buffer, "/set plugins.var.python.wee-matter.server.%s.*" % args)

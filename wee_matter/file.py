@@ -3,6 +3,7 @@ import weechat
 import wee_matter
 import os, platform
 from typing import NamedTuple
+from wee_matter.globals import config
 
 File = NamedTuple(
     "File",
@@ -23,7 +24,7 @@ def write_file_lines(buffer, post):
         )
 
 def prepare_download_location():
-    location = wee_matter.config.download_location()
+    location = config.get_download_location()
 
     if not os.path.exists(location):
         try:

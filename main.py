@@ -17,6 +17,9 @@ from wee_matter.websocket import (receive_ws_callback, ws_ping_cb,
 
 from wee_matter.http import (singularity_cb, buffered_response_cb,
                             handle_queued_request_cb)
+
+from wee_matter.globals import config
+
 import wee_matter
 
 WEECHAT_SCRIPT_NAME = "wee-matter"
@@ -36,7 +39,7 @@ weechat.register(
 )
 
 wee_matter.commands.setup_commands()
-wee_matter.config.setup()
+config.setup()
 wee_matter.server.auto_connect()
 
 weechat.hook_modifier("input_text_for_buffer", "handle_multiline_message_cb", "")

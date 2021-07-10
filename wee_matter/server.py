@@ -4,6 +4,7 @@ import wee_matter
 import json
 import re
 from typing import NamedTuple
+from wee_matter.globals import config
 
 servers = {}
 
@@ -125,9 +126,9 @@ def load_server(server_name):
     )
     servers[server_name] = Server(
         name= server_name,
-        url= wee_matter.config.get_server_config(server_name, "url").strip("/"),
-        username= wee_matter.config.get_server_config(server_name, "username"),
-        password= wee_matter.config.get_server_config(server_name, "password"),
+        url= config.get_server_config(server_name, "url").strip("/"),
+        username= config.get_server_config(server_name, "username"),
+        password= config.get_server_config(server_name, "password"),
         user= user,
         user_token= "",
         users= {},
@@ -381,7 +382,7 @@ def reconnect_server(server_name):
     return weechat.WEECHAT_RC_OK
 
 def auto_connect():
-    for server_name in wee_matter.config.auto_connect_servers():
+    for server_name in config.get_auto_connect_servers():
         connect_server(server_name)
 
 def disconnect_all():
