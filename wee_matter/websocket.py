@@ -20,17 +20,8 @@ Worker = NamedTuple(
     ]
 )
 
-def server_root_url(server):
-    protocol = "ws"
-    if "https" == server.protocol:
-        protocol = "wss"
-
-    root_url = "{}://{}:{}".format(protocol, server.host, server.port)
-
-    return root_url
-
 def create_worker(server):
-    url = server_root_url(server) + "/api/v4/websocket"
+    url = server.url.replace('http', 'ws', 1) + "/api/v4/websocket"
     try:
         ws = create_connection(url)
         ws.sock.setblocking(0)

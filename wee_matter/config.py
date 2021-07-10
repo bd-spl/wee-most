@@ -31,24 +31,14 @@ general_settings = [
 
 server_settings = [
     Setting(
-        key= 'address',
+        key= 'url',
         default= '',
-        desc= 'Address of {} server',
+        desc= 'URL of {} server',
     ),
     Setting(
         key= 'password',
         default= '',
         desc= 'Password for authentication to {} server',
-    ),
-    Setting(
-        key= 'port',
-        default= '443',
-        desc= 'Port to use for connection to {} server',
-    ),
-    Setting(
-        key= 'protocol',
-        default= 'https',
-        desc= 'Protocol to use for connection to {} server',
     ),
     Setting(
         key= 'username',

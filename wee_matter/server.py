@@ -11,9 +11,7 @@ Server = NamedTuple(
     "Server",
     [
         ("name", str),
-        ("host", str),
-        ("port", str),
-        ("protocol", str),
+        ("url", str),
         ("username", str),
         ("password", str),
         ("user", any),
@@ -47,14 +45,6 @@ Team = NamedTuple(
         ("buffers", list),
     ]
 )
-
-def server_root_url(server: Server):
-    root_url = server.protocol + "://" + server.host
-
-    if (server.protocol == "https" and server.port != "443") or (server.protocol == "http" and server.port != "80"):
-        root_url += ":" + server.port
-
-    return root_url
 
 def has_server(server_name):
     return server_name in servers
@@ -135,9 +125,7 @@ def load_server(server_name):
     )
     servers[server_name] = Server(
         name= server_name,
-        host= wee_matter.config.get_server_config(server_name, "address"),
-        port= wee_matter.config.get_server_config(server_name, "port"),
-        protocol= wee_matter.config.get_server_config(server_name, "protocol"),
+        url= wee_matter.config.get_server_config(server_name, "url").strip("/"),
         username= wee_matter.config.get_server_config(server_name, "username"),
         password= wee_matter.config.get_server_config(server_name, "password"),
         user= user,

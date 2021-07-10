@@ -26,7 +26,7 @@ $ make install # WEECHAT_DATA_DIR=~/.weechat
 /matter server add a_banal_server
 ```
 
-You should then edit its configuration such URL, username, password,...
+You should then edit its configuration such as URL, username, password,...
 To store the password safely, you can make use of weechat [secured data storage](https://weechat.org/files/doc/stable/weechat_user.en.html#secured_data)
 
 ```
