@@ -3,6 +3,7 @@ import weechat
 import json
 import wee_matter
 import re
+from wee_matter.globals import servers
 
 channel_buffers = {}
 hydrating_buffers = []
@@ -40,7 +41,6 @@ def channel_switch_cb(buffer, current_buffer, args):
     return weechat.WEECHAT_RC_OK_EAT
 
 def private_completion_cb(data, completion_item, current_buffer, completion):
-    servers = wee_matter.server.get_servers()
     for server in servers.values():
         for buffer in server.buffers:
             buffer_name = weechat.buffer_get_string(buffer, "short_name")
@@ -48,7 +48,6 @@ def private_completion_cb(data, completion_item, current_buffer, completion):
     return weechat.WEECHAT_RC_OK
 
 def channel_completion_cb(data, completion_item, current_buffer, completion):
-    servers = wee_matter.server.get_servers()
     for server in servers.values():
         weechat.hook_completion_list_add(completion, server.name, 0, weechat.WEECHAT_LIST_POS_SORT)
         for team in server.teams.values():

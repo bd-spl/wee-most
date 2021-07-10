@@ -4,9 +4,7 @@ import wee_matter
 import json
 import re
 from typing import NamedTuple
-from wee_matter.globals import config
-
-servers = {}
+from wee_matter.globals import (config, servers)
 
 Server = NamedTuple(
     "Server",
@@ -47,15 +45,6 @@ Team = NamedTuple(
     ]
 )
 
-def has_server(server_name):
-    return server_name in servers
-
-def get_server(server_name):
-    return servers[server_name]
-
-def get_servers():
-    return servers
-
 def update_server_worker(server, worker):
     server = server._replace(worker=worker)
     servers[server.name] = server
@@ -63,7 +52,7 @@ def update_server_worker(server, worker):
 
 def get_server_from_buffer(buffer):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
-    return get_server(server_name)
+    return servers[server_name]
 
 def is_connected(server: Server):
     return server.worker
@@ -112,7 +101,6 @@ def create_user_from_user_data(user_data, server):
     )
 
 def server_completion_cb(data, completion_item, current_buffer, completion):
-    servers = get_servers()
     for server_name in servers:
         weechat.hook_completion_list_add(completion, server_name, 0, weechat.WEECHAT_LIST_POS_SORT)
     return weechat.WEECHAT_RC_OK
@@ -173,7 +161,7 @@ def connect_server_team_channel_cb(server_name, command, rc, out, err):
         weechat.prnt("", "An error occurred while connecting team channel")
         return weechat.WEECHAT_RC_ERROR
 
-    server = get_server(server_name)
+    server = servers[server_name]
 
     channel_data = json.loads(out)
     wee_matter.room.create_room_from_channel_data(channel_data, server)
@@ -185,7 +173,7 @@ def connect_server_team_channels_cb(server_name, command, rc, out, err):
         weechat.prnt("", "An error occurred while connecting team channels")
         return weechat.WEECHAT_RC_ERROR
 
-    server = get_server(server_name)
+    server = servers[server_name]
 
     response = json.loads(out)
     for channel_data in response:
@@ -202,7 +190,7 @@ def connect_server_users_cb(data, command, rc, out, err):
 
     server_name, page = data.split("|")
     page = int(page)
-    server = get_server(server_name)
+    server = servers[server_name]
 
     response = json.loads(out)
     for user in response:
@@ -229,7 +217,7 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
         weechat.prnt("", "An error occurred while connecting teams")
         return weechat.WEECHAT_RC_ERROR
 
-    server = get_server(server_name)
+    server = servers[server_name]
 
     response = json.loads(out)
 
@@ -249,7 +237,7 @@ def connect_server_team_cb(server_name, command, rc, out, err):
         weechat.prnt("", "An error occurred while connecting team")
         return weechat.WEECHAT_RC_ERROR
 
-    server = get_server(server_name)
+    server = servers[server_name]
 
     team_data = json.loads(out)
 
@@ -266,7 +254,7 @@ def new_user_cb(server_name, command, rc, out, err):
         weechat.prnt("", "An error occurred while adding a new user")
         return weechat.WEECHAT_RC_ERROR
 
-    server = get_server(server_name)
+    server = servers[server_name]
 
     response = json.loads(out)
     server.users[response["id"]] = create_user_from_user_data(response, server)
@@ -283,7 +271,7 @@ def connect_server_cb(server_name, command, rc, out, err):
     out = out.splitlines()[-1] # we remove the headers line
     response = json.loads(out)
 
-    server = get_server(server_name)
+    server = servers[server_name]
 
     user = User(
         id= response["id"],
@@ -328,8 +316,8 @@ def create_server_buffer(server_name):
     return buffer
 
 def connect_server(server_name):
-    if has_server(server_name):
-        server = get_server(server_name)
+    if server_name in servers:
+        server = servers[server_name]
 
         if server != None and is_connected(server):
             weechat.prnt("", "Already connected")
@@ -344,7 +332,7 @@ def connect_server(server_name):
 
     buffer = create_server_buffer(server_name)
 
-    server = get_server(server_name)._replace(
+    server = servers[server_name]._replace(
         buffer= buffer
     )
     servers[server_name] = server
@@ -357,7 +345,7 @@ def connect_server(server_name):
     return weechat.WEECHAT_RC_OK
 
 def disconnect_server(server_name):
-    server = get_server(server_name)
+    server = servers[server_name]
 
     if not is_connected(server):
         weechat.prnt("", "Not connected")
@@ -371,7 +359,7 @@ def disconnect_server(server_name):
     return rc
 
 def reconnect_server(server_name):
-    server = get_server(server_name)
+    server = servers[server_name]
 
     if not is_connected(server):
         weechat.prnt("", "Not connected")

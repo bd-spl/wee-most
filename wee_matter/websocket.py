@@ -8,6 +8,7 @@ from websocket import (create_connection, WebSocketConnectionClosedException,
                        WebSocketTimeoutException, ABNF)
 from typing import NamedTuple
 from ssl import SSLWantReadError
+from wee_matter.globals import servers
 
 Worker = NamedTuple(
     "Worker",
@@ -67,7 +68,7 @@ def rehydrate_server_buffers(server):
             rehydrate_server_buffer(server, buffer)
 
 def reconnection_loop_cb(server_name, remaining_calls):
-    server = wee_matter.server.get_server(server_name)
+    server = servers[server_name]
     if server != None and wee_matter.server.is_connected(server):
         return weechat.WEECHAT_RC_OK
 
@@ -94,7 +95,7 @@ def handle_lost_connection(server):
     wee_matter.server.update_server_worker(server, None)
 
 def ws_ping_cb(server_name, remaining_calls):
-    server = wee_matter.server.get_server(server_name)
+    server = servers[server_name]
     worker = server.worker
 
     if worker.last_pong_time < worker.last_ping_time:
@@ -278,7 +279,7 @@ def handle_ws_message(server, message):
         handle_ws_event_message(server, message)
 
 def receive_ws_callback(server_name, data):
-    server = wee_matter.server.get_server(server_name)
+    server = servers[server_name]
     worker = server.worker
 
     while True:
