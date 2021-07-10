@@ -26,8 +26,6 @@ def server_root_url(server):
         protocol = "wss"
 
     root_url = "{}://{}:{}".format(protocol, server.host, server.port)
-    if server.path:
-        root_url += "/{}".format(server.path)
 
     return root_url
 

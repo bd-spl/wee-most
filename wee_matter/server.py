@@ -14,7 +14,6 @@ Server = NamedTuple(
         ("host", str),
         ("port", str),
         ("protocol", str),
-        ("path", str),
         ("username", str),
         ("password", str),
         ("user", any),
@@ -54,8 +53,6 @@ def server_root_url(server: Server):
 
     if (server.protocol == "https" and server.port != "443") or (server.protocol == "http" and server.port != "80"):
         root_url += ":" + server.port
-    if server.path:
-        root_url += server.path
 
     return root_url
 
@@ -141,7 +138,6 @@ def load_server(server_name):
         host= wee_matter.config.get_server_config(server_name, "address"),
         port= wee_matter.config.get_server_config(server_name, "port"),
         protocol= wee_matter.config.get_server_config(server_name, "protocol"),
-        path= "",
         username= wee_matter.config.get_server_config(server_name, "username"),
         password= wee_matter.config.get_server_config(server_name, "password"),
         user= user,
