@@ -291,17 +291,6 @@ def disconnect_server(server_name):
 
     return rc
 
-def reconnect_server(server_name):
-    server = servers[server_name]
-
-    if not server.is_connected():
-        weechat.prnt("", "Not connected")
-        return weechat.WEECHAT_RC_ERROR
-
-    wee_matter.websocket.close_worker(server.worker)
-
-    return weechat.WEECHAT_RC_OK
-
 def auto_connect():
     for server_name in config.get_auto_connect_servers():
         connect_server(server_name)
