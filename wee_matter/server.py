@@ -70,10 +70,7 @@ class Team:
         self.buffers = []
 
     def _create_buffer(self):
-        server_number = weechat.buffer_get_integer(self.server.buffer, "number")
-
         buffer = weechat.buffer_new("weematter." + self.display_name, "", "", "", "")
-        weechat.buffer_set(buffer, "number", str(server_number+1))
 
         weechat.buffer_set(buffer, "short_name", self.display_name)
         weechat.buffer_set(buffer, "localvar_set_server_name", self.server.name)
