@@ -3,7 +3,6 @@ import weechat
 import wee_matter
 import json
 import re
-from typing import NamedTuple
 from wee_matter.globals import (config, servers)
 
 class User:
@@ -40,16 +39,31 @@ class Server:
     def is_connected(self):
         return self.worker
 
-Team = NamedTuple(
-    "Team",
-    [
-        ("id", str),
-        ("name", str),
-        ("display_name", str),
-        ("buffer", any),
-        ("buffers", list),
-    ]
-)
+    def add_team(self, **kwargs):
+        team = Team(self, **kwargs)
+        self.teams[team.id] = team
+
+class Team:
+    def __init__(self, server, **kwargs):
+        self.server = server
+        self.id = kwargs["id"]
+        self.name = kwargs["name"]
+        self.display_name = kwargs["display_name"]
+        self.buffer = self._create_buffer()
+        self.buffers = []
+
+    def _create_buffer(self):
+        server_number = weechat.buffer_get_integer(self.server.buffer, "number")
+
+        buffer = weechat.buffer_new("weematter." + self.display_name, "", "", "", "")
+        weechat.buffer_set(buffer, "number", str(server_number+1))
+
+        weechat.buffer_set(buffer, "short_name", self.display_name)
+        weechat.buffer_set(buffer, "localvar_set_server_name", self.server.name)
+        weechat.buffer_set(buffer, "localvar_set_server", self.display_name)
+        weechat.buffer_set(buffer, "localvar_set_type", "server")
+
+        return buffer
 
 def get_server_from_buffer(buffer):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
@@ -59,26 +73,6 @@ def unload_team(team):
     for buffer in team.buffers:
         weechat.buffer_close(buffer)
     weechat.buffer_close(team.buffer)
-
-
-def create_team_from_team_data(team_data, server):
-    server_number = weechat.buffer_get_integer(server.buffer, "number")
-
-    buffer = weechat.buffer_new("weematter." + team_data["display_name"], "", "", "", "")
-    weechat.buffer_set(buffer, "number", str(server_number+1))
-
-    weechat.buffer_set(buffer, "short_name", team_data["display_name"])
-    weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
-    weechat.buffer_set(buffer, "localvar_set_server", team_data["display_name"])
-    weechat.buffer_set(buffer, "localvar_set_type", "server")
-
-    return Team(
-        id= team_data["id"],
-        name= team_data["name"],
-        display_name= team_data["display_name"],
-         buffer= buffer,
-         buffers= [],
-    )
 
 def server_completion_cb(data, completion_item, current_buffer, completion):
     for server_name in servers:
@@ -178,9 +172,8 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
     response = json.loads(out)
 
     for team_data in response:
-        server.teams[team_data["id"]] = create_team_from_team_data(team_data, server)
+        server.add_team(**team_data)
 
-    for team_data in response:
         wee_matter.http.enqueue_request(
             "run_get_user_team_channels",
             server.user.id, team_data["id"], server, "connect_server_team_channels_cb", server.name
@@ -197,7 +190,8 @@ def connect_server_team_cb(server_name, command, rc, out, err):
 
     team_data = json.loads(out)
 
-    server.teams[team_data["id"]] = create_team_from_team_data(team_data, server)
+    server.add_team(**team_data)
+
     wee_matter.http.enqueue_request(
         "run_get_user_team_channels",
         server.user.id, team_data["id"], server, "connect_server_team_channels_cb", server.name
