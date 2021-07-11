@@ -90,14 +90,7 @@ def create_team_from_team_data(team_data, server):
     )
 
 def color_for_username(username):
-    nick_colors = weechat.config_string(
-         weechat.config_get("weechat.color.chat_nick_colors")
-    ).split(",")
-
-    nick_color_count = len(nick_colors)
-    color_id = hash(username) % nick_color_count
-
-    return nick_colors[color_id]
+    return weechat.info_get("nick_color_name", username)
 
 def create_user_from_user_data(user_data, server):
     return User(
