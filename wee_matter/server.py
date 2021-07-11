@@ -43,6 +43,23 @@ class Server:
         team = Team(self, **kwargs)
         self.teams[team.id] = team
 
+    def unload(self):
+        weechat.prnt("", "Unloading server")
+
+        servers.pop(self.name)
+
+        if self.worker:
+            wee_matter.websocket.close_worker(self.worker)
+        if self.reconnection_loop_hook:
+            weechat.unhook(self.reconnection_loop_hook)
+
+        for buffer in self.buffers:
+            weechat.buffer_close(buffer)
+        for team in self.teams.values():
+            team.unload()
+
+        weechat.buffer_close(self.buffer)
+
 class Team:
     def __init__(self, server, **kwargs):
         self.server = server
@@ -65,39 +82,19 @@ class Team:
 
         return buffer
 
+    def unload(self):
+        for buffer in self.buffers:
+            weechat.buffer_close(buffer)
+        weechat.buffer_close(self.buffer)
+
 def get_server_from_buffer(buffer):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
     return servers[server_name]
-
-def unload_team(team):
-    for buffer in team.buffers:
-        weechat.buffer_close(buffer)
-    weechat.buffer_close(team.buffer)
 
 def server_completion_cb(data, completion_item, current_buffer, completion):
     for server_name in servers:
         weechat.hook_completion_list_add(completion, server_name, 0, weechat.WEECHAT_LIST_POS_SORT)
     return weechat.WEECHAT_RC_OK
-
-def unload_server(server_name):
-    if server_name not in servers:
-        weechat.prnt("", "Server is not loaded")
-        return
-
-    weechat.prnt("", "Unloading server")
-    server = servers.pop(server_name)
-
-    if server.worker:
-        wee_matter.websocket.close_worker(server.worker)
-    if server.reconnection_loop_hook:
-        weechat.unhook(server.reconnection_loop_hook)
-
-    for buffer in server.buffers:
-        weechat.buffer_close(buffer)
-    for team in server.teams.values():
-        unload_team(team)
-
-    weechat.buffer_close(server.buffer)
 
 def connect_server_team_channel(channel_id, server):
     wee_matter.room.register_buffer_hydratating(channel_id)
@@ -256,7 +253,7 @@ def connect_server(server_name):
             return weechat.WEECHAT_RC_ERROR
 
         if server != None:
-            unload_server(server_name)
+            server.unload()
 
     server = Server(server_name)
 
@@ -281,7 +278,7 @@ def disconnect_server(server_name):
     rc = wee_matter.http.logout_user(server)
 
     if rc == weechat.WEECHAT_RC_OK:
-        unload_server(server_name)
+        server.unload()
 
     return rc
 

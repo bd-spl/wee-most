@@ -240,7 +240,7 @@ def handle_leave_team_message(server, message):
 
     user = server.users[data["user_id"]]
     team = server.teams.pop(data["team_id"])
-    wee_matter.server.unload_team(team)
+    team.unload()
 
 def handle_ws_event_message(server, message):
     if "posted" == message["event"]:
