@@ -6,23 +6,38 @@ import re
 from typing import NamedTuple
 from wee_matter.globals import (config, servers)
 
-Server = NamedTuple(
-    "Server",
-    [
-        ("name", str),
-        ("url", str),
-        ("username", str),
-        ("password", str),
-        ("user", any),
-        ("user_token", str),
-        ("users", dict),
-        ("teams", dict),
-        ("buffer", any),
-        ("buffers", list),
-        ("worker", any),
-        ("reconnection_loop_hook", str),
-    ],
-)
+class Server:
+    def __init__(self, name):
+        self.name = name
+        self.url = config.get_server_config(name, "url").strip("/")
+        self.username = config.get_server_config(name, "username")
+        self.password = config.get_server_config(name, "password")
+        self.user_token = ""
+        self.users = {}
+        self.teams = {}
+        self.buffer = self._create_buffer()
+        self.buffers = []
+        self.worker = None
+        self.reconnection_loop_hook = ""
+
+        self.user = User(
+            id = "",
+            username = "",
+            color = "",
+            deleted = False,
+        )
+
+    def _create_buffer(self):
+        buffer = weechat.buffer_new("weematter." + self.name, "", "", "", "")
+        weechat.buffer_set(buffer, "short_name", self.name)
+        weechat.buffer_set(buffer, "localvar_set_server_name", self.name)
+        weechat.buffer_set(buffer, "localvar_set_type", "server")
+        weechat.buffer_set(buffer, "localvar_set_server", self.name)
+
+        return buffer
+
+    def is_connected(self):
+        return self.worker
 
 User = NamedTuple(
     "User",
@@ -45,17 +60,9 @@ Team = NamedTuple(
     ]
 )
 
-def update_server_worker(server, worker):
-    server = server._replace(worker=worker)
-    servers[server.name] = server
-    return server
-
 def get_server_from_buffer(buffer):
     server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
     return servers[server_name]
-
-def is_connected(server: Server):
-    return server.worker
 
 def unload_team(team):
     for buffer in team.buffers:
@@ -104,30 +111,6 @@ def server_completion_cb(data, completion_item, current_buffer, completion):
     for server_name in servers:
         weechat.hook_completion_list_add(completion, server_name, 0, weechat.WEECHAT_LIST_POS_SORT)
     return weechat.WEECHAT_RC_OK
-
-def load_server(server_name):
-    user = User(
-        id = "",
-        username = "",
-        color = "",
-        deleted = False,
-    )
-    servers[server_name] = Server(
-        name= server_name,
-        url= config.get_server_config(server_name, "url").strip("/"),
-        username= config.get_server_config(server_name, "username"),
-        password= config.get_server_config(server_name, "password"),
-        user= user,
-        user_token= "",
-        users= {},
-        teams= {},
-        buffer= None,
-        buffers= [],
-        worker= None,
-        reconnection_loop_hook= "",
-    )
-
-    return servers[server_name]
 
 def unload_server(server_name):
     if server_name not in servers:
@@ -280,10 +263,8 @@ def connect_server_cb(server_name, command, rc, out, err):
         deleted = False,
     )
 
-    server = server._replace(
-        user_token=token_search.group(1),
-        user= user,
-    )
+    server.user_token=token_search.group(1)
+    server.user= user
 
     worker = wee_matter.websocket.create_worker(server)
     if not worker:
@@ -291,11 +272,8 @@ def connect_server_cb(server_name, command, rc, out, err):
         return weechat.WEECHAT_RC_ERROR
     reconnection_loop_hook = weechat.hook_timer(5 * 1000, 0, 0, "reconnection_loop_cb", server.name)
 
-    server = server._replace(
-        worker= worker,
-        reconnection_loop_hook= reconnection_loop_hook,
-    )
-    servers[server_name] = server
+    server.worker= worker
+    server.reconnection_loop_hook= reconnection_loop_hook
 
     weechat.prnt("", "Connected to " + server_name)
 
@@ -306,35 +284,21 @@ def connect_server_cb(server_name, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def create_server_buffer(server_name):
-    buffer = weechat.buffer_new("weematter." + server_name, "", "", "", "")
-    weechat.buffer_set(buffer, "short_name", server_name)
-    weechat.buffer_set(buffer, "localvar_set_server_name", server_name)
-    weechat.buffer_set(buffer, "localvar_set_type", "server")
-    weechat.buffer_set(buffer, "localvar_set_server", server_name)
-
-    return buffer
-
 def connect_server(server_name):
     if server_name in servers:
         server = servers[server_name]
 
-        if server != None and is_connected(server):
+        if server != None and server.is_connected():
             weechat.prnt("", "Already connected")
             return weechat.WEECHAT_RC_ERROR
 
         if server != None:
             unload_server(server_name)
 
-    server = load_server(server_name)
+    server = Server(server_name)
 
     weechat.prnt("", "Connecting to " + server_name)
 
-    buffer = create_server_buffer(server_name)
-
-    server = servers[server_name]._replace(
-        buffer= buffer
-    )
     servers[server_name] = server
 
     wee_matter.http.enqueue_request(
@@ -347,7 +311,7 @@ def connect_server(server_name):
 def disconnect_server(server_name):
     server = servers[server_name]
 
-    if not is_connected(server):
+    if not server.is_connected():
         weechat.prnt("", "Not connected")
         return weechat.WEECHAT_RC_ERROR
 
@@ -361,7 +325,7 @@ def disconnect_server(server_name):
 def reconnect_server(server_name):
     server = servers[server_name]
 
-    if not is_connected(server):
+    if not server.is_connected():
         weechat.prnt("", "Not connected")
         return weechat.WEECHAT_RC_ERROR
 

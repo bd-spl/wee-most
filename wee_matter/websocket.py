@@ -69,14 +69,14 @@ def rehydrate_server_buffers(server):
 
 def reconnection_loop_cb(server_name, remaining_calls):
     server = servers[server_name]
-    if server != None and wee_matter.server.is_connected(server):
+    if server != None and server.is_connected():
         return weechat.WEECHAT_RC_OK
 
     weechat.prnt("", "Reconnecting...")
 
     new_worker = create_worker(server)
     if new_worker:
-        wee_matter.server.update_server_worker(server, new_worker)
+        server.worker = new_worker
         weechat.prnt("", "Reconnected.")
         rehydrate_server_buffers(server)
         return weechat.WEECHAT_RC_OK
@@ -92,7 +92,7 @@ def close_worker(worker):
 def handle_lost_connection(server):
     weechat.prnt("", "Connection lost.")
     close_worker(server.worker)
-    wee_matter.server.update_server_worker(server, None)
+    server.worker = None
 
 def ws_ping_cb(server_name, remaining_calls):
     server = servers[server_name]
@@ -105,7 +105,7 @@ def ws_ping_cb(server_name, remaining_calls):
     try:
         worker.ws.ping()
         worker = worker._replace(last_ping_time=time.time())
-        wee_matter.server.update_server_worker(server, worker)
+        server.worker = worker
     except (WebSocketConnectionClosedException, socket.error) as e:
         handle_lost_connection(server)
 
@@ -292,7 +292,7 @@ def receive_ws_callback(server_name, data):
 
         if opcode == ABNF.OPCODE_PONG:
             worker = worker._replace(last_pong_time=time.time())
-            wee_matter.server.update_server_worker(server, worker)
+            server.worker = worker
             return weechat.WEECHAT_RC_OK
 
         if data:
