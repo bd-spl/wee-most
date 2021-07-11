@@ -6,6 +6,13 @@ import re
 from typing import NamedTuple
 from wee_matter.globals import (config, servers)
 
+class User:
+    def __init__(self, **kwargs):
+        self.id = kwargs["id"]
+        self.username = kwargs["username"]
+        self.deleted = kwargs["delete_at"] != 0
+        self.color = weechat.info_get("nick_color_name", self.username)
+
 class Server:
     def __init__(self, name):
         self.name = name
@@ -13,19 +20,13 @@ class Server:
         self.username = config.get_server_config(name, "username")
         self.password = config.get_server_config(name, "password")
         self.user_token = ""
+        self.user = None
         self.users = {}
         self.teams = {}
         self.buffer = self._create_buffer()
         self.buffers = []
         self.worker = None
         self.reconnection_loop_hook = ""
-
-        self.user = User(
-            id = "",
-            username = "",
-            color = "",
-            deleted = False,
-        )
 
     def _create_buffer(self):
         buffer = weechat.buffer_new("weematter." + self.name, "", "", "", "")
@@ -38,16 +39,6 @@ class Server:
 
     def is_connected(self):
         return self.worker
-
-User = NamedTuple(
-    "User",
-    [
-        ("id", str),
-        ("username", str),
-        ("color", str),
-        ("deleted", bool)
-    ]
-)
 
 Team = NamedTuple(
     "Team",
@@ -87,17 +78,6 @@ def create_team_from_team_data(team_data, server):
         display_name= team_data["display_name"],
          buffer= buffer,
          buffers= [],
-    )
-
-def color_for_username(username):
-    return weechat.info_get("nick_color_name", username)
-
-def create_user_from_user_data(user_data, server):
-    return User(
-        id= user_data["id"],
-        username= user_data["username"],
-        color= color_for_username(user_data["username"]),
-        deleted = (user_data["delete_at"] != 0),
     )
 
 def server_completion_cb(data, completion_item, current_buffer, completion):
@@ -173,7 +153,7 @@ def connect_server_users_cb(data, command, rc, out, err):
         if user["id"] == server.user.id:
             server.users[user["id"]] = server.user
         else:
-            server.users[user["id"]] = create_user_from_user_data(user, server)
+            server.users[user["id"]] = User(**user)
 
     if len(response) == 60:
         wee_matter.http.enqueue_request(
@@ -233,7 +213,7 @@ def new_user_cb(server_name, command, rc, out, err):
     server = servers[server_name]
 
     response = json.loads(out)
-    server.users[response["id"]] = create_user_from_user_data(response, server)
+    server.users[response["id"]] = User(**response)
 
     return weechat.WEECHAT_RC_OK
 
@@ -249,12 +229,8 @@ def connect_server_cb(server_name, command, rc, out, err):
 
     server = servers[server_name]
 
-    user = User(
-        id= response["id"],
-        username= response["username"],
-        color= weechat.config_string(weechat.config_get("weechat.color.chat_nick_self")),
-        deleted = False,
-    )
+    user = User(**response)
+    user.color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_self"))
 
     server.user_token=token_search.group(1)
     server.user= user
