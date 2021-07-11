@@ -15,9 +15,17 @@ class User:
 class Server:
     def __init__(self, name):
         self.name = name
+
+        if not config.is_server_valid(name):
+            raise ValueError("Invalid server name " + name)
+
         self.url = config.get_server_config(name, "url").strip("/")
         self.username = config.get_server_config(name, "username")
         self.password = config.get_server_config(name, "password")
+
+        if not self.url or not self.username or not self.password:
+            raise ValueError("Server " + name + " is not fully configured")
+
         self.user_token = ""
         self.user = None
         self.users = {}
@@ -252,7 +260,11 @@ def connect_server(server_name):
         if server != None:
             server.unload()
 
-    server = Server(server_name)
+    try:
+        server = Server(server_name)
+    except ValueError as ve:
+        weechat.prnt("", str(ve))
+        return weechat.WEECHAT_RC_ERROR
 
     weechat.prnt("", "Connecting to " + server_name)
 

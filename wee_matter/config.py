@@ -61,6 +61,10 @@ class PluginConfig:
         expanded_value = weechat.string_eval_expression(config_value, {}, {}, {})
         return expanded_value
 
+    def is_server_valid(self, server_name):
+        test_option = "server." + server_name + ".url"
+        return weechat.config_is_set_plugin(test_option)
+
     def _add_setting(self, s):
         if weechat.config_is_set_plugin(s.key):
             return
