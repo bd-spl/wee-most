@@ -13,18 +13,18 @@ class User:
         self.color = weechat.info_get("nick_color_name", self.username)
 
 class Server:
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, id):
+        self.id = id
 
-        if not config.is_server_valid(name):
-            raise ValueError("Invalid server name " + name)
+        if not config.is_server_valid(id):
+            raise ValueError("Invalid server id " + id)
 
-        self.url = config.get_server_config(name, "url").strip("/")
-        self.username = config.get_server_config(name, "username")
-        self.password = config.get_server_config(name, "password")
+        self.url = config.get_server_config(id, "url").strip("/")
+        self.username = config.get_server_config(id, "username")
+        self.password = config.get_server_config(id, "password")
 
         if not self.url or not self.username or not self.password:
-            raise ValueError("Server " + name + " is not fully configured")
+            raise ValueError("Server " + id + " is not fully configured")
 
         self.token = ""
         self.me = None
@@ -36,9 +36,9 @@ class Server:
         self.reconnection_loop_hook = ""
 
     def _create_buffer(self):
-        buffer = weechat.buffer_new("weematter." + self.name, "", "", "", "")
-        weechat.buffer_set(buffer, "short_name", self.name)
-        weechat.buffer_set(buffer, "localvar_set_server_name", self.name)
+        buffer = weechat.buffer_new("weematter." + self.id, "", "", "", "")
+        weechat.buffer_set(buffer, "short_name", self.id)
+        weechat.buffer_set(buffer, "localvar_set_server_id", self.id)
         weechat.buffer_set(buffer, "localvar_set_type", "server")
 
         return buffer
@@ -53,7 +53,7 @@ class Server:
     def unload(self):
         weechat.prnt("", "Unloading server")
 
-        servers.pop(self.name)
+        servers.pop(self.id)
 
         if self.worker:
             wee_matter.websocket.close_worker(self.worker)
@@ -80,7 +80,7 @@ class Team:
         buffer = weechat.buffer_new("weematter." + self.display_name, "", "", "", "")
 
         weechat.buffer_set(buffer, "short_name", self.display_name)
-        weechat.buffer_set(buffer, "localvar_set_server_name", self.server.name)
+        weechat.buffer_set(buffer, "localvar_set_server_id", self.server.id)
         weechat.buffer_set(buffer, "localvar_set_type", "server")
 
         return buffer
@@ -91,39 +91,39 @@ class Team:
         weechat.buffer_close(self.buffer)
 
 def get_server_from_buffer(buffer):
-    server_name = weechat.buffer_get_string(buffer, "localvar_server_name")
-    return servers[server_name]
+    server_id = weechat.buffer_get_string(buffer, "localvar_server_id")
+    return servers[server_id]
 
 def server_completion_cb(data, completion_item, current_buffer, completion):
-    for server_name in servers:
-        weechat.hook_completion_list_add(completion, server_name, 0, weechat.WEECHAT_LIST_POS_SORT)
+    for server_id in servers:
+        weechat.hook_completion_list_add(completion, server_id, 0, weechat.WEECHAT_LIST_POS_SORT)
     return weechat.WEECHAT_RC_OK
 
 def connect_server_team_channel(channel_id, server):
     wee_matter.room.register_buffer_hydratating(channel_id)
     wee_matter.http.enqueue_request(
         "run_get_channel",
-        channel_id, server, "connect_server_team_channel_cb", server.name
+        channel_id, server, "connect_server_team_channel_cb", server.id
     )
 
-def connect_server_team_channel_cb(server_name, command, rc, out, err):
+def connect_server_team_channel_cb(server_id, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occurred while connecting team channel")
         return weechat.WEECHAT_RC_ERROR
 
-    server = servers[server_name]
+    server = servers[server_id]
 
     channel_data = json.loads(out)
     wee_matter.room.create_room_from_channel_data(channel_data, server)
 
     return weechat.WEECHAT_RC_OK
 
-def connect_server_team_channels_cb(server_name, command, rc, out, err):
+def connect_server_team_channels_cb(server_id, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occurred while connecting team channels")
         return weechat.WEECHAT_RC_ERROR
 
-    server = servers[server_name]
+    server = servers[server_id]
 
     response = json.loads(out)
     for channel_data in response:
@@ -138,9 +138,9 @@ def connect_server_users_cb(data, command, rc, out, err):
         weechat.prnt("", "An error occurred while connecting users")
         return weechat.WEECHAT_RC_ERROR
 
-    server_name, page = data.split("|")
+    server_id, page = data.split("|")
     page = int(page)
-    server = servers[server_name]
+    server = servers[server_id]
 
     response = json.loads(out)
     for user in response:
@@ -152,22 +152,22 @@ def connect_server_users_cb(data, command, rc, out, err):
     if len(response) == 60:
         wee_matter.http.enqueue_request(
             "run_get_users",
-            server, page+1, "connect_server_users_cb", "{}|{}".format(server.name, page+1)
+            server, page+1, "connect_server_users_cb", "{}|{}".format(server.id, page+1)
         )
     else:
         wee_matter.http.enqueue_request(
             "run_get_user_teams",
-            server.me.id, server, "connect_server_teams_cb", server.name
+            server.me.id, server, "connect_server_teams_cb", server.id
         )
 
     return weechat.WEECHAT_RC_OK
 
-def connect_server_teams_cb(server_name, command, rc, out, err):
+def connect_server_teams_cb(server_id, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occurred while connecting teams")
         return weechat.WEECHAT_RC_ERROR
 
-    server = servers[server_name]
+    server = servers[server_id]
 
     response = json.loads(out)
 
@@ -176,17 +176,17 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
 
         wee_matter.http.enqueue_request(
             "run_get_user_team_channels",
-            server.me.id, team_data["id"], server, "connect_server_team_channels_cb", server.name
+            server.me.id, team_data["id"], server, "connect_server_team_channels_cb", server.id
         )
 
     return weechat.WEECHAT_RC_OK
 
-def connect_server_team_cb(server_name, command, rc, out, err):
+def connect_server_team_cb(server_id, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occurred while connecting team")
         return weechat.WEECHAT_RC_ERROR
 
-    server = servers[server_name]
+    server = servers[server_id]
 
     team_data = json.loads(out)
 
@@ -194,24 +194,24 @@ def connect_server_team_cb(server_name, command, rc, out, err):
 
     wee_matter.http.enqueue_request(
         "run_get_user_team_channels",
-        server.me.id, team_data["id"], server, "connect_server_team_channels_cb", server.name
+        server.me.id, team_data["id"], server, "connect_server_team_channels_cb", server.id
     )
 
     return weechat.WEECHAT_RC_OK
 
-def new_user_cb(server_name, command, rc, out, err):
+def new_user_cb(server_id, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occurred while adding a new user")
         return weechat.WEECHAT_RC_ERROR
 
-    server = servers[server_name]
+    server = servers[server_id]
 
     response = json.loads(out)
     server.users[response["id"]] = User(**response)
 
     return weechat.WEECHAT_RC_OK
 
-def connect_server_cb(server_name, command, rc, out, err):
+def connect_server_cb(server_id, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occurred while connecting")
         return weechat.WEECHAT_RC_ERROR
@@ -221,7 +221,7 @@ def connect_server_cb(server_name, command, rc, out, err):
     out = out.splitlines()[-1] # we remove the headers line
     response = json.loads(out)
 
-    server = servers[server_name]
+    server = servers[server_id]
 
     me = User(**response)
     me.color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_self"))
@@ -233,23 +233,23 @@ def connect_server_cb(server_name, command, rc, out, err):
     if not worker:
         weechat.prnt("", "An error occurred while creating the websocket worker")
         return weechat.WEECHAT_RC_ERROR
-    reconnection_loop_hook = weechat.hook_timer(5 * 1000, 0, 0, "reconnection_loop_cb", server.name)
+    reconnection_loop_hook = weechat.hook_timer(5 * 1000, 0, 0, "reconnection_loop_cb", server.id)
 
     server.worker= worker
     server.reconnection_loop_hook= reconnection_loop_hook
 
-    weechat.prnt("", "Connected to " + server_name)
+    weechat.prnt("", "Connected to " + server_id)
 
     wee_matter.http.enqueue_request(
         "run_get_users",
-        server, 0, "connect_server_users_cb", "{}|0".format(server.name)
+        server, 0, "connect_server_users_cb", "{}|0".format(server.id)
     )
 
     return weechat.WEECHAT_RC_OK
 
-def connect_server(server_name):
-    if server_name in servers:
-        server = servers[server_name]
+def connect_server(server_id):
+    if server_id in servers:
+        server = servers[server_id]
 
         if server != None and server.is_connected():
             weechat.prnt("", "Already connected")
@@ -259,24 +259,24 @@ def connect_server(server_name):
             server.unload()
 
     try:
-        server = Server(server_name)
+        server = Server(server_id)
     except ValueError as ve:
         weechat.prnt("", str(ve))
         return weechat.WEECHAT_RC_ERROR
 
-    weechat.prnt("", "Connecting to " + server_name)
+    weechat.prnt("", "Connecting to " + server_id)
 
-    servers[server_name] = server
+    servers[server_id] = server
 
     wee_matter.http.enqueue_request(
         "run_user_login",
-        server, "connect_server_cb", server.name
+        server, "connect_server_cb", server.id
     )
 
     return weechat.WEECHAT_RC_OK
 
-def disconnect_server(server_name):
-    server = servers[server_name]
+def disconnect_server(server_id):
+    server = servers[server_id]
 
     if not server.is_connected():
         weechat.prnt("", "Not connected")
@@ -290,9 +290,9 @@ def disconnect_server(server_name):
     return rc
 
 def auto_connect():
-    for server_name in config.get_auto_connect_servers():
-        connect_server(server_name)
+    for server_id in config.get_auto_connect_servers():
+        connect_server(server_id)
 
 def disconnect_all():
-    for server_name in servers.copy():
-        disconnect_server(server_name)
+    for server_id in servers.copy():
+        disconnect_server(server_id)

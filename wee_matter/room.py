@@ -49,7 +49,7 @@ def private_completion_cb(data, completion_item, current_buffer, completion):
 
 def channel_completion_cb(data, completion_item, current_buffer, completion):
     for server in servers.values():
-        weechat.hook_completion_list_add(completion, server.name, 0, weechat.WEECHAT_LIST_POS_SORT)
+        weechat.hook_completion_list_add(completion, server.id, 0, weechat.WEECHAT_LIST_POS_SORT)
         for team in server.teams.values():
             for buffer in team.buffers:
                 buffer_name = weechat.buffer_get_string(buffer, "short_name")
@@ -204,7 +204,7 @@ def create_room_from_channel_data(channel_data, server):
     buffer = weechat.buffer_new(buffer_name, "room_input_cb", "", "", "")
     channel_buffers[channel_data["id"]] = buffer
 
-    weechat.buffer_set(buffer, "localvar_set_server_name", server.name)
+    weechat.buffer_set(buffer, "localvar_set_server_id", server.id)
     weechat.buffer_set(buffer, "localvar_set_channel_id", channel_data["id"])
 
     weechat.buffer_set(buffer, "nicklist", "1")

@@ -37,10 +37,10 @@ def create_worker(server):
         }
     }
 
-    hook_data_read = weechat.hook_fd(ws.sock.fileno(), 1, 0, 0, "receive_ws_callback", server.name)
+    hook_data_read = weechat.hook_fd(ws.sock.fileno(), 1, 0, 0, "receive_ws_callback", server.id)
     ws.send(json.dumps(params))
 
-    hook_ping = weechat.hook_timer(5 * 1000, 0, 0, "ws_ping_cb", server.name)
+    hook_ping = weechat.hook_timer(5 * 1000, 0, 0, "ws_ping_cb", server.id)
 
     return Worker(
         ws= ws,
@@ -67,8 +67,8 @@ def rehydrate_server_buffers(server):
         for buffer in team.buffers:
             rehydrate_server_buffer(server, buffer)
 
-def reconnection_loop_cb(server_name, remaining_calls):
-    server = servers[server_name]
+def reconnection_loop_cb(server_id, remaining_calls):
+    server = servers[server_id]
     if server != None and server.is_connected():
         return weechat.WEECHAT_RC_OK
 
@@ -94,8 +94,8 @@ def handle_lost_connection(server):
     close_worker(server.worker)
     server.worker = None
 
-def ws_ping_cb(server_name, remaining_calls):
-    server = servers[server_name]
+def ws_ping_cb(server_id, remaining_calls):
+    server = servers[server_id]
     worker = server.worker
 
     if worker.last_pong_time < worker.last_ping_time:
@@ -211,7 +211,7 @@ def handle_new_user_message(server, message):
     user_id = message["data"]["user_id"]
     wee_matter.http.enqueue_request(
         "run_get_user",
-        server, user_id, "new_user_cb", server.name
+        server, user_id, "new_user_cb", server.id
     )
 
 def handle_user_removed_message(server, message):
@@ -232,7 +232,7 @@ def handle_added_to_team_message(server, message):
 
     wee_matter.http.enqueue_request(
         "run_get_team",
-        data["team_id"], server, "connect_server_team_cb", server.name
+        data["team_id"], server, "connect_server_team_cb", server.id
     )
 
 def handle_leave_team_message(server, message):
@@ -278,8 +278,8 @@ def handle_ws_message(server, message):
     if "event" in message:
         handle_ws_event_message(server, message)
 
-def receive_ws_callback(server_name, data):
-    server = servers[server_name]
+def receive_ws_callback(server_id, data):
+    server = servers[server_id]
     worker = server.worker
 
     while True:

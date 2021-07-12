@@ -55,14 +55,14 @@ class PluginConfig:
         auto_connect = weechat.config_get_plugin("autoconnect")
         return list(filter(bool, auto_connect.split(",")))
 
-    def get_server_config(self, server_name, key):
-        option = "server." + server_name + "." + key
+    def get_server_config(self, server_id, key):
+        option = "server." + server_id + "." + key
         config_value = weechat.config_get_plugin(option)
         expanded_value = weechat.string_eval_expression(config_value, {}, {}, {})
         return expanded_value
 
-    def is_server_valid(self, server_name):
-        test_option = "server." + server_name + ".url"
+    def is_server_valid(self, server_id):
+        test_option = "server." + server_id + ".url"
         return weechat.config_is_set_plugin(test_option)
 
     def _add_setting(self, s):
@@ -72,12 +72,12 @@ class PluginConfig:
         weechat.config_set_plugin(s.key, s.default)
         weechat.config_set_desc_plugin(s.key, '%s (default: "%s")' % (s.desc, s.default))
 
-    def add_server_options(self, server_name):
+    def add_server_options(self, server_id):
         for s in self.server_settings:
             self._add_setting(Setting(
-                key= "server." + server_name + "." + s.key,
+                key= "server." + server_id + "." + s.key,
                 default= s.default,
-                desc= s.desc.format(server_name),
+                desc= s.desc.format(server_id),
                 ))
 
     def setup(self):
