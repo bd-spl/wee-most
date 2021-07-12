@@ -26,7 +26,7 @@ class Server:
         if not self.url or not self.username or not self.password:
             raise ValueError("Server " + name + " is not fully configured")
 
-        self.user_token = ""
+        self.token = ""
         self.user = None
         self.users = {}
         self.teams = {}
@@ -228,7 +228,7 @@ def connect_server_cb(server_name, command, rc, out, err):
     user = User(**response)
     user.color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_self"))
 
-    server.user_token=token_search.group(1)
+    server.token=token_search.group(1)
     server.user= user
 
     worker = wee_matter.websocket.create_worker(server)

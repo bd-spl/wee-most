@@ -33,7 +33,7 @@ def create_worker(server):
         "seq": 1,
         "action": "authentication_challenge",
         "data": {
-            "token": server.user_token,
+            "token": server.token,
         }
     }
 

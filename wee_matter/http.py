@@ -73,7 +73,7 @@ def run_get_user_teams(user_id, server, cb, cb_data):
         "url:" + url,
         {
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -86,7 +86,7 @@ def run_get_team(team_id, server, cb, cb_data):
         "url:" + url,
         {
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -99,7 +99,7 @@ def run_get_users(server, page, cb, cb_data):
         "url:" + url,
         {
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -112,7 +112,7 @@ def run_get_user(server, user_id, cb, cb_data):
         "url:" + url,
         {
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -123,7 +123,7 @@ def run_get_user(server, user_id, cb, cb_data):
 def logout_user(server):
     url = server.url + "/api/v4/users/logout"
     req = urllib.request.Request(url)
-    req.add_header('Authorization', 'Bearer ' + server.user_token)
+    req.add_header('Authorization', 'Bearer ' + server.token)
 
     try:
         urllib.request.urlopen(req, b'', 10 * 1000)
@@ -159,7 +159,7 @@ def run_get_channel(channel_id, server, cb, cb_data):
         "url:" + url,
         {
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -172,7 +172,7 @@ def run_get_user_team_channels(user_id, team_id, server, cb, cb_data):
         "url:" + url,
         {
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -193,7 +193,7 @@ def run_post_post(post, server, cb, cb_data):
         "url:" + url,
         {
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
             "postfields": json.dumps(params),
         },
         30 * 1000,
@@ -212,7 +212,7 @@ def run_post_command(channel_id, command, server, cb, cb_data):
         "url:" + url,
         {
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
             "postfields": json.dumps(params),
         },
         30 * 1000,
@@ -226,7 +226,7 @@ def run_get_channel_posts(channel_id, server, cb, cb_data):
         "url:" + url,
         {
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -239,7 +239,7 @@ def run_get_read_channel_posts(user_id, channel_id, server, cb, cb_data):
         "url:" + url,
         {
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -252,7 +252,7 @@ def run_get_channel_posts_after(post_id, channel_id, server, cb, cb_data):
         "url:" + url,
         {
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -265,7 +265,7 @@ def run_get_channel_members(channel_id, server, cb, cb_data):
         "url:" + url,
         {
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -278,7 +278,7 @@ def run_get_channel_member(channel_id, member_id, server, cb, cb_data):
         "url:" + url,
         {
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -296,7 +296,7 @@ def run_post_channel_view(user_id, channel_id, server, cb, cb_data):
         {
             "postfields": json.dumps(params),
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -317,7 +317,7 @@ def run_post_reaction(emoji_name, post_id, server, cb, cb_data):
         {
             "postfields": json.dumps(params),
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -332,7 +332,7 @@ def run_delete_reaction(emoji_name, post_id, server, cb, cb_data):
         {
             "customrequest": "DELETE",
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -347,7 +347,7 @@ def run_delete_post(post_id, server, cb, cb_data):
         {
             "customrequest": "DELETE",
             "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
@@ -362,7 +362,7 @@ def run_get_file(file_id, file_out_path, server, cb, cb_data):
         {
             "failonerror": "1",
             "file_out": file_out_path,
-            "httpheader": "Authorization: Bearer " + server.user_token,
+            "httpheader": "Authorization: Bearer " + server.token,
         },
         30 * 1000,
         "buffered_response_cb",
