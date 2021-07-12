@@ -191,7 +191,7 @@ def handle_user_added_message(server, message):
     data = message["data"]
     broadcast = message["broadcast"]
 
-    if data["user_id"] == server.user.id: # we are geing invited
+    if data["user_id"] == server.me.id: # we are geing invited
         wee_matter.server.connect_server_team_channel(broadcast["channel_id"], server)
     else:
         buffer = wee_matter.room.get_buffer_from_channel_id(broadcast["channel_id"])

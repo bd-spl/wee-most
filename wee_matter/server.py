@@ -27,7 +27,7 @@ class Server:
             raise ValueError("Server " + name + " is not fully configured")
 
         self.token = ""
-        self.user = None
+        self.me = None
         self.users = {}
         self.teams = {}
         self.buffer = self._create_buffer()
@@ -146,8 +146,8 @@ def connect_server_users_cb(data, command, rc, out, err):
 
     response = json.loads(out)
     for user in response:
-        if user["id"] == server.user.id:
-            server.users[user["id"]] = server.user
+        if user["id"] == server.me.id:
+            server.users[user["id"]] = server.me
         else:
             server.users[user["id"]] = User(**user)
 
@@ -159,7 +159,7 @@ def connect_server_users_cb(data, command, rc, out, err):
     else:
         wee_matter.http.enqueue_request(
             "run_get_user_teams",
-            server.user.id, server, "connect_server_teams_cb", server.name
+            server.me.id, server, "connect_server_teams_cb", server.name
         )
 
     return weechat.WEECHAT_RC_OK
@@ -178,7 +178,7 @@ def connect_server_teams_cb(server_name, command, rc, out, err):
 
         wee_matter.http.enqueue_request(
             "run_get_user_team_channels",
-            server.user.id, team_data["id"], server, "connect_server_team_channels_cb", server.name
+            server.me.id, team_data["id"], server, "connect_server_team_channels_cb", server.name
         )
 
     return weechat.WEECHAT_RC_OK
@@ -196,7 +196,7 @@ def connect_server_team_cb(server_name, command, rc, out, err):
 
     wee_matter.http.enqueue_request(
         "run_get_user_team_channels",
-        server.user.id, team_data["id"], server, "connect_server_team_channels_cb", server.name
+        server.me.id, team_data["id"], server, "connect_server_team_channels_cb", server.name
     )
 
     return weechat.WEECHAT_RC_OK
@@ -225,11 +225,11 @@ def connect_server_cb(server_name, command, rc, out, err):
 
     server = servers[server_name]
 
-    user = User(**response)
-    user.color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_self"))
+    me = User(**response)
+    me.color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_self"))
 
     server.token=token_search.group(1)
-    server.user= user
+    server.me= me
 
     worker = wee_matter.websocket.create_worker(server)
     if not worker:

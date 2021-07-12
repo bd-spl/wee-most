@@ -66,7 +66,7 @@ def mark_channel_as_read(buffer):
     if last_post_id and last_post_id == last_read_post_id: # prevent spamming on buffer switch
         return
 
-    wee_matter.http.run_post_channel_view(server.user.id, channel_id, server, "singularity_cb", "")
+    wee_matter.http.run_post_channel_view(server.me.id, channel_id, server, "singularity_cb", "")
 
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", last_post_id)
 
@@ -194,7 +194,7 @@ def build_room_name_from_channel_data(channel_data, server):
         match = re.match('(\w+)__(\w+)', channel_data["name"])
         if match:
             room_name = server.users[match.group(1)].username
-            if room_name == server.user.username:
+            if room_name == server.me.username:
                 room_name = server.users[match.group(2)].username
 
     return room_name
@@ -211,8 +211,8 @@ def create_room_from_channel_data(channel_data, server):
 
     set_room_properties_from_channel_data(channel_data, server)
 
-    weechat.buffer_set(buffer, "highlight_words", "@{0},{0},@here,@channel,@all".format(server.user.username))
-    weechat.buffer_set(buffer, "localvar_set_nick", server.user.username)
+    weechat.buffer_set(buffer, "highlight_words", "@{0},{0},@here,@channel,@all".format(server.me.username))
+    weechat.buffer_set(buffer, "localvar_set_nick", server.me.username)
 
     if channel_data["team_id"]:
         team = server.teams[channel_data["team_id"]]
@@ -230,7 +230,7 @@ def create_room_from_channel_data(channel_data, server):
     register_buffer_hydratating(channel_data["id"])
     wee_matter.http.enqueue_request(
         "run_get_read_channel_posts",
-        server.user.id, channel_data["id"], server, "hydrate_room_read_posts_cb", buffer
+        server.me.id, channel_data["id"], server, "hydrate_room_read_posts_cb", buffer
     )
     wee_matter.http.enqueue_request(
         "run_get_channel_members",

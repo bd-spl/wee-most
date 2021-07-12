@@ -306,7 +306,7 @@ def run_post_channel_view(user_id, channel_id, server, cb, cb_data):
 def run_post_reaction(emoji_name, post_id, server, cb, cb_data):
     url = server.url + "/api/v4/reactions"
     params = {
-        "user_id": server.user.id,
+        "user_id": server.me.id,
         "post_id": post_id,
         "emoji_name": emoji_name,
         "create_at": int(time.time()),
@@ -325,7 +325,7 @@ def run_post_reaction(emoji_name, post_id, server, cb, cb_data):
     )
 
 def run_delete_reaction(emoji_name, post_id, server, cb, cb_data):
-    url = server.url + "/api/v4/users/" + server.user.id + "/posts/" + post_id + "/reactions/" + emoji_name
+    url = server.url + "/api/v4/users/" + server.me.id + "/posts/" + post_id + "/reactions/" + emoji_name
 
     weechat.hook_process_hashtable(
         "url:" + url,

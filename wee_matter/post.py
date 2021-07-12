@@ -59,7 +59,7 @@ def build_post_from_input_data(buffer, input_data):
         attachments= [],
         files= [],
         reactions= [],
-        user= server.user,
+        user= server.me,
         from_bot= False,
         username_override= None,
     )
