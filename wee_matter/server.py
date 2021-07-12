@@ -40,7 +40,6 @@ class Server:
         weechat.buffer_set(buffer, "short_name", self.name)
         weechat.buffer_set(buffer, "localvar_set_server_name", self.name)
         weechat.buffer_set(buffer, "localvar_set_type", "server")
-        weechat.buffer_set(buffer, "localvar_set_server", self.name)
 
         return buffer
 
@@ -82,7 +81,6 @@ class Team:
 
         weechat.buffer_set(buffer, "short_name", self.display_name)
         weechat.buffer_set(buffer, "localvar_set_server_name", self.server.name)
-        weechat.buffer_set(buffer, "localvar_set_server", self.display_name)
         weechat.buffer_set(buffer, "localvar_set_type", "server")
 
         return buffer

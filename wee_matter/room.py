@@ -218,12 +218,10 @@ def create_room_from_channel_data(channel_data, server):
         team = server.teams[channel_data["team_id"]]
 
         weechat.buffer_set(buffer, "localvar_set_type", "channel")
-        weechat.buffer_set(buffer, "localvar_set_server", team.display_name)
 
         team.buffers.append(buffer)
     else:
         weechat.buffer_set(buffer, "localvar_set_type", "private")
-        weechat.buffer_set(buffer, "localvar_set_server", server.name)
 
         server.buffers.append(buffer)
 
