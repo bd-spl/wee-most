@@ -6,8 +6,8 @@ import time
 import re
 import urllib.request
 
-from wee_matter.room import (hydrate_room_read_posts_cb, hydrate_room_posts_cb,
-                             hydrate_room_users_cb, hydrate_room_user_cb)
+from wee_matter.channel import (hydrate_channel_read_posts_cb, hydrate_channel_posts_cb,
+                             hydrate_channel_users_cb, hydrate_channel_user_cb)
 
 from wee_matter.post import post_post_cb
 

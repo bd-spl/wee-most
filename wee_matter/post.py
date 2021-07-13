@@ -323,7 +323,7 @@ def write_message_lines(buffer, post):
     )
 
 def write_post(post):
-    buffer_name = wee_matter.room.build_buffer_channel_name(post.channel_id)
+    buffer_name = wee_matter.channel.build_buffer_channel_name(post.channel_id)
     buffer = weechat.buffer_search("", buffer_name)
     server = wee_matter.server.get_server_from_buffer(buffer)
 
@@ -362,7 +362,7 @@ def get_reactions_from_post_data(post_data, server):
     return []
 
 def build_post_from_post_data(post_data, is_read = False):
-    buffer_name = wee_matter.room.build_buffer_channel_name(post_data["channel_id"])
+    buffer_name = wee_matter.channel.build_buffer_channel_name(post_data["channel_id"])
     buffer = weechat.buffer_search("", buffer_name)
 
     server = wee_matter.server.get_server_from_buffer(buffer)

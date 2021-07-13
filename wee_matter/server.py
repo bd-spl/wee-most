@@ -100,7 +100,7 @@ def server_completion_cb(data, completion_item, current_buffer, completion):
     return weechat.WEECHAT_RC_OK
 
 def connect_server_team_channel(channel_id, server):
-    wee_matter.room.register_buffer_hydratating(channel_id)
+    wee_matter.channel.register_buffer_hydratating(channel_id)
     wee_matter.http.enqueue_request(
         "run_get_channel",
         channel_id, server, "connect_server_team_channel_cb", server.id
@@ -114,7 +114,7 @@ def connect_server_team_channel_cb(server_id, command, rc, out, err):
     server = servers[server_id]
 
     channel_data = json.loads(out)
-    wee_matter.room.create_room_from_channel_data(channel_data, server)
+    wee_matter.channel.create_channel_from_channel_data(channel_data, server)
 
     return weechat.WEECHAT_RC_OK
 
@@ -127,9 +127,9 @@ def connect_server_team_channels_cb(server_id, command, rc, out, err):
 
     response = json.loads(out)
     for channel_data in response:
-        if wee_matter.room.already_loaded_buffer(channel_data["id"]):
+        if wee_matter.channel.already_loaded_buffer(channel_data["id"]):
             continue
-        wee_matter.room.create_room_from_channel_data(channel_data, server)
+        wee_matter.channel.create_channel_from_channel_data(channel_data, server)
 
     return weechat.WEECHAT_RC_OK
 

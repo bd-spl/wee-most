@@ -53,10 +53,10 @@ def create_worker(server):
 def rehydrate_server_buffer(server, buffer):
     last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
     channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
-    wee_matter.room.register_buffer_hydratating(channel_id)
+    wee_matter.channel.register_buffer_hydratating(channel_id)
     wee_matter.http.enqueue_request(
         "run_get_channel_posts_after",
-        last_post_id, channel_id, server, "hydrate_room_posts_cb", buffer
+        last_post_id, channel_id, server, "hydrate_channel_posts_cb", buffer
     )
 
 def rehydrate_server_buffers(server):
@@ -119,16 +119,16 @@ def handle_posted_message(server, message):
     if data["team_id"] and data["team_id"] not in server.teams:
         return
 
-    if wee_matter.room.is_buffer_hydratating(broadcast["channel_id"]):
+    if wee_matter.channel.is_buffer_hydratating(broadcast["channel_id"]):
         return
 
     post = wee_matter.post.build_post_from_post_data(post)
     wee_matter.post.write_post(post)
 
-    buffer = wee_matter.room.get_buffer_from_channel_id(post.channel_id)
+    buffer = wee_matter.channel.get_buffer_from_channel_id(post.channel_id)
 
     if buffer == weechat.current_buffer():
-        wee_matter.room.mark_channel_as_read(buffer)
+        wee_matter.channel.mark_channel_as_read(buffer)
 
 def handle_reaction_added_message(server, message):
     data = message["data"]
@@ -174,12 +174,12 @@ def handle_channel_updated_message(server, message):
     data = message["data"]
 
     channel_data = json.loads(data["channel"])
-    wee_matter.room.set_room_properties_from_channel_data(channel_data, server)
+    wee_matter.channel.set_channel_properties_from_channel_data(channel_data, server)
 
 def handle_channel_viewed_message(server, message):
     data = message["data"]
 
-    buffer = wee_matter.room.get_buffer_from_channel_id(data["channel_id"])
+    buffer = wee_matter.channel.get_buffer_from_channel_id(data["channel_id"])
     if buffer:
         weechat.buffer_set(buffer, "unread", "-")
         weechat.buffer_set(buffer, "hotlist", "-1")
@@ -194,8 +194,8 @@ def handle_user_added_message(server, message):
     if data["user_id"] == server.me.id: # we are geing invited
         wee_matter.server.connect_server_team_channel(broadcast["channel_id"], server)
     else:
-        buffer = wee_matter.room.get_buffer_from_channel_id(broadcast["channel_id"])
-        wee_matter.room.create_room_user_from_user_data(data, buffer, server)
+        buffer = wee_matter.channel.get_buffer_from_channel_id(broadcast["channel_id"])
+        wee_matter.channel.create_channel_user_from_user_data(data, buffer, server)
 
 def handle_channel_added_message(server, message):
     broadcast = message["broadcast"]
@@ -220,8 +220,8 @@ def handle_user_removed_message(server, message):
 
     if broadcast["channel_id"]:
         user = server.users[data["user_id"]]
-        buffer = wee_matter.room.get_buffer_from_channel_id(broadcast["channel_id"])
-        wee_matter.room.remove_room_user(buffer, user)
+        buffer = wee_matter.channel.get_buffer_from_channel_id(broadcast["channel_id"])
+        wee_matter.channel.remove_channel_user(buffer, user)
 
 def handle_added_to_team_message(server, message):
     data = message["data"]

@@ -70,7 +70,7 @@ def mark_channel_as_read(buffer):
 
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", last_post_id)
 
-def room_input_cb(data, buffer, input_data):
+def channel_input_cb(data, buffer, input_data):
     server = wee_matter.server.get_server_from_buffer(buffer)
 
     builded_post = wee_matter.post.build_post_from_input_data(buffer, input_data)
@@ -79,9 +79,9 @@ def room_input_cb(data, buffer, input_data):
 
     return weechat.WEECHAT_RC_OK
 
-def hydrate_room_posts_cb(buffer, command, rc, out, err):
+def hydrate_channel_posts_cb(buffer, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occurred while hydrating room")
+        weechat.prnt("", "An error occurred while hydrating channel")
         return weechat.WEECHAT_RC_ERROR
 
     server = wee_matter.server.get_server_from_buffer(buffer)
@@ -96,7 +96,7 @@ def hydrate_room_posts_cb(buffer, command, rc, out, err):
     if "" != response["next_post_id"]:
         wee_matter.http.enqueue_request(
             "run_get_channel_posts_after",
-            builded_post.id, builded_post.channel_id, server, "hydrate_room_posts_cb", buffer
+            builded_post.id, builded_post.channel_id, server, "hydrate_channel_posts_cb", buffer
         )
     else:
         channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
@@ -104,9 +104,9 @@ def hydrate_room_posts_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def hydrate_room_read_posts_cb(buffer, command, rc, out, err):
+def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occurred while hydrating room")
+        weechat.prnt("", "An error occurred while hydrating channel")
         return weechat.WEECHAT_RC_ERROR
 
     server = wee_matter.server.get_server_from_buffer(buffer)
@@ -128,21 +128,21 @@ def hydrate_room_read_posts_cb(buffer, command, rc, out, err):
     if "" != response["next_post_id"]:
         wee_matter.http.enqueue_request(
             "run_get_channel_posts_after",
-            post.id, post.channel_id, server, "hydrate_room_posts_cb", buffer
+            post.id, post.channel_id, server, "hydrate_channel_posts_cb", buffer
         )
     else:
         remove_buffer_hydratating(post.channel_id)
 
     return weechat.WEECHAT_RC_OK
 
-def create_room_group(group_name, buffer):
+def create_channel_group(group_name, buffer):
     group = weechat.nicklist_search_group(buffer, "", group_name)
     if not group:
         weechat.nicklist_add_group(buffer, "", group_name, "", 1)
 
     return group
 
-def create_room_user_from_user_data(user_data, buffer, server):
+def create_channel_user_from_user_data(user_data, buffer, server):
     user = server.users[user_data["user_id"]]
 
     if user.deleted:
@@ -150,9 +150,9 @@ def create_room_user_from_user_data(user_data, buffer, server):
 
     weechat.nicklist_add_nick(buffer, "", user.username, user.color, "@", user.color, 1)
 
-def hydrate_room_users_cb(buffer, command, rc, out, err):
+def hydrate_channel_users_cb(buffer, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occurred while hydrating room users")
+        weechat.prnt("", "An error occurred while hydrating channel users")
         return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
@@ -160,24 +160,24 @@ def hydrate_room_users_cb(buffer, command, rc, out, err):
     server = wee_matter.server.get_server_from_buffer(buffer)
 
     for user_data in response:
-        create_room_user_from_user_data(user_data, buffer, server)
+        create_channel_user_from_user_data(user_data, buffer, server)
 
     return weechat.WEECHAT_RC_OK
 
-def hydrate_room_user_cb(buffer, command, rc, out, err):
+def hydrate_channel_user_cb(buffer, command, rc, out, err):
     if rc != 0:
-        weechat.prnt("", "An error occurred while hydrating room user")
+        weechat.prnt("", "An error occurred while hydrating channel user")
         return weechat.WEECHAT_RC_ERROR
 
     user_data = json.loads(out)
 
     server = wee_matter.server.get_server_from_buffer(buffer)
 
-    create_room_user_from_user_data(user_data, buffer, server)
+    create_channel_user_from_user_data(user_data, buffer, server)
 
     return weechat.WEECHAT_RC_OK
 
-def remove_room_user(buffer, user):
+def remove_channel_user(buffer, user):
     nick = weechat.nicklist_search_nick(buffer, "", user.username)
     weechat.nicklist_remove_nick(buffer, nick)
 
@@ -185,23 +185,23 @@ FORMATS = {
     "O": "#{}",
     "P": "~{}",
 }
-def build_room_name_from_channel_data(channel_data, server):
-    room_name = channel_data["name"]
+def build_channel_name_from_channel_data(channel_data, server):
+    channel_name = channel_data["name"]
     if "" != channel_data["display_name"]:
         formt = FORMATS.get(channel_data["type"], "{}")
-        room_name = formt.format(channel_data["display_name"])
+        channel_name = formt.format(channel_data["display_name"])
     else:
         match = re.match('(\w+)__(\w+)', channel_data["name"])
         if match:
-            room_name = server.users[match.group(1)].username
-            if room_name == server.me.username:
-                room_name = server.users[match.group(2)].username
+            channel_name = server.users[match.group(1)].username
+            if channel_name == server.me.username:
+                channel_name = server.users[match.group(2)].username
 
-    return room_name
+    return channel_name
 
-def create_room_from_channel_data(channel_data, server):
+def create_channel_from_channel_data(channel_data, server):
     buffer_name = build_buffer_channel_name(channel_data["id"])
-    buffer = weechat.buffer_new(buffer_name, "room_input_cb", "", "", "")
+    buffer = weechat.buffer_new(buffer_name, "channel_input_cb", "", "", "")
     channel_buffers[channel_data["id"]] = buffer
 
     weechat.buffer_set(buffer, "localvar_set_server_id", server.id)
@@ -209,7 +209,7 @@ def create_room_from_channel_data(channel_data, server):
 
     weechat.buffer_set(buffer, "nicklist", "1")
 
-    set_room_properties_from_channel_data(channel_data, server)
+    set_channel_properties_from_channel_data(channel_data, server)
 
     weechat.buffer_set(buffer, "highlight_words", "@{0},{0},@here,@channel,@all".format(server.me.username))
     weechat.buffer_set(buffer, "localvar_set_nick", server.me.username)
@@ -228,20 +228,20 @@ def create_room_from_channel_data(channel_data, server):
     register_buffer_hydratating(channel_data["id"])
     wee_matter.http.enqueue_request(
         "run_get_read_channel_posts",
-        server.me.id, channel_data["id"], server, "hydrate_room_read_posts_cb", buffer
+        server.me.id, channel_data["id"], server, "hydrate_channel_read_posts_cb", buffer
     )
     wee_matter.http.enqueue_request(
         "run_get_channel_members",
-        channel_data["id"], server, "hydrate_room_users_cb", buffer
+        channel_data["id"], server, "hydrate_channel_users_cb", buffer
     )
 
-def set_room_properties_from_channel_data(channel_data, server):
+def set_channel_properties_from_channel_data(channel_data, server):
     buffer = channel_buffers[channel_data["id"]]
 
-    room_name = build_room_name_from_channel_data(channel_data, server)
-    weechat.buffer_set(buffer, "short_name", room_name)
+    channel_name = build_channel_name_from_channel_data(channel_data, server)
+    weechat.buffer_set(buffer, "short_name", channel_name)
     weechat.buffer_set(buffer, "title", channel_data["header"])
-    weechat.hook_command_run("/buffer %s" % room_name, 'channel_switch_cb', buffer)
+    weechat.hook_command_run("/buffer %s" % channel_name, 'channel_switch_cb', buffer)
 
 
 def buffer_switch_cb(data, signal, buffer):
@@ -269,7 +269,7 @@ def handle_multiline_message_cb(data, modifier, buffer, string):
         return string
 
     if "\n" in string and not string[0] == "/":
-        room_input_cb(data, buffer, string)
+        channel_input_cb(data, buffer, string)
         return ""
 
     return string
