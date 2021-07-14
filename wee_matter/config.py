@@ -24,6 +24,26 @@ class PluginConfig:
             desc= 'Comma separated list of server names to automatically connect to at start',
         ),
         Setting(
+            key= 'channel_prefix_direct',
+            default= '',
+            desc= 'The prefix of buffer names for direct messages channels',
+        ),
+        Setting(
+            key= 'channel_prefix_group',
+            default= '*',
+            desc= 'The prefix of buffer names for group channels',
+        ),
+        Setting(
+            key= 'channel_prefix_private',
+            default= '&',
+            desc= 'The prefix of buffer names for private channels',
+        ),
+        Setting(
+            key= 'channel_prefix_public',
+            default= '#',
+            desc= 'The prefix of buffer names for public channels',
+        ),
+        Setting(
             key= 'download_location',
             default= download_dir + '/wee-matter',
             desc= 'Location for storing downloaded files',
@@ -47,6 +67,9 @@ class PluginConfig:
             desc= 'Username for authentication to {} server',
         ),
     ]
+
+    def get_value(self, key):
+        return weechat.config_get_plugin(key)
 
     def get_download_location(self):
         return weechat.config_get_plugin("download_location")

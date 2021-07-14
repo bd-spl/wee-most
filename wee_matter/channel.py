@@ -3,7 +3,7 @@ import weechat
 import json
 import wee_matter
 import re
-from wee_matter.globals import servers
+from wee_matter.globals import (config, servers)
 
 channel_buffers = {}
 hydrating_buffers = []
@@ -181,15 +181,18 @@ def remove_channel_user(buffer, user):
     nick = weechat.nicklist_search_nick(buffer, "", user.username)
     weechat.nicklist_remove_nick(buffer, nick)
 
-FORMATS = {
-    "O": "#{}",
-    "P": "~{}",
+CHANNEL_TYPES = {
+    "D": "direct",
+    "G": "group",
+    "O": "public", # ordinary
+    "P": "private",
 }
+
 def build_channel_name_from_channel_data(channel_data, server):
     channel_name = channel_data["name"]
     if "" != channel_data["display_name"]:
-        formt = FORMATS.get(channel_data["type"], "{}")
-        channel_name = formt.format(channel_data["display_name"])
+        prefix = config.get_value("channel_prefix_" + CHANNEL_TYPES.get(channel_data["type"]))
+        channel_name = prefix + channel_data["display_name"]
     else:
         match = re.match('(\w+)__(\w+)', channel_data["name"])
         if match:
