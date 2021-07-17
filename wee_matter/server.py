@@ -72,17 +72,16 @@ class Team:
     def __init__(self, server, **kwargs):
         self.server = server
         self.id = kwargs["id"]
-        self.name = kwargs["name"]
-        self.display_name = kwargs["display_name"]
+        self.name = kwargs["display_name"]
         self.buffer = self._create_buffer()
         self.channels = []
 
     def _create_buffer(self):
         parent_buffer_name = weechat.buffer_get_string(self.server.buffer, "name")
-        buffer_name = "{}.{}".format(parent_buffer_name, self.display_name)
+        buffer_name = "{}.{}".format(parent_buffer_name, self.name)
         buffer = weechat.buffer_new(buffer_name, "", "", "", "")
 
-        weechat.buffer_set(buffer, "short_name", self.display_name)
+        weechat.buffer_set(buffer, "short_name", self.name)
         weechat.buffer_set(buffer, "localvar_set_server_id", self.server.id)
         weechat.buffer_set(buffer, "localvar_set_type", "server")
 
