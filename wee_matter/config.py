@@ -30,12 +30,12 @@ class PluginConfig:
         ),
         Setting(
             key= 'channel_prefix_group',
-            default= '*',
+            default= '&',
             desc= 'The prefix of buffer names for group channels',
         ),
         Setting(
             key= 'channel_prefix_private',
-            default= '&',
+            default= '%',
             desc= 'The prefix of buffer names for private channels',
         ),
         Setting(

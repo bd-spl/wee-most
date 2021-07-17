@@ -39,8 +39,6 @@ class ChannelBase:
         weechat.buffer_set(buffer, "highlight_words", "@{0},{0},@here,@channel,@all".format(self.server.me.username))
         weechat.buffer_set(buffer, "localvar_set_nick", self.server.me.username)
 
-        weechat.hook_command_run("/buffer %s" % self.name, 'channel_switch_cb', buffer)
-
         channel_buffers[self.id] = buffer
 
         return buffer
@@ -121,10 +119,6 @@ def remove_buffer_hydratating(channel_id):
 
 def get_buffer_from_channel_id(channel_id):
     return channel_buffers[channel_id]
-
-def channel_switch_cb(buffer, current_buffer, args):
-    weechat.buffer_set(buffer, "display", "1")
-    return weechat.WEECHAT_RC_OK_EAT
 
 def private_completion_cb(data, completion_item, current_buffer, completion):
     for server in servers.values():
@@ -310,8 +304,6 @@ def set_channel_properties_from_channel_data(channel_data, server):
     channel_name = build_channel_name_from_channel_data(channel_data, server)
     weechat.buffer_set(buffer, "short_name", channel_name)
     weechat.buffer_set(buffer, "title", channel_data["header"])
-    weechat.hook_command_run("/buffer %s" % channel_name, 'channel_switch_cb', buffer)
-
 
 def buffer_switch_cb(data, signal, buffer):
     if buffer not in channel_buffers.values():

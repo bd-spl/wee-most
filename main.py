@@ -2,7 +2,7 @@ import weechat
 
 from wee_matter.channel import (handle_multiline_message_cb, channel_input_cb,
                              buffer_switch_cb, channel_completion_cb,
-                             private_completion_cb, channel_switch_cb,
+                             private_completion_cb,
                              channel_click_cb)
 
 
