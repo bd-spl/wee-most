@@ -216,13 +216,6 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def create_channel_group(group_name, buffer):
-    group = weechat.nicklist_search_group(buffer, "", group_name)
-    if not group:
-        weechat.nicklist_add_group(buffer, "", group_name, "", 1)
-
-    return group
-
 def create_channel_user_from_user_data(user_data, buffer, server):
     user = server.users[user_data["user_id"]]
 
