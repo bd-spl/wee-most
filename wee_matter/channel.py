@@ -21,27 +21,27 @@ class ChannelBase:
         self.title = kwargs["header"]
         self.server = server
         self.name = self._format_name(kwargs["display_name"], kwargs["name"])
-        self.buffer = self._create_buffer()
+        self.buffer = None
+
+        self._create_buffer()
 
     def _create_buffer(self):
         buffer_name = self._format_buffer_name()
-        buffer = weechat.buffer_new(buffer_name, "channel_input_cb", "", "", "")
+        self.buffer = weechat.buffer_new(buffer_name, "channel_input_cb", "", "", "")
 
-        weechat.buffer_set(buffer, "short_name", self.name)
-        weechat.buffer_set(buffer, "title", self.title)
+        weechat.buffer_set(self.buffer, "short_name", self.name)
+        weechat.buffer_set(self.buffer, "title", self.title)
 
-        weechat.buffer_set(buffer, "localvar_set_server_id", self.server.id)
-        weechat.buffer_set(buffer, "localvar_set_channel_id", self.id)
-        weechat.buffer_set(buffer, "localvar_set_type", "channel")
+        weechat.buffer_set(self.buffer, "localvar_set_server_id", self.server.id)
+        weechat.buffer_set(self.buffer, "localvar_set_channel_id", self.id)
+        weechat.buffer_set(self.buffer, "localvar_set_type", "channel")
 
-        weechat.buffer_set(buffer, "nicklist", "1")
+        weechat.buffer_set(self.buffer, "nicklist", "1")
 
-        weechat.buffer_set(buffer, "highlight_words", "@{0},{0},@here,@channel,@all".format(self.server.me.username))
-        weechat.buffer_set(buffer, "localvar_set_nick", self.server.me.username)
+        weechat.buffer_set(self.buffer, "highlight_words", "@{0},{0},@here,@channel,@all".format(self.server.me.username))
+        weechat.buffer_set(self.buffer, "localvar_set_nick", self.server.me.username)
 
-        channel_buffers[self.id] = buffer
-
-        return buffer
+        channel_buffers[self.id] = self.buffer
 
     def _format_buffer_name(self):
         parent_buffer_name = weechat.buffer_get_string(self.server.buffer, "name")
@@ -57,13 +57,7 @@ class ChannelBase:
 class DirectMessagesChannel(ChannelBase):
     def __init__(self, server, **kwargs):
         super(DirectMessagesChannel, self).__init__(server, **kwargs)
-
-    def _create_buffer(self):
-        buffer = super()._create_buffer()
-
-        weechat.buffer_set(buffer, "localvar_set_type", "private")
-
-        return buffer
+        weechat.buffer_set(self.buffer, "localvar_set_type", "private")
 
     def _format_name(self, display_name, name):
         match = re.match('(\w+)__(\w+)', name)

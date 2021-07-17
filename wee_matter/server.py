@@ -30,19 +30,19 @@ class Server:
         self.me = None
         self.users = {}
         self.teams = {}
-        self.buffer = self._create_buffer()
+        self.buffer = None
         self.channels = []
         self.worker = None
         self.reconnection_loop_hook = ""
 
+        self._create_buffer()
+
     def _create_buffer(self):
         buffer_name = "weematter.{}".format(self.id)
-        buffer = weechat.buffer_new(buffer_name, "", "", "", "")
-        weechat.buffer_set(buffer, "short_name", self.id)
-        weechat.buffer_set(buffer, "localvar_set_server_id", self.id)
-        weechat.buffer_set(buffer, "localvar_set_type", "server")
-
-        return buffer
+        self.buffer = weechat.buffer_new(buffer_name, "", "", "", "")
+        weechat.buffer_set(self.buffer, "short_name", self.id)
+        weechat.buffer_set(self.buffer, "localvar_set_server_id", self.id)
+        weechat.buffer_set(self.buffer, "localvar_set_type", "server")
 
     def is_connected(self):
         return self.worker
@@ -73,19 +73,19 @@ class Team:
         self.server = server
         self.id = kwargs["id"]
         self.name = kwargs["display_name"]
-        self.buffer = self._create_buffer()
+        self.buffer = None
         self.channels = []
+
+        self._create_buffer()
 
     def _create_buffer(self):
         parent_buffer_name = weechat.buffer_get_string(self.server.buffer, "name")
         buffer_name = "{}.{}".format(parent_buffer_name, self.name)
-        buffer = weechat.buffer_new(buffer_name, "", "", "", "")
+        self.buffer = weechat.buffer_new(buffer_name, "", "", "", "")
 
-        weechat.buffer_set(buffer, "short_name", self.name)
-        weechat.buffer_set(buffer, "localvar_set_server_id", self.server.id)
-        weechat.buffer_set(buffer, "localvar_set_type", "server")
-
-        return buffer
+        weechat.buffer_set(self.buffer, "short_name", self.name)
+        weechat.buffer_set(self.buffer, "localvar_set_server_id", self.server.id)
+        weechat.buffer_set(self.buffer, "localvar_set_type", "server")
 
     def unload(self):
         for channel in self.channels:
