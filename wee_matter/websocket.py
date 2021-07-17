@@ -61,11 +61,11 @@ def rehydrate_server_buffer(server, buffer):
 
 def rehydrate_server_buffers(server):
     weechat.prnt("", "Syncing...")
-    for buffer in server.buffers:
-        rehydrate_server_buffer(server, buffer)
+    for channel in server.channels:
+        rehydrate_server_buffer(server, channel.buffer)
     for team in server.teams.values():
-        for buffer in team.buffers:
-            rehydrate_server_buffer(server, buffer)
+        for channel in team.channels:
+            rehydrate_server_buffer(server, channel.buffer)
 
 def reconnection_loop_cb(server_id, remaining_calls):
     server = servers[server_id]

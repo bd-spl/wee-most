@@ -8,6 +8,87 @@ from wee_matter.globals import (config, servers)
 channel_buffers = {}
 hydrating_buffers = []
 
+CHANNEL_TYPES = {
+    "D": "direct",
+    "G": "group",
+    "O": "public", # ordinary
+    "P": "private",
+}
+
+class ChannelBase:
+    def __init__(self, server, **kwargs):
+        self.id = kwargs["id"]
+        self.type = CHANNEL_TYPES.get(kwargs["type"])
+        self.title = kwargs["header"]
+        self.name = kwargs["name"]
+        self.display_name = kwargs["display_name"]
+        self.server = server
+        self.buffer = self._create_buffer()
+
+    def _create_buffer(self):
+        buffer_name = build_buffer_channel_name(self.id)
+        buffer = weechat.buffer_new(buffer_name, "channel_input_cb", "", "", "")
+
+        short_name = self._get_short_name()
+
+        weechat.buffer_set(buffer, "short_name", short_name)
+        weechat.buffer_set(buffer, "title", self.title)
+
+        weechat.buffer_set(buffer, "localvar_set_server_id", self.server.id)
+        weechat.buffer_set(buffer, "localvar_set_channel_id", self.id)
+        weechat.buffer_set(buffer, "localvar_set_type", "channel")
+
+        weechat.buffer_set(buffer, "nicklist", "1")
+
+        weechat.buffer_set(buffer, "highlight_words", "@{0},{0},@here,@channel,@all".format(self.server.me.username))
+        weechat.buffer_set(buffer, "localvar_set_nick", self.server.me.username)
+
+        weechat.hook_command_run("/buffer %s" % short_name, 'channel_switch_cb', buffer)
+
+        channel_buffers[self.id] = buffer
+
+        return buffer
+
+    def _get_short_name(self):
+        return config.get_value("channel_prefix_" + self.type) + self.display_name
+
+    def unload(self):
+        weechat.buffer_close(self.buffer)
+
+class DirectMessagesChannel(ChannelBase):
+    def __init__(self, server, **kwargs):
+        super(DirectMessagesChannel, self).__init__(server, **kwargs)
+
+    def _create_buffer(self):
+        buffer = super()._create_buffer()
+
+        weechat.buffer_set(buffer, "localvar_set_type", "private")
+
+        return buffer
+
+    def _get_short_name(self):
+        match = re.match('(\w+)__(\w+)', self.name)
+        username = self.server.users[match.group(1)].username
+        if username == self.server.me.username:
+            username = self.server.users[match.group(2)].username
+
+        return username
+
+class GroupChannel(ChannelBase):
+    def __init__(self, server, **kwargs):
+        super(GroupChannel, self).__init__(server, **kwargs)
+
+class PrivateChannel(ChannelBase):
+    def __init__(self, team, **kwargs):
+        super(PrivateChannel, self).__init__(team.server, **kwargs)
+        self.team = team
+
+class PublicChannel(ChannelBase):
+    def __init__(self, team, **kwargs):
+        super(PublicChannel, self).__init__(team.server, **kwargs)
+        self.team = team
+
+
 def already_loaded_buffer(channel_id):
     return channel_id in channel_buffers
 
@@ -42,8 +123,8 @@ def channel_switch_cb(buffer, current_buffer, args):
 
 def private_completion_cb(data, completion_item, current_buffer, completion):
     for server in servers.values():
-        for buffer in server.buffers:
-            buffer_name = weechat.buffer_get_string(buffer, "short_name")
+        for channel in server.channels:
+            buffer_name = weechat.buffer_get_string(channel.buffer, "short_name")
             weechat.hook_completion_list_add(completion, buffer_name, 0, weechat.WEECHAT_LIST_POS_SORT)
     return weechat.WEECHAT_RC_OK
 
@@ -51,8 +132,8 @@ def channel_completion_cb(data, completion_item, current_buffer, completion):
     for server in servers.values():
         weechat.hook_completion_list_add(completion, server.id, 0, weechat.WEECHAT_LIST_POS_SORT)
         for team in server.teams.values():
-            for buffer in team.buffers:
-                buffer_name = weechat.buffer_get_string(buffer, "short_name")
+            for channel in team.channels:
+                buffer_name = weechat.buffer_get_string(channel.buffer, "short_name")
                 weechat.hook_completion_list_add(completion, buffer_name, 0, weechat.WEECHAT_LIST_POS_SORT)
 
     return weechat.WEECHAT_RC_OK
@@ -181,13 +262,6 @@ def remove_channel_user(buffer, user):
     nick = weechat.nicklist_search_nick(buffer, "", user.username)
     weechat.nicklist_remove_nick(buffer, nick)
 
-CHANNEL_TYPES = {
-    "D": "direct",
-    "G": "group",
-    "O": "public", # ordinary
-    "P": "private",
-}
-
 def build_channel_name_from_channel_data(channel_data, server):
     channel_name = channel_data["name"]
     if "" != channel_data["display_name"]:
@@ -203,39 +277,33 @@ def build_channel_name_from_channel_data(channel_data, server):
     return channel_name
 
 def create_channel_from_channel_data(channel_data, server):
-    buffer_name = build_buffer_channel_name(channel_data["id"])
-    buffer = weechat.buffer_new(buffer_name, "channel_input_cb", "", "", "")
-    channel_buffers[channel_data["id"]] = buffer
-
-    weechat.buffer_set(buffer, "localvar_set_server_id", server.id)
-    weechat.buffer_set(buffer, "localvar_set_channel_id", channel_data["id"])
-
-    weechat.buffer_set(buffer, "nicklist", "1")
-
-    set_channel_properties_from_channel_data(channel_data, server)
-
-    weechat.buffer_set(buffer, "highlight_words", "@{0},{0},@here,@channel,@all".format(server.me.username))
-    weechat.buffer_set(buffer, "localvar_set_nick", server.me.username)
-
-    if channel_data["team_id"]:
+    if channel_data["type"] == "D":
+        channel = DirectMessagesChannel(server, **channel_data)
+        server.channels.append(channel)
+    elif channel_data["type"] == "G":
+        channel = GroupChannel(server, **channel_data)
+        server.channels.append(channel)
+    else:
         team = server.teams[channel_data["team_id"]]
 
-        weechat.buffer_set(buffer, "localvar_set_type", "channel")
+        if channel_data["type"] == "P":
+            channel = PrivateChannel(team, **channel_data)
+        elif channel_data["type"] == "O":
+            channel = PublicChannel(team, **channel_data)
+        else:
+            weechat.prnt("", "Unknown channel type " + channel_data["type"])
+            channel = PublicChannel(team, **channel_data)
 
-        team.buffers.append(buffer)
-    else:
-        weechat.buffer_set(buffer, "localvar_set_type", "private")
-
-        server.buffers.append(buffer)
+        team.channels.append(channel)
 
     register_buffer_hydratating(channel_data["id"])
     wee_matter.http.enqueue_request(
         "run_get_read_channel_posts",
-        server.me.id, channel_data["id"], server, "hydrate_channel_read_posts_cb", buffer
+        server.me.id, channel_data["id"], server, "hydrate_channel_read_posts_cb", channel.buffer
     )
     wee_matter.http.enqueue_request(
         "run_get_channel_members",
-        channel_data["id"], server, "hydrate_channel_users_cb", buffer
+        channel_data["id"], server, "hydrate_channel_users_cb", channel.buffer
     )
 
 def set_channel_properties_from_channel_data(channel_data, server):

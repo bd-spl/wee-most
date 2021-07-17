@@ -31,7 +31,7 @@ class Server:
         self.users = {}
         self.teams = {}
         self.buffer = self._create_buffer()
-        self.buffers = []
+        self.channels = []
         self.worker = None
         self.reconnection_loop_hook = ""
 
@@ -60,8 +60,8 @@ class Server:
         if self.reconnection_loop_hook:
             weechat.unhook(self.reconnection_loop_hook)
 
-        for buffer in self.buffers:
-            weechat.buffer_close(buffer)
+        for channel in self.channels:
+            channel.unload()
         for team in self.teams.values():
             team.unload()
 
@@ -74,7 +74,7 @@ class Team:
         self.name = kwargs["name"]
         self.display_name = kwargs["display_name"]
         self.buffer = self._create_buffer()
-        self.buffers = []
+        self.channels = []
 
     def _create_buffer(self):
         buffer = weechat.buffer_new("weematter." + self.display_name, "", "", "", "")
@@ -86,8 +86,8 @@ class Team:
         return buffer
 
     def unload(self):
-        for buffer in self.buffers:
-            weechat.buffer_close(buffer)
+        for channel in self.channels:
+            channel.unload()
         weechat.buffer_close(self.buffer)
 
 def get_server_from_buffer(buffer):
