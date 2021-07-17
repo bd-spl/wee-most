@@ -19,17 +19,15 @@ class ChannelBase:
         self.id = kwargs["id"]
         self.type = CHANNEL_TYPES.get(kwargs["type"])
         self.title = kwargs["header"]
-        self.name = kwargs["name"]
-        self.display_name = kwargs["display_name"]
         self.server = server
+        self.name = self._format_name(kwargs["display_name"], kwargs["name"])
         self.buffer = self._create_buffer()
 
     def _create_buffer(self):
-        buffer = weechat.buffer_new("weematter." + self.id, "channel_input_cb", "", "", "")
+        buffer_name = self._format_buffer_name()
+        buffer = weechat.buffer_new(buffer_name, "channel_input_cb", "", "", "")
 
-        short_name = self._get_short_name()
-
-        weechat.buffer_set(buffer, "short_name", short_name)
+        weechat.buffer_set(buffer, "short_name", self.name)
         weechat.buffer_set(buffer, "title", self.title)
 
         weechat.buffer_set(buffer, "localvar_set_server_id", self.server.id)
@@ -41,14 +39,19 @@ class ChannelBase:
         weechat.buffer_set(buffer, "highlight_words", "@{0},{0},@here,@channel,@all".format(self.server.me.username))
         weechat.buffer_set(buffer, "localvar_set_nick", self.server.me.username)
 
-        weechat.hook_command_run("/buffer %s" % short_name, 'channel_switch_cb', buffer)
+        weechat.hook_command_run("/buffer %s" % self.name, 'channel_switch_cb', buffer)
 
         channel_buffers[self.id] = buffer
 
         return buffer
 
-    def _get_short_name(self):
-        return config.get_value("channel_prefix_" + self.type) + self.display_name
+    def _format_buffer_name(self):
+        parent_buffer_name = weechat.buffer_get_string(self.server.buffer, "name")
+        # use "!" character so that the buffer gets sorted just after the server buffer and before all teams buffers
+        return "{}.!.{}".format(parent_buffer_name, self.name)
+
+    def _format_name(self, display_name, name):
+        return config.get_value("channel_prefix_" + self.type) + display_name
 
     def unload(self):
         weechat.buffer_close(self.buffer)
@@ -64,8 +67,8 @@ class DirectMessagesChannel(ChannelBase):
 
         return buffer
 
-    def _get_short_name(self):
-        match = re.match('(\w+)__(\w+)', self.name)
+    def _format_name(self, display_name, name):
+        match = re.match('(\w+)__(\w+)', name)
         username = self.server.users[match.group(1)].username
         if username == self.server.me.username:
             username = self.server.users[match.group(2)].username
@@ -78,14 +81,21 @@ class GroupChannel(ChannelBase):
 
 class PrivateChannel(ChannelBase):
     def __init__(self, team, **kwargs):
-        super(PrivateChannel, self).__init__(team.server, **kwargs)
         self.team = team
+        super(PrivateChannel, self).__init__(team.server, **kwargs)
+
+    def _format_buffer_name(self):
+        parent_buffer_name = weechat.buffer_get_string(self.team.buffer, "name")
+        return "{}.{}".format(parent_buffer_name, self.name)
 
 class PublicChannel(ChannelBase):
     def __init__(self, team, **kwargs):
-        super(PublicChannel, self).__init__(team.server, **kwargs)
         self.team = team
+        super(PublicChannel, self).__init__(team.server, **kwargs)
 
+    def _format_buffer_name(self):
+        parent_buffer_name = weechat.buffer_get_string(self.team.buffer, "name")
+        return "{}.{}".format(parent_buffer_name, self.name)
 
 def already_loaded_buffer(channel_id):
     return channel_id in channel_buffers

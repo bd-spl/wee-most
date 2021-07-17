@@ -36,7 +36,8 @@ class Server:
         self.reconnection_loop_hook = ""
 
     def _create_buffer(self):
-        buffer = weechat.buffer_new("weematter." + self.id, "", "", "", "")
+        buffer_name = "weematter.{}".format(self.id)
+        buffer = weechat.buffer_new(buffer_name, "", "", "", "")
         weechat.buffer_set(buffer, "short_name", self.id)
         weechat.buffer_set(buffer, "localvar_set_server_id", self.id)
         weechat.buffer_set(buffer, "localvar_set_type", "server")
@@ -77,7 +78,9 @@ class Team:
         self.channels = []
 
     def _create_buffer(self):
-        buffer = weechat.buffer_new("weematter." + self.display_name, "", "", "", "")
+        parent_buffer_name = weechat.buffer_get_string(self.server.buffer, "name")
+        buffer_name = "{}.{}".format(parent_buffer_name, self.display_name)
+        buffer = weechat.buffer_new(buffer_name, "", "", "", "")
 
         weechat.buffer_set(buffer, "short_name", self.display_name)
         weechat.buffer_set(buffer, "localvar_set_server_id", self.server.id)

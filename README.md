@@ -61,6 +61,13 @@ Some command uses this id to interact with posts.
 /delete abc
 ```
 
+## Buffers display
+
+For a nice organization of buffers in the buflist, use a sorting by name
+```
+/set buflist.look.sort name
+```
+
 ## Deal with files
 
 Mouse click or select a file line download it and open it.
