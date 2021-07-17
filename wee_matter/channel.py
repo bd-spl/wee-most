@@ -3,9 +3,8 @@ import weechat
 import json
 import wee_matter
 import re
-from wee_matter.globals import (config, servers)
+from wee_matter.globals import (config, servers, channel_buffers)
 
-channel_buffers = {}
 hydrating_buffers = []
 
 CHANNEL_TYPES = {
@@ -26,8 +25,7 @@ class ChannelBase:
         self.buffer = self._create_buffer()
 
     def _create_buffer(self):
-        buffer_name = build_buffer_channel_name(self.id)
-        buffer = weechat.buffer_new(buffer_name, "channel_input_cb", "", "", "")
+        buffer = weechat.buffer_new("weematter." + self.id, "channel_input_cb", "", "", "")
 
         short_name = self._get_short_name()
 
@@ -113,9 +111,6 @@ def remove_buffer_hydratating(channel_id):
 
 def get_buffer_from_channel_id(channel_id):
     return channel_buffers[channel_id]
-
-def build_buffer_channel_name(channel_id):
-    return "weematter." + channel_id
 
 def channel_switch_cb(buffer, current_buffer, args):
     weechat.buffer_set(buffer, "display", "1")

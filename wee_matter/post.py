@@ -4,6 +4,7 @@ import wee_matter.server
 import wee_matter.post
 import wee_matter.file
 from typing import NamedTuple
+from wee_matter.globals import channel_buffers
 
 Post = NamedTuple(
     "Post",
@@ -323,9 +324,7 @@ def write_message_lines(buffer, post):
     )
 
 def write_post(post):
-    buffer_name = wee_matter.channel.build_buffer_channel_name(post.channel_id)
-    buffer = weechat.buffer_search("", buffer_name)
-    server = wee_matter.server.get_server_from_buffer(buffer)
+    buffer = channel_buffers[post.channel_id]
 
     if post.deleted:
         delete_message(buffer, post)
@@ -362,8 +361,7 @@ def get_reactions_from_post_data(post_data, server):
     return []
 
 def build_post_from_post_data(post_data, is_read = False):
-    buffer_name = wee_matter.channel.build_buffer_channel_name(post_data["channel_id"])
-    buffer = weechat.buffer_search("", buffer_name)
+    buffer = channel_buffers[post_data["channel_id"]]
 
     server = wee_matter.server.get_server_from_buffer(buffer)
 
