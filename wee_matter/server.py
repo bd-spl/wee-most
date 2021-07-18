@@ -31,7 +31,7 @@ class Server:
         self.users = {}
         self.teams = {}
         self.buffer = None
-        self.channels = []
+        self.channels = {}
         self.worker = None
         self.reconnection_loop_hook = ""
 
@@ -61,7 +61,7 @@ class Server:
         if self.reconnection_loop_hook:
             weechat.unhook(self.reconnection_loop_hook)
 
-        for channel in self.channels:
+        for channel in self.channels.values():
             channel.unload()
         for team in self.teams.values():
             team.unload()
@@ -74,7 +74,7 @@ class Team:
         self.id = kwargs["id"]
         self.name = kwargs["display_name"]
         self.buffer = None
-        self.channels = []
+        self.channels = {}
 
         self._create_buffer()
 
@@ -88,7 +88,7 @@ class Team:
         weechat.buffer_set(self.buffer, "localvar_set_type", "server")
 
     def unload(self):
-        for channel in self.channels:
+        for channel in self.channels.values():
             channel.unload()
         weechat.buffer_close(self.buffer)
 

@@ -116,7 +116,7 @@ def get_buffer_from_channel_id(channel_id):
 
 def private_completion_cb(data, completion_item, current_buffer, completion):
     for server in servers.values():
-        for channel in server.channels:
+        for channel in server.channels.values():
             buffer_name = weechat.buffer_get_string(channel.buffer, "short_name")
             weechat.hook_completion_list_add(completion, buffer_name, 0, weechat.WEECHAT_LIST_POS_SORT)
     return weechat.WEECHAT_RC_OK
@@ -125,7 +125,7 @@ def channel_completion_cb(data, completion_item, current_buffer, completion):
     for server in servers.values():
         weechat.hook_completion_list_add(completion, server.id, 0, weechat.WEECHAT_LIST_POS_SORT)
         for team in server.teams.values():
-            for channel in team.channels:
+            for channel in team.channels.values():
                 buffer_name = weechat.buffer_get_string(channel.buffer, "short_name")
                 weechat.hook_completion_list_add(completion, buffer_name, 0, weechat.WEECHAT_LIST_POS_SORT)
 
@@ -265,10 +265,10 @@ def build_channel_name_from_channel_data(channel_data, server):
 def create_channel_from_channel_data(channel_data, server):
     if channel_data["type"] == "D":
         channel = DirectMessagesChannel(server, **channel_data)
-        server.channels.append(channel)
+        server.channels[channel.id] = channel
     elif channel_data["type"] == "G":
         channel = GroupChannel(server, **channel_data)
-        server.channels.append(channel)
+        server.channels[channel.id] = channel
     else:
         team = server.teams[channel_data["team_id"]]
 
@@ -280,7 +280,7 @@ def create_channel_from_channel_data(channel_data, server):
             weechat.prnt("", "Unknown channel type " + channel_data["type"])
             channel = PublicChannel(team, **channel_data)
 
-        team.channels.append(channel)
+        team.channels[channel.id] = channel
 
     register_buffer_hydratating(channel_data["id"])
     wee_matter.http.enqueue_request(
