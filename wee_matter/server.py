@@ -44,6 +44,8 @@ class Server:
         weechat.buffer_set(self.buffer, "localvar_set_server_id", self.id)
         weechat.buffer_set(self.buffer, "localvar_set_type", "server")
 
+        buffer_merge(self.buffer)
+
     def is_connected(self):
         return self.worker
 
@@ -87,10 +89,25 @@ class Team:
         weechat.buffer_set(self.buffer, "localvar_set_server_id", self.server.id)
         weechat.buffer_set(self.buffer, "localvar_set_type", "server")
 
+        buffer_merge(self.buffer)
+
     def unload(self):
         for channel in self.channels.values():
             channel.unload()
         weechat.buffer_close(self.buffer)
+
+def buffer_merge(buffer):
+    if weechat.config_string(weechat.config_get("irc.look.server_buffer")) == "merge_with_core":
+        weechat.buffer_merge(buffer, weechat.buffer_search_main())
+    else:
+        weechat.buffer_unmerge(buffer, 0)
+
+def config_server_buffer_cb(data, key, value):
+    for server in servers.values():
+        buffer_merge(server.buffer)
+        for team in server.teams.values():
+            buffer_merge(team.buffer)
+    return weechat.WEECHAT_RC_OK
 
 def get_server_from_buffer(buffer):
     server_id = weechat.buffer_get_string(buffer, "localvar_server_id")
