@@ -102,12 +102,14 @@ def register_buffer_hydratating(channel_id):
 
     buffer = get_buffer_from_channel_id(channel_id)
     old_name = weechat.buffer_get_string(buffer, "short_name")
-    weechat.buffer_set(buffer, "short_name", "⚠️ {}".format(old_name))
+    loading_indicator = config.get_value("channel_loading_indicator")
+    weechat.buffer_set(buffer, "short_name", "{}{}".format(loading_indicator, old_name))
 
 def remove_buffer_hydratating(channel_id):
     buffer = get_buffer_from_channel_id(channel_id)
     old_name = weechat.buffer_get_string(buffer, "short_name")
-    weechat.buffer_set(buffer, "short_name", re.sub("⚠️ ", "", old_name))
+    loading_indicator = config.get_value("channel_loading_indicator")
+    weechat.buffer_set(buffer, "short_name", re.sub("^{}".format(loading_indicator), "", old_name))
 
     hydrating_buffers.remove(channel_id)
 

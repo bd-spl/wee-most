@@ -48,6 +48,11 @@ class PluginConfig:
             default= download_dir + '/wee-matter',
             desc= 'Location for storing downloaded files',
         ),
+        Setting(
+            key= 'channel_loading_indicator',
+            default= '…',
+            desc= 'Indicator for channels being loaded with content',
+        ),
     ]
 
     server_settings = [
