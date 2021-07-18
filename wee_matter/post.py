@@ -4,7 +4,7 @@ import wee_matter.server
 import wee_matter.post
 import wee_matter.file
 from typing import NamedTuple
-from wee_matter.globals import channel_buffers
+from wee_matter.globals import (config, channel_buffers)
 
 Post = NamedTuple(
     "Post",
@@ -100,7 +100,7 @@ def build_nick(user, from_bot, username_override):
         username = colorize_sentence(user.username, user.color)
 
     if from_bot:
-        username += " " + colorize_sentence("[BOT]", "darkgray")
+        username += " " + colorize_sentence("[BOT]", config.get_value("color_bot_suffix"))
 
     return (
         colorize_sentence(nick_prefix, nick_prefix_color_name)
@@ -169,7 +169,7 @@ def delete_message(buffer, post):
         return
 
     lines = [""] * len(pointers)
-    lines[0] = colorize_sentence("(deleted)", "red")
+    lines[0] = colorize_sentence("(deleted)", config.get_value("color_deleted"))
 
     for pointer, line in zip(pointers, lines):
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
@@ -193,7 +193,7 @@ def write_edited_message_lines(buffer, post):
         buffer,
         initial_message_date,
         "edited_post,notify_none",
-        initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), "yellow")
+        initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), config.get_value("color_quote"))
     )
 
     if initial_reactions:
@@ -234,7 +234,7 @@ def write_reply_message_lines(buffer, post):
         buffer,
         parent_message_date,
         "quote,notify_none",
-        parent_message_prefix + "	" + colorize_sentence(build_quote_message(parent_message), "lightgreen")
+        parent_message_prefix + "	" + colorize_sentence(build_quote_message(parent_message), config.get_value("color_parent_reply"))
     )
 
     parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")

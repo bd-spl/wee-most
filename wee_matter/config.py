@@ -44,6 +44,26 @@ class PluginConfig:
             desc= 'The prefix of buffer names for public channels',
         ),
         Setting(
+            key= 'color_bot_suffix',
+            default= 'darkgray',
+            desc= 'Color for [BOT] suffix in message attachments',
+        ),
+        Setting(
+            key= 'color_deleted',
+            default= 'red',
+            desc= 'Color for deleted messages',
+        ),
+        Setting(
+            key= 'color_parent_reply',
+            default= 'lightgreen',
+            desc= 'Color for parent message of a reply',
+        ),
+        Setting(
+            key= 'color_quote',
+            default= 'yellow',
+            desc= 'Color for quoted messages',
+        ),
+        Setting(
             key= 'download_location',
             default= download_dir + '/wee-matter',
             desc= 'Location for storing downloaded files',
