@@ -70,6 +70,7 @@ class DirectMessagesChannel(ChannelBase):
 class GroupChannel(ChannelBase):
     def __init__(self, server, **kwargs):
         super(GroupChannel, self).__init__(server, **kwargs)
+        weechat.buffer_set(self.buffer, "localvar_set_type", "private")
 
 class PrivateChannel(ChannelBase):
     def __init__(self, team, **kwargs):
