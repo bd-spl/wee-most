@@ -122,7 +122,7 @@ class PluginConfig:
 
     def add_server_options(self, server_id):
         for s in self.server_settings:
-            self._add_setting(Setting(
+            self._add_setting(self.Setting(
                 key= "server." + server_id + "." + s.key,
                 default= s.default,
                 desc= s.desc.format(server_id),
