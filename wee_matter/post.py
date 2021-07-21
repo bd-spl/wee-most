@@ -22,6 +22,7 @@ Post = NamedTuple(
         ("user", any),
         ("from_bot", bool),
         ("username_override", str),
+        ("type", str),
     ]
 )
 
@@ -63,6 +64,7 @@ def build_post_from_input_data(buffer, input_data):
         user= server.me,
         from_bot= False,
         username_override= None,
+        type= None,
     )
 
 def build_reaction_message(reaction):
@@ -300,6 +302,13 @@ def write_message_lines(buffer, post):
         tags += ",attachments"
         message = build_message_with_attachments(message, post.attachments)
 
+    if post.type == "system_join_channel":
+        prefix = weechat.config_string(weechat.config_get("weechat.look.prefix_join"))
+        message = "{}{}".format(prefix, message)
+    elif post.type == "system_leave_channel":
+        prefix = weechat.config_string(weechat.config_get("weechat.look.prefix_quit"))
+        message = "{}{}".format(prefix, message)
+
     if post.reactions:
         tags += ",reactions"
         weechat.prnt_date_tags(
@@ -390,6 +399,7 @@ def build_post_from_post_data(post_data, is_read = False):
         user= user,
         from_bot= from_bot,
         username_override= username_override,
+        type= post_data["type"],
     )
 
     return post
