@@ -84,3 +84,8 @@ You would still have issues with multiline pasted text. Add this :
 /set plugins.var.perl.multiline.weechat_paste_fix "off"
 /key bind ctrl-J /input insert \n
 ```
+
+## Acknowledgements
+
+Wee-most is originally a fork of [wee-matter](https://sr.ht/~reedwade/wee-matter/)
+and draws a lot of inspiration from [wee-slack](https://github.com/wee-slack/wee-slack)
