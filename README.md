@@ -23,7 +23,7 @@ $ make install # WEECHAT_DATA_DIR=~/.weechat
 
 ```
 /script load wee_most.py
-/matter server add a_banal_server
+/mattermost server add a_banal_server
 ```
 
 You should then edit its configuration such as URL, username, password,...
@@ -36,8 +36,8 @@ To store the password safely, you can make use of WeeChat [secured data storage]
 Then you can connect/disconnect to servers
 
 ```
-/matter connect a_banal_server
-/matter disconnect a_banal_server
+/mattermost connect a_banal_server
+/mattermost disconnect a_banal_server
 ```
 
 ## Mattermost commands
@@ -45,7 +45,7 @@ Then you can connect/disconnect to servers
 You can send Mattermost commands using this prefix.
 
 ```
-/matter command me Aya ! :3
+/mattermost command me Aya ! :3
 ```
 
 ## Reply, React, Remove

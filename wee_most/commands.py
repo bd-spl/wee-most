@@ -4,7 +4,7 @@ import wee_most
 from wee_most.globals import config
 
 def server_add_command_usage(buffer):
-    weechat.prnt(buffer, "Usage: /matter server add <server-name>")
+    weechat.prnt(buffer, "Usage: /mattermost server add <server-name>")
 
 def server_add_command(args, buffer):
     if 1 != len(args.split()):
@@ -19,7 +19,7 @@ def server_add_command(args, buffer):
     return weechat.WEECHAT_RC_OK
 
 def connect_command_usage(buffer):
-    weechat.prnt(buffer, "Usage: /matter connect <server-name>")
+    weechat.prnt(buffer, "Usage: /mattermost connect <server-name>")
 
 def connect_command(args, buffer):
     if 1 != len(args.split()):
@@ -28,7 +28,7 @@ def connect_command(args, buffer):
     return wee_most.server.connect_server(args)
 
 def disconnect_command_usage(buffer):
-    weechat.prnt(buffer, "Usage: /matter connect <server-name>")
+    weechat.prnt(buffer, "Usage: /mattermost connect <server-name>")
 
 def disconnect_command(args, buffer):
     if 1 != len(args.split()):
@@ -36,16 +36,16 @@ def disconnect_command(args, buffer):
         return weechat.WEECHAT_RC_ERROR
     return wee_most.server.disconnect_server(args)
 
-def matter_server_command_usage(buffer):
+def mattermost_server_command_usage(buffer):
     weechat.prnt(buffer,
         (
-            "Usage: /matter server add <server-name>"
+            "Usage: /mattermost server add <server-name>"
         )
     )
 
 def server_command(args, buffer):
     if 0 == len(args.split()):
-        matter_server_command_usage(buffer)
+        mattermost_server_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
 
     command, _, args = args.partition(" ")
@@ -67,10 +67,10 @@ def matter_command_usage(buffer):
     weechat.prnt(buffer,
         (
             "Usage: \n"
-            "    /matter server add <server-name>\n"
-            "    /matter connect <server-name>\n"
-            "    /matter disconnect <server-name>\n"
-            "    /matter command <mattermost-command>\n"
+            "    /mattermost server add <server-name>\n"
+            "    /mattermost connect <server-name>\n"
+            "    /mattermost disconnect <server-name>\n"
+            "    /mattermost command <mattermost-command>\n"
         )
     )
 
@@ -188,7 +188,7 @@ def slash_command_completion_cb(data, completion_item, current_buffer, completio
 
 def setup_commands():
     weechat.hook_command(
-        "matter",
+        "mattermost",
         "Mattermost chat protocol command",
          # Synopsis
         (
