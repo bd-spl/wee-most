@@ -1,10 +1,10 @@
 
 import weechat
-import wee_matter.server
-import wee_matter.post
-import wee_matter.file
+import wee_most.server
+import wee_most.post
+import wee_most.file
 from typing import NamedTuple
-from wee_matter.globals import (config, channel_buffers)
+from wee_most.globals import (config, channel_buffers)
 
 Post = NamedTuple(
     "Post",
@@ -48,7 +48,7 @@ def post_post_cb(buffer, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def build_post_from_input_data(buffer, input_data):
-    server = wee_matter.server.get_server_from_buffer(buffer)
+    server = wee_most.server.get_server_from_buffer(buffer)
 
     return Post(
         id= "",
@@ -343,7 +343,7 @@ def write_post(post):
         write_reply_message_lines(buffer, post)
     else:
         write_message_lines(buffer, post)
-    wee_matter.file.write_file_lines(buffer, post)
+    wee_most.file.write_file_lines(buffer, post)
 
     weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
     post_buffers[post.id] = buffer
@@ -372,7 +372,7 @@ def get_reactions_from_post_data(post_data, server):
 def build_post_from_post_data(post_data, is_read = False):
     buffer = channel_buffers[post_data["channel_id"]]
 
-    server = wee_matter.server.get_server_from_buffer(buffer)
+    server = wee_most.server.get_server_from_buffer(buffer)
 
     user = server.users[post_data["user_id"]]
 
@@ -394,7 +394,7 @@ def build_post_from_post_data(post_data, is_read = False):
         deleted= False,
         read= is_read,
         attachments= attachments,
-        files= wee_matter.file.get_files_from_post_data(post_data, server),
+        files= wee_most.file.get_files_from_post_data(post_data, server),
         reactions= get_reactions_from_post_data(post_data, server),
         user= user,
         from_bot= from_bot,

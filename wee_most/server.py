@@ -1,9 +1,9 @@
 
 import weechat
-import wee_matter
+import wee_most
 import json
 import re
-from wee_matter.globals import (config, servers)
+from wee_most.globals import (config, servers)
 
 class User:
     def __init__(self, **kwargs):
@@ -38,7 +38,7 @@ class Server:
         self._create_buffer()
 
     def _create_buffer(self):
-        buffer_name = "weematter.{}".format(self.id)
+        buffer_name = "weemost.{}".format(self.id)
         self.buffer = weechat.buffer_new(buffer_name, "", "", "", "")
         weechat.buffer_set(self.buffer, "short_name", self.id)
         weechat.buffer_set(self.buffer, "localvar_set_server_id", self.id)
@@ -59,7 +59,7 @@ class Server:
         servers.pop(self.id)
 
         if self.worker:
-            wee_matter.websocket.close_worker(self.worker)
+            wee_most.websocket.close_worker(self.worker)
         if self.reconnection_loop_hook:
             weechat.unhook(self.reconnection_loop_hook)
 
@@ -119,8 +119,8 @@ def server_completion_cb(data, completion_item, current_buffer, completion):
     return weechat.WEECHAT_RC_OK
 
 def connect_server_team_channel(channel_id, server):
-    wee_matter.channel.register_buffer_hydratating(channel_id)
-    wee_matter.http.enqueue_request(
+    wee_most.channel.register_buffer_hydratating(channel_id)
+    wee_most.http.enqueue_request(
         "run_get_channel",
         channel_id, server, "connect_server_team_channel_cb", server.id
     )
@@ -133,7 +133,7 @@ def connect_server_team_channel_cb(server_id, command, rc, out, err):
     server = servers[server_id]
 
     channel_data = json.loads(out)
-    wee_matter.channel.create_channel_from_channel_data(channel_data, server)
+    wee_most.channel.create_channel_from_channel_data(channel_data, server)
 
     return weechat.WEECHAT_RC_OK
 
@@ -146,9 +146,9 @@ def connect_server_team_channels_cb(server_id, command, rc, out, err):
 
     response = json.loads(out)
     for channel_data in response:
-        if wee_matter.channel.already_loaded_buffer(channel_data["id"]):
+        if wee_most.channel.already_loaded_buffer(channel_data["id"]):
             continue
-        wee_matter.channel.create_channel_from_channel_data(channel_data, server)
+        wee_most.channel.create_channel_from_channel_data(channel_data, server)
 
     return weechat.WEECHAT_RC_OK
 
@@ -169,12 +169,12 @@ def connect_server_users_cb(data, command, rc, out, err):
             server.users[user["id"]] = User(**user)
 
     if len(response) == 60:
-        wee_matter.http.enqueue_request(
+        wee_most.http.enqueue_request(
             "run_get_users",
             server, page+1, "connect_server_users_cb", "{}|{}".format(server.id, page+1)
         )
     else:
-        wee_matter.http.enqueue_request(
+        wee_most.http.enqueue_request(
             "run_get_user_teams",
             server.me.id, server, "connect_server_teams_cb", server.id
         )
@@ -193,7 +193,7 @@ def connect_server_teams_cb(server_id, command, rc, out, err):
     for team_data in response:
         server.add_team(**team_data)
 
-        wee_matter.http.enqueue_request(
+        wee_most.http.enqueue_request(
             "run_get_user_team_channels",
             server.me.id, team_data["id"], server, "connect_server_team_channels_cb", server.id
         )
@@ -211,7 +211,7 @@ def connect_server_team_cb(server_id, command, rc, out, err):
 
     server.add_team(**team_data)
 
-    wee_matter.http.enqueue_request(
+    wee_most.http.enqueue_request(
         "run_get_user_team_channels",
         server.me.id, team_data["id"], server, "connect_server_team_channels_cb", server.id
     )
@@ -248,7 +248,7 @@ def connect_server_cb(server_id, command, rc, out, err):
     server.token=token_search.group(1)
     server.me= me
 
-    worker = wee_matter.websocket.create_worker(server)
+    worker = wee_most.websocket.create_worker(server)
     if not worker:
         weechat.prnt("", "An error occurred while creating the websocket worker")
         return weechat.WEECHAT_RC_ERROR
@@ -259,7 +259,7 @@ def connect_server_cb(server_id, command, rc, out, err):
 
     weechat.prnt("", "Connected to " + server_id)
 
-    wee_matter.http.enqueue_request(
+    wee_most.http.enqueue_request(
         "run_get_users",
         server, 0, "connect_server_users_cb", "{}|0".format(server.id)
     )
@@ -287,7 +287,7 @@ def connect_server(server_id):
 
     servers[server_id] = server
 
-    wee_matter.http.enqueue_request(
+    wee_most.http.enqueue_request(
         "run_user_login",
         server, "connect_server_cb", server.id
     )
@@ -301,7 +301,7 @@ def disconnect_server(server_id):
         weechat.prnt("", "Not connected")
         return weechat.WEECHAT_RC_ERROR
 
-    rc = wee_matter.http.logout_user(server)
+    rc = wee_most.http.logout_user(server)
 
     if rc == weechat.WEECHAT_RC_OK:
         server.unload()

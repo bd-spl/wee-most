@@ -1,6 +1,6 @@
-# Wee-Matter
+# wee-most
 
-Wee-Matter is a Mattermost backend to Weechat.
+WeeChat plugin for Mattermost
 
 ## Installation
 
@@ -22,15 +22,15 @@ $ make install # WEECHAT_DATA_DIR=~/.weechat
 ## Connection
 
 ```
-/script load wee_matter.py
+/script load wee_most.py
 /matter server add a_banal_server
 ```
 
 You should then edit its configuration such as URL, username, password,...
-To store the password safely, you can make use of weechat [secured data storage](https://weechat.org/files/doc/stable/weechat_user.en.html#secured_data)
+To store the password safely, you can make use of WeeChat [secured data storage](https://weechat.org/files/doc/stable/weechat_user.en.html#secured_data)
 
 ```
-/set plugins.var.python.wee-matter.a_banal_server.* 
+/set plugins.var.python.wee-most.a_banal_server.* 
 ```
 
 Then you can connect/disconnect to servers
@@ -74,7 +74,7 @@ Mouse click or select a file line download it and open it.
 
 ## Send multiline messages
 
-The multiline perl script is correctly handled by Wee-Matter :
+The multiline perl script is correctly handled by wee-most :
 
 https://weechat.org/scripts/source/multiline.pl.html/
 

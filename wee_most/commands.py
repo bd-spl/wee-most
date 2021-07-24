@@ -1,7 +1,7 @@
 
 import weechat
-import wee_matter
-from wee_matter.globals import config
+import wee_most
+from wee_most.globals import config
 
 def server_add_command_usage(buffer):
     weechat.prnt(buffer, "Usage: /matter server add <server-name>")
@@ -14,7 +14,7 @@ def server_add_command(args, buffer):
     config.add_server_options(args)
 
     weechat.prnt(buffer, "Server \"%s\" added. You should now configure it." % args)
-    weechat.prnt(buffer, "/set plugins.var.python.wee-matter.server.%s.*" % args)
+    weechat.prnt(buffer, "/set plugins.var.python.wee-most.server.%s.*" % args)
 
     return weechat.WEECHAT_RC_OK
 
@@ -25,7 +25,7 @@ def connect_command(args, buffer):
     if 1 != len(args.split()):
         connect_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
-    return wee_matter.server.connect_server(args)
+    return wee_most.server.connect_server(args)
 
 def disconnect_command_usage(buffer):
     weechat.prnt(buffer, "Usage: /matter connect <server-name>")
@@ -34,7 +34,7 @@ def disconnect_command(args, buffer):
     if 1 != len(args.split()):
         disconnect_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
-    return wee_matter.server.disconnect_server(args)
+    return wee_most.server.disconnect_server(args)
 
 def matter_server_command_usage(buffer):
     weechat.prnt(buffer,
@@ -56,10 +56,10 @@ def server_command(args, buffer):
     return weechat.WEECHAT_RC_OK
 
 def slash_command(args, buffer):
-    server = wee_matter.server.get_server_from_buffer(buffer)
+    server = wee_most.server.get_server_from_buffer(buffer)
     channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
 
-    wee_matter.http.run_post_command(channel_id, "/{}".format(args), server, "singularity_cb", buffer)
+    wee_most.http.run_post_command(channel_id, "/{}".format(args), server, "singularity_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -102,23 +102,23 @@ def reply_command_cb(data, buffer, args):
 
     short_post_id, _, message = args.partition(" ")
 
-    line_data = wee_matter.post.find_buffer_last_post_line_data(buffer, short_post_id)
+    line_data = wee_most.post.find_buffer_last_post_line_data(buffer, short_post_id)
     if not line_data:
         weechat.prnt(buffer, "Can't find post id for \"%s\"" % short_post_id)
         return weechat.WEECHAT_RC_ERROR
 
-    tags = wee_matter.post.get_line_data_tags(line_data)
+    tags = wee_most.post.get_line_data_tags(line_data)
 
-    post_id = wee_matter.post.find_reply_to_in_tags(tags)
+    post_id = wee_most.post.find_reply_to_in_tags(tags)
     if not post_id:
-        post_id = wee_matter.post.find_post_id_in_tags(tags)
+        post_id = wee_most.post.find_post_id_in_tags(tags)
 
-    post = wee_matter.post.build_post_from_input_data(buffer, message)
+    post = wee_most.post.build_post_from_input_data(buffer, message)
     post = post._replace(parent_id=post_id)
 
-    server = wee_matter.server.get_server_from_buffer(buffer)
+    server = wee_most.server.get_server_from_buffer(buffer)
 
-    wee_matter.http.run_post_post(post, server, "post_post_cb", buffer)
+    wee_most.http.run_post_post(post, server, "post_post_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -131,13 +131,13 @@ def react_command_cb(data, buffer, args):
         return weechat.WEECHAT_RC_ERROR
 
     short_post_id, _, emoji_name = args.partition(" ")
-    post_id = wee_matter.post.find_full_post_id(buffer, short_post_id)
+    post_id = wee_most.post.find_full_post_id(buffer, short_post_id)
     if not post_id:
         weechat.prnt(buffer, "Can't find post id for \"%s\"" % short_post_id)
         return weechat.WEECHAT_RC_ERROR
 
-    server = wee_matter.server.get_server_from_buffer(buffer)
-    wee_matter.http.run_post_reaction(emoji_name, post_id, server, "singularity_cb", buffer)
+    server = wee_most.server.get_server_from_buffer(buffer)
+    wee_most.http.run_post_reaction(emoji_name, post_id, server, "singularity_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -155,8 +155,8 @@ def unreact_command_cb(data, buffer, args):
         weechat.prnt(buffer, "Can't find post id for \"%s\"" % short_post_id)
         return weechat.WEECHAT_RC_ERROR
 
-    server = wee_matter.server.get_server_from_buffer(buffer)
-    wee_matter.http.run_delete_reaction(emoji_name, post_id, server, "singularity_cb", buffer)
+    server = wee_most.server.get_server_from_buffer(buffer)
+    wee_most.http.run_delete_reaction(emoji_name, post_id, server, "singularity_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -168,14 +168,14 @@ def delete_post_command_cb(data, buffer, args):
         delete_post_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
 
-    post_id = wee_matter.post.find_full_post_id(buffer, args)
+    post_id = wee_most.post.find_full_post_id(buffer, args)
     if not post_id:
         weechat.prnt(buffer, "Can't find post id for \"%s\"" % args)
         return weechat.WEECHAT_RC_ERROR
 
-    server = wee_matter.server.get_server_from_buffer(buffer)
+    server = wee_most.server.get_server_from_buffer(buffer)
 
-    wee_matter.http.run_delete_post(post_id, server, "singularity_cb", buffer)
+    wee_most.http.run_delete_post(post_id, server, "singularity_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 

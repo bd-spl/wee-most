@@ -1,19 +1,19 @@
 
 import weechat
-import wee_matter
+import wee_most
 import json
 import time
 import re
 import urllib.request
 
-from wee_matter.channel import (hydrate_channel_read_posts_cb, hydrate_channel_posts_cb,
+from wee_most.channel import (hydrate_channel_read_posts_cb, hydrate_channel_posts_cb,
                              hydrate_channel_users_cb, hydrate_channel_user_cb)
 
-from wee_matter.post import post_post_cb
+from wee_most.post import post_post_cb
 
-from wee_matter.file import file_get_cb
+from wee_most.file import file_get_cb
 
-from wee_matter.server import (connect_server_cb, connect_server_teams_cb,
+from wee_most.server import (connect_server_cb, connect_server_teams_cb,
                                connect_server_team_channels_cb,
                                connect_server_users_cb, server_completion_cb,
                                connect_server_team_channel_cb, connect_server_team_cb,

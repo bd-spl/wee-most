@@ -1,9 +1,9 @@
 
 import weechat
 import json
-import wee_matter
+import wee_most
 import re
-from wee_matter.globals import (config, servers, channel_buffers)
+from wee_most.globals import (config, servers, channel_buffers)
 
 hydrating_buffers = []
 
@@ -135,7 +135,7 @@ def channel_completion_cb(data, completion_item, current_buffer, completion):
     return weechat.WEECHAT_RC_OK
 
 def mark_channel_as_read(buffer):
-    server = wee_matter.server.get_server_from_buffer(buffer)
+    server = wee_most.server.get_server_from_buffer(buffer)
     channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
 
     last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
@@ -143,16 +143,16 @@ def mark_channel_as_read(buffer):
     if last_post_id and last_post_id == last_read_post_id: # prevent spamming on buffer switch
         return
 
-    wee_matter.http.run_post_channel_view(server.me.id, channel_id, server, "singularity_cb", "")
+    wee_most.http.run_post_channel_view(server.me.id, channel_id, server, "singularity_cb", "")
 
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", last_post_id)
 
 def channel_input_cb(data, buffer, input_data):
-    server = wee_matter.server.get_server_from_buffer(buffer)
+    server = wee_most.server.get_server_from_buffer(buffer)
 
-    builded_post = wee_matter.post.build_post_from_input_data(buffer, input_data)
+    builded_post = wee_most.post.build_post_from_input_data(buffer, input_data)
 
-    wee_matter.http.run_post_post(builded_post, server, "post_post_cb", buffer)
+    wee_most.http.run_post_post(builded_post, server, "post_post_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -161,17 +161,17 @@ def hydrate_channel_posts_cb(buffer, command, rc, out, err):
         weechat.prnt("", "An error occurred while hydrating channel")
         return weechat.WEECHAT_RC_ERROR
 
-    server = wee_matter.server.get_server_from_buffer(buffer)
+    server = wee_most.server.get_server_from_buffer(buffer)
 
     response = json.loads(out)
 
     response["order"].reverse()
     for post_id in response["order"]:
-        builded_post = wee_matter.post.build_post_from_post_data(response["posts"][post_id])
-        wee_matter.post.write_post(builded_post)
+        builded_post = wee_most.post.build_post_from_post_data(response["posts"][post_id])
+        wee_most.post.write_post(builded_post)
 
     if "" != response["next_post_id"]:
-        wee_matter.http.enqueue_request(
+        wee_most.http.enqueue_request(
             "run_get_channel_posts_after",
             builded_post.id, builded_post.channel_id, server, "hydrate_channel_posts_cb", buffer
         )
@@ -186,7 +186,7 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
         weechat.prnt("", "An error occurred while hydrating channel")
         return weechat.WEECHAT_RC_ERROR
 
-    server = wee_matter.server.get_server_from_buffer(buffer)
+    server = wee_most.server.get_server_from_buffer(buffer)
 
     response = json.loads(out)
 
@@ -195,15 +195,15 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
 
     response["order"].reverse()
     for post_id in response["order"]:
-        post = wee_matter.post.build_post_from_post_data(response["posts"][post_id], True)
-        wee_matter.post.write_post(post)
+        post = wee_most.post.build_post_from_post_data(response["posts"][post_id], True)
+        wee_most.post.write_post(post)
 
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", post.id)
     weechat.buffer_set(buffer, "unread", "-")
     weechat.buffer_set(buffer, "hotlist", "-1")
 
     if "" != response["next_post_id"]:
-        wee_matter.http.enqueue_request(
+        wee_most.http.enqueue_request(
             "run_get_channel_posts_after",
             post.id, post.channel_id, server, "hydrate_channel_posts_cb", buffer
         )
@@ -227,7 +227,7 @@ def hydrate_channel_users_cb(buffer, command, rc, out, err):
 
     response = json.loads(out)
 
-    server = wee_matter.server.get_server_from_buffer(buffer)
+    server = wee_most.server.get_server_from_buffer(buffer)
 
     for user_data in response:
         create_channel_user_from_user_data(user_data, buffer, server)
@@ -241,7 +241,7 @@ def hydrate_channel_user_cb(buffer, command, rc, out, err):
 
     user_data = json.loads(out)
 
-    server = wee_matter.server.get_server_from_buffer(buffer)
+    server = wee_most.server.get_server_from_buffer(buffer)
 
     create_channel_user_from_user_data(user_data, buffer, server)
 
@@ -286,11 +286,11 @@ def create_channel_from_channel_data(channel_data, server):
         team.channels[channel.id] = channel
 
     register_buffer_hydratating(channel_data["id"])
-    wee_matter.http.enqueue_request(
+    wee_most.http.enqueue_request(
         "run_get_read_channel_posts",
         server.me.id, channel_data["id"], server, "hydrate_channel_read_posts_cb", channel.buffer
     )
-    wee_matter.http.enqueue_request(
+    wee_most.http.enqueue_request(
         "run_get_channel_members",
         channel_data["id"], server, "hydrate_channel_users_cb", channel.buffer
     )
@@ -311,16 +311,16 @@ def buffer_switch_cb(data, signal, buffer):
     return weechat.WEECHAT_RC_OK
 
 def channel_click_cb(data, info):
-    if "wee-matter" != info.get("_buffer_localvar_script_name"):
+    if "wee-most" != info.get("_buffer_localvar_script_name"):
         return info
 
     if info["_key"] != "button1":
         return
 
     if "post_id_" in info["_chat_line_tags"]:
-        wee_matter.post.handle_post_click(data, info)
+        wee_most.post.handle_post_click(data, info)
     elif "file_id_" in info["_chat_line_tags"]:
-        wee_matter.file.handle_file_click(data, info)
+        wee_most.file.handle_file_click(data, info)
 
 def handle_multiline_message_cb(data, modifier, buffer, string):
     if buffer not in channel_buffers.values():

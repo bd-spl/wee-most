@@ -65,7 +65,7 @@ class PluginConfig:
         ),
         Setting(
             key= 'download_location',
-            default= download_dir + '/wee-matter',
+            default= download_dir + '/wee-most',
             desc= 'Location for storing downloaded files',
         ),
         Setting(
