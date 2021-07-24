@@ -1,4 +1,4 @@
-.PHONY: install uninstall autoload run-dev
+.PHONY: install uninstall autoload
 
 WEECHAT_DATA_DIR = $(HOME)/.local/share/weechat
 
@@ -17,10 +17,6 @@ uninstall:
 autoload:
 	mkdir -p $(SCRIPT_DIR)/autoload
 	ln -sf ../wee_most.py $(SCRIPT_DIR)/autoload/wee_most.py
-
-run-dev: autoload
-	make install WEECHAT_DATA_DIR=.weechat
-	weechat -d .weechat
 
 $(SCRIPT_DIR)/wee_most/:
 	install -d $(SCRIPT_DIR)/wee_most
