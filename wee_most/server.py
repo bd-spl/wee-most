@@ -38,7 +38,7 @@ class Server:
         self._create_buffer()
 
     def _create_buffer(self):
-        buffer_name = "weemost.{}".format(self.id)
+        buffer_name = "wee-most.{}".format(self.id)
         self.buffer = weechat.buffer_new(buffer_name, "", "", "", "")
         weechat.buffer_set(self.buffer, "short_name", self.id)
         weechat.buffer_set(self.buffer, "localvar_set_server_id", self.id)
