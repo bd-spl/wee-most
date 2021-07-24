@@ -23,7 +23,7 @@ from wee_most.globals import config
 import wee_most
 
 WEECHAT_SCRIPT_NAME = "wee-most"
-WEECHAT_SCRIPT_DESCRIPTION = "mattermost chat plugin"
+WEECHAT_SCRIPT_DESCRIPTION = "Mattermost chat plugin"
 WEECHAT_SCRIPT_AUTHOR = "Reed Wade <reedwade@misterbanal.net>"
 WEECHAT_SCRIPT_VERSION = "pre-alpha"
 WEECHAT_SCRIPT_LICENSE = "GPL-3"

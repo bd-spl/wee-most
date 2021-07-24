@@ -202,7 +202,7 @@ def setup_commands():
             "server: add Mattermost servers\n"
             "connect Mattermost servers\n"
             "disconnect Mattermost servers\n"
-            "send a plain mattermost command\n"
+            "send a plain Mattermost command\n"
         ),
         # Completions
         (
@@ -222,7 +222,7 @@ def setup_commands():
 
     weechat.hook_focus("chat", "channel_click_cb", "")
 
-    weechat.hook_completion("irc_channels", "complete channels for mattermost", "channel_completion_cb", "")
-    weechat.hook_completion("irc_privates", "complete dms/mpdms for mattermost", "private_completion_cb", "")
-    weechat.hook_completion("mattermost_server_commands", "complete server names for mattermost", "server_completion_cb", "")
-    weechat.hook_completion("mattermost_slash_commands", "complete mattermost slash commands", "slash_command_completion_cb", "")
+    weechat.hook_completion("irc_channels", "complete channels for Mattermost", "channel_completion_cb", "")
+    weechat.hook_completion("irc_privates", "complete dms/mpdms for Mattermost", "private_completion_cb", "")
+    weechat.hook_completion("mattermost_server_commands", "complete server names for Mattermost", "server_completion_cb", "")
+    weechat.hook_completion("mattermost_slash_commands", "complete Mattermost slash commands", "slash_command_completion_cb", "")
