@@ -2,7 +2,7 @@
 
 WEECHAT_DATA_DIR = $(HOME)/.local/share/weechat
 
-SCRIPT_DIR = $(WEECHAT_DATA_DIR)/python
+SCRIPT_DIR = $(DESTDIR)$(WEECHAT_DATA_DIR)/python
 
 libs := $(patsubst wee_most/%.py, $(SCRIPT_DIR)/wee_most/%.py, \
 	$(wildcard wee_most/*.py))
