@@ -287,7 +287,10 @@ def write_reply_message_lines(buffer, post):
 
 def write_message_lines(buffer, post):
     tags = "post_id_%s" % post.id
-    message = post.message
+
+    # remove tabs to prevent display issue on multiline messages
+    # where the part before the tab would be interpreted as the prefix
+    message = post.message.replace("	", "    ")
 
     channel_type = weechat.buffer_get_string(buffer, "localvar_type")
     if channel_type == "channel":
