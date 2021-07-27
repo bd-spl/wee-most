@@ -290,7 +290,8 @@ def write_message_lines(buffer, post):
 
     # remove tabs to prevent display issue on multiline messages
     # where the part before the tab would be interpreted as the prefix
-    message = post.message.replace("	", "    ")
+    tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
+    message = post.message.replace("\t", " " * tab_width)
 
     channel_type = weechat.buffer_get_string(buffer, "localvar_type")
     if channel_type == "channel":
