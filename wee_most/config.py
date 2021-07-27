@@ -24,6 +24,11 @@ class PluginConfig:
             desc= 'Comma separated list of server names to automatically connect to at start',
         ),
         Setting(
+            key= 'bot_suffix',
+            default= ' [BOT]',
+            desc= 'The suffix for bot names',
+        ),
+        Setting(
             key= 'channel_prefix_direct',
             default= '',
             desc= 'The prefix of buffer names for direct messages channels',
@@ -46,7 +51,7 @@ class PluginConfig:
         Setting(
             key= 'color_bot_suffix',
             default= 'darkgray',
-            desc= 'Color for [BOT] suffix in message attachments',
+            desc= 'Color for the bot suffix in message attachments',
         ),
         Setting(
             key= 'color_deleted',

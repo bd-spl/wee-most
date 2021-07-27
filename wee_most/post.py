@@ -102,7 +102,7 @@ def build_nick(user, from_bot, username_override):
         username = colorize_sentence(user.username, user.color)
 
     if from_bot:
-        username += " " + colorize_sentence("[BOT]", config.get_value("color_bot_suffix"))
+        username += colorize_sentence(config.get_value("bot_suffix"), config.get_value("color_bot_suffix"))
 
     return (
         colorize_sentence(nick_prefix, nick_prefix_color_name)
