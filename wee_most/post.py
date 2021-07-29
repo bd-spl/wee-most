@@ -306,10 +306,10 @@ def write_message_lines(buffer, post):
         tags += ",attachments"
         message = build_message_with_attachments(message, post.attachments)
 
-    if post.type == "system_join_channel":
+    if post.type in [ "system_join_channel", "system_join_team" ]:
         prefix = weechat.config_string(weechat.config_get("weechat.look.prefix_join"))
         message = "{}{}".format(prefix, message)
-    elif post.type == "system_leave_channel":
+    elif post.type in [ "system_leave_channel", "system_leave_team" ]:
         prefix = weechat.config_string(weechat.config_get("weechat.look.prefix_quit"))
         message = "{}{}".format(prefix, message)
 
