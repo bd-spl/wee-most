@@ -155,15 +155,14 @@ def handle_post_edited_message(server, message):
 
     post_data = json.loads(data["post"])
     post = wee_most.post.Post(server, **post_data)
-    wee_most.post.write_post(post)
+    wee_most.post.write_post_edited(post)
 
 def handle_post_deleted_message(server, message):
     data = message["data"]
 
     post_data = json.loads(data["post"])
     post = wee_most.post.Post(server, **post_data)
-    post.deleted = True
-    wee_most.post.write_post(post)
+    wee_most.post.write_post_deleted(post)
 
 def handle_channel_created_message(server, message):
     data = message["data"]

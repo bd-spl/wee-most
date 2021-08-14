@@ -13,7 +13,6 @@ class Post:
         self.message = kwargs["message"]
         self.type = kwargs["type"]
         self.date = int(kwargs["create_at"]/1000)
-        self.deleted = kwargs["delete_at"] != 0
         self.read = False
 
         self.user = server.users[kwargs["user_id"]]
@@ -311,14 +310,20 @@ def write_message_lines(buffer, post):
         build_nick(post.user, post.from_bot, post.username_override) + "	" + message
     )
 
+def write_post_edited(post):
+    if post.id in post_buffers:
+        buffer = post.channel.buffer
+        write_edited_message_lines(buffer, post)
+
+def write_post_deleted(post):
+    if post.id in post_buffers:
+        buffer = post.channel.buffer
+        delete_message(buffer, post)
+
 def write_post(post):
     buffer = post.channel.buffer
 
-    if post.deleted:
-        delete_message(buffer, post)
-    elif post.id in post_buffers:
-        write_edited_message_lines(buffer, post)
-    elif post.parent_id:
+    if post.parent_id:
         write_reply_message_lines(buffer, post)
     else:
         write_message_lines(buffer, post)
