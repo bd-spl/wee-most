@@ -122,7 +122,7 @@ def handle_posted_message(server, message):
     if wee_most.channel.is_buffer_hydratating(broadcast["channel_id"]):
         return
 
-    post = wee_most.post.build_post_from_post_data(post)
+    post = wee_most.post.Post(**post)
     wee_most.post.write_post(post)
 
     buffer = wee_most.channel.get_buffer_from_channel_id(post.channel_id)
@@ -154,15 +154,15 @@ def handle_post_edited_message(server, message):
     data = message["data"]
 
     post_data = json.loads(data["post"])
-    post = wee_most.post.build_post_from_post_data(post_data)
+    post = wee_most.post.Post(**post_data)
     wee_most.post.write_post(post)
 
 def handle_post_deleted_message(server, message):
     data = message["data"]
 
     post_data = json.loads(data["post"])
-    post = wee_most.post.build_post_from_post_data(post_data)
-    post = post._replace(deleted=True)
+    post = wee_most.post.Post(**post_data)
+    post.deleted = True
     wee_most.post.write_post(post)
 
 def handle_channel_created_message(server, message):

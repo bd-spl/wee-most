@@ -6,25 +6,27 @@ import wee_most.file
 from typing import NamedTuple
 from wee_most.globals import (config, channel_buffers)
 
-Post = NamedTuple(
-    "Post",
-    [
-        ("id", str),
-        ("parent_id", str),
-        ("channel_id", str),
-        ("message", str),
-        ("date", int),
-        ("deleted", bool),
-        ("read", bool),
-        ("attachments", list),
-        ("files", list),
-        ("reactions", list),
-        ("user", any),
-        ("from_bot", bool),
-        ("username_override", str),
-        ("type", str),
-    ]
-)
+class Post:
+    def __init__(self, **kwargs):
+        self.id = kwargs["id"]
+        self.parent_id = kwargs["parent_id"]
+        self.channel_id = kwargs["channel_id"]
+        self.message = kwargs["message"]
+        self.type = kwargs["type"]
+        self.date = int(kwargs["create_at"]/1000)
+        self.deleted = kwargs["delete_at"] != 0
+        self.read = False
+
+        buffer = channel_buffers[kwargs["channel_id"]]
+        server = wee_most.server.get_server_from_buffer(buffer)
+
+        self.user = server.users[kwargs["user_id"]]
+        self.files = wee_most.file.get_files_from_post_data(kwargs, server)
+        self.reactions = get_reactions_from_post_data(kwargs, server)
+
+        self.attachments = kwargs["props"].get("attachments", [])
+        self.from_bot = kwargs["props"].get("from_bot", False) or kwargs["props"].get("from_webhook", False)
+        self.username_override = kwargs["props"].get("override_username")
 
 Reaction = NamedTuple(
     "Reaction",
@@ -352,41 +354,6 @@ def get_reactions_from_post_data(post_data, server):
         return reactions
 
     return []
-
-def build_post_from_post_data(post_data, is_read = False):
-    buffer = channel_buffers[post_data["channel_id"]]
-
-    server = wee_most.server.get_server_from_buffer(buffer)
-
-    user = server.users[post_data["user_id"]]
-
-    if 'attachments' in post_data["props"]:
-        attachments = post_data["props"]["attachments"]
-    else:
-        attachments = []
-
-    from_bot = post_data["props"].get("from_bot", False) or post_data["props"].get("from_webhook", False)
-
-    username_override = post_data["props"].get("override_username")
-
-    post = Post(
-        id= post_data["id"],
-        parent_id= post_data["parent_id"],
-        channel_id= post_data["channel_id"],
-        message= post_data["message"],
-        date= int(post_data["create_at"]/1000),
-        deleted= False,
-        read= is_read,
-        attachments= attachments,
-        files= wee_most.file.get_files_from_post_data(post_data, server),
-        reactions= get_reactions_from_post_data(post_data, server),
-        user= user,
-        from_bot= from_bot,
-        username_override= username_override,
-        type= post_data["type"],
-    )
-
-    return post
 
 def get_line_data_tags(line_data):
     tags = []

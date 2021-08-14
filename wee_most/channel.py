@@ -170,7 +170,7 @@ def hydrate_channel_posts_cb(buffer, command, rc, out, err):
 
     response["order"].reverse()
     for post_id in response["order"]:
-        builded_post = wee_most.post.build_post_from_post_data(response["posts"][post_id])
+        builded_post = wee_most.post.Post(**response["posts"][post_id])
         wee_most.post.write_post(builded_post)
 
     if "" != response["next_post_id"]:
@@ -198,7 +198,8 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
 
     response["order"].reverse()
     for post_id in response["order"]:
-        post = wee_most.post.build_post_from_post_data(response["posts"][post_id], True)
+        post = wee_most.post.Post(**response["posts"][post_id])
+        post.read = True
         wee_most.post.write_post(post)
 
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", post.id)
