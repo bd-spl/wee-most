@@ -113,8 +113,11 @@ def reply_command_cb(data, buffer, args):
     if not post_id:
         post_id = wee_most.post.find_post_id_in_tags(tags)
 
-    post = wee_most.post.build_post_from_input_data(buffer, message)
-    post = post._replace(parent_id=post_id)
+    post = {
+        'channel_id': weechat.buffer_get_string(buffer, "localvar_channel_id"),
+        'message': message,
+        'parent_id': post_id,
+    }
 
     server = wee_most.server.get_server_from_buffer(buffer)
 

@@ -47,26 +47,6 @@ def post_post_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def build_post_from_input_data(buffer, input_data):
-    server = wee_most.server.get_server_from_buffer(buffer)
-
-    return Post(
-        id= "",
-        parent_id= "",
-        channel_id= weechat.buffer_get_string(buffer, "localvar_channel_id"),
-        message= input_data,
-        date= 0,
-        deleted= False,
-        read= True,
-        attachments= [],
-        files= [],
-        reactions= [],
-        user= server.me,
-        from_bot= False,
-        username_override= None,
-        type= None,
-    )
-
 def build_reaction_message(reaction):
     return "[:{}:]".format(colorize_sentence(reaction.emoji_name, reaction.user.color))
 

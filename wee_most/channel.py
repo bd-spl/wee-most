@@ -150,9 +150,12 @@ def mark_channel_as_read(buffer):
 def channel_input_cb(data, buffer, input_data):
     server = wee_most.server.get_server_from_buffer(buffer)
 
-    builded_post = wee_most.post.build_post_from_input_data(buffer, input_data)
+    post = {
+        'channel_id': weechat.buffer_get_string(buffer, "localvar_channel_id"),
+        'message': input_data,
+    }
 
-    wee_most.http.run_post_post(builded_post, server, "post_post_cb", buffer)
+    wee_most.http.run_post_post(post, server, "post_post_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 

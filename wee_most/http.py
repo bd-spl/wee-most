@@ -182,12 +182,12 @@ def run_get_user_team_channels(user_id, team_id, server, cb, cb_data):
 def run_post_post(post, server, cb, cb_data):
     url = server.url + "/api/v4/posts"
     params = {
-        "channel_id": post.channel_id,
-        "message": post.message,
+        "channel_id": post["channel_id"],
+        "message": post["message"],
     }
 
-    if post.parent_id:
-        params["root_id"] = post.parent_id
+    if "parent_id" in post:
+        params["root_id"] = post["parent_id"]
 
     weechat.hook_process_hashtable(
         "url:" + url,
