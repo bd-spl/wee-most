@@ -6,18 +6,15 @@ import wee_most.file
 from wee_most.globals import (config, channel_buffers)
 
 class Post:
-    def __init__(self, **kwargs):
+    def __init__(self, server, **kwargs):
         self.id = kwargs["id"]
         self.parent_id = kwargs["parent_id"]
-        self.channel_id = kwargs["channel_id"]
+        self.channel = server.get_channel(kwargs["channel_id"])
         self.message = kwargs["message"]
         self.type = kwargs["type"]
         self.date = int(kwargs["create_at"]/1000)
         self.deleted = kwargs["delete_at"] != 0
         self.read = False
-
-        buffer = channel_buffers[kwargs["channel_id"]]
-        server = wee_most.server.get_server_from_buffer(buffer)
 
         self.user = server.users[kwargs["user_id"]]
         self.files = wee_most.file.get_files_from_post_data(kwargs, server)
@@ -315,7 +312,7 @@ def write_message_lines(buffer, post):
     )
 
 def write_post(post):
-    buffer = channel_buffers[post.channel_id]
+    buffer = post.channel.buffer
 
     if post.deleted:
         delete_message(buffer, post)

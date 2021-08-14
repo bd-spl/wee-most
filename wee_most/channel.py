@@ -170,13 +170,13 @@ def hydrate_channel_posts_cb(buffer, command, rc, out, err):
 
     response["order"].reverse()
     for post_id in response["order"]:
-        builded_post = wee_most.post.Post(**response["posts"][post_id])
+        builded_post = wee_most.post.Post(server, **response["posts"][post_id])
         wee_most.post.write_post(builded_post)
 
     if "" != response["next_post_id"]:
         wee_most.http.enqueue_request(
             "run_get_channel_posts_after",
-            builded_post.id, builded_post.channel_id, server, "hydrate_channel_posts_cb", buffer
+            builded_post.id, builded_post.channel.id, server, "hydrate_channel_posts_cb", buffer
         )
     else:
         channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
@@ -198,7 +198,7 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
 
     response["order"].reverse()
     for post_id in response["order"]:
-        post = wee_most.post.Post(**response["posts"][post_id])
+        post = wee_most.post.Post(server, **response["posts"][post_id])
         post.read = True
         wee_most.post.write_post(post)
 
@@ -209,10 +209,10 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
     if "" != response["next_post_id"]:
         wee_most.http.enqueue_request(
             "run_get_channel_posts_after",
-            post.id, post.channel_id, server, "hydrate_channel_posts_cb", buffer
+            post.id, post.channel.id, server, "hydrate_channel_posts_cb", buffer
         )
     else:
-        remove_buffer_hydratating(post.channel_id)
+        remove_buffer_hydratating(post.channel.id)
 
     return weechat.WEECHAT_RC_OK
 

@@ -46,6 +46,16 @@ class Server:
 
         buffer_merge(self.buffer)
 
+    def get_channel(self, channel_id):
+        if channel_id in self.channels:
+            return self.channels[channel_id]
+
+        for team in self.teams.values():
+            if channel_id in team.channels:
+                return team.channels[channel_id]
+
+        return None
+
     def is_connected(self):
         return self.worker
 
