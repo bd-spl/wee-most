@@ -22,6 +22,7 @@ class ChannelBase:
         self.server = server
         self.name = self._format_name(kwargs["display_name"], kwargs["name"])
         self.buffer = None
+        self.posts = {}
 
         self._create_buffer()
 

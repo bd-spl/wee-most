@@ -136,7 +136,8 @@ def handle_reaction_added_message(server, message):
     reaction_data = json.loads(data["reaction"])
 
     reaction = wee_most.post.get_reaction_from_reaction_data(reaction_data, server)
-    buffer = wee_most.post.get_buffer_from_post_id(reaction_data["post_id"])
+    post = server.get_post(reaction_data["post_id"])
+    buffer = post.channel.buffer
 
     wee_most.post.add_reaction_to_post(buffer, reaction)
 
@@ -146,7 +147,8 @@ def handle_reaction_removed_message(server, message):
     reaction_data = json.loads(data["reaction"])
 
     reaction = wee_most.post.get_reaction_from_reaction_data(reaction_data, server)
-    buffer = wee_most.post.get_buffer_from_post_id(reaction_data["post_id"])
+    post = server.get_post(reaction_data["post_id"])
+    buffer = post.channel.buffer
 
     wee_most.post.remove_reaction_from_post(buffer, reaction)
 

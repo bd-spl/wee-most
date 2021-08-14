@@ -15,6 +15,8 @@ class Post:
         self.date = int(kwargs["create_at"]/1000)
         self.read = False
 
+        self.channel.posts[kwargs["id"]] = self
+
         self.user = server.users[kwargs["user_id"]]
         self.files = wee_most.file.get_files_from_post_data(kwargs, server)
         self.reactions = get_reactions_from_post_data(kwargs, server)
@@ -28,11 +30,6 @@ class Reaction:
         self.user = user
         self.post_id = post_id
         self.emoji_name = emoji_name
-
-post_buffers = {}
-
-def get_buffer_from_post_id(post_id):
-    return post_buffers[post_id]
 
 def post_post_cb(buffer, command, rc, out, err):
     if rc != 0:
@@ -311,12 +308,14 @@ def write_message_lines(buffer, post):
     )
 
 def write_post_edited(post):
-    if post.id in post_buffers:
+    server = post.channel.server
+    if server.get_post(post.id) is not None:
         buffer = post.channel.buffer
         write_edited_message_lines(buffer, post)
 
 def write_post_deleted(post):
-    if post.id in post_buffers:
+    server = post.channel.server
+    if server.get_post(post.id) is not None:
         buffer = post.channel.buffer
         delete_message(buffer, post)
 
@@ -330,7 +329,6 @@ def write_post(post):
     wee_most.file.write_file_lines(buffer, post)
 
     weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
-    post_buffers[post.id] = buffer
 
 def get_reaction_from_reaction_data(reaction_data, server):
     user = server.users[reaction_data["user_id"]]

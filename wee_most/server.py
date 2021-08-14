@@ -56,6 +56,18 @@ class Server:
 
         return None
 
+    def get_post(self, post_id):
+        for channel in self.channels.values():
+            if post_id in channel.posts:
+                return channel.posts[post_id]
+
+        for team in self.teams.values():
+            for channel in team.channels.values():
+                if post_id in channel.posts:
+                    return channel.posts[post_id]
+
+        return None
+
     def is_connected(self):
         return self.worker
 
