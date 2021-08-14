@@ -3,7 +3,6 @@ import weechat
 import wee_most.server
 import wee_most.post
 import wee_most.file
-from typing import NamedTuple
 from wee_most.globals import (config, channel_buffers)
 
 class Post:
@@ -28,14 +27,11 @@ class Post:
         self.from_bot = kwargs["props"].get("from_bot", False) or kwargs["props"].get("from_webhook", False)
         self.username_override = kwargs["props"].get("override_username")
 
-Reaction = NamedTuple(
-    "Reaction",
-    [
-        ("user", any),
-        ("emoji_name", str),
-        ("post_id", str),
-    ]
-)
+class Reaction:
+    def __init__(self, user, post_id, emoji_name):
+        self.user = user
+        self.post_id = post_id
+        self.emoji_name = emoji_name
 
 post_buffers = {}
 
@@ -337,11 +333,7 @@ def write_post(post):
 def get_reaction_from_reaction_data(reaction_data, server):
     user = server.users[reaction_data["user_id"]]
 
-    return Reaction(
-        user= user,
-        emoji_name= reaction_data["emoji_name"],
-        post_id= reaction_data["post_id"],
-    )
+    return Reaction(user, reaction_data["post_id"], reaction_data["emoji_name"])
 
 def get_reactions_from_post_data(post_data, server):
     if "reactions" in post_data["metadata"]:
