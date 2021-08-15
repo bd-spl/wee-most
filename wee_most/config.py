@@ -1,21 +1,14 @@
 
 import weechat
 import os
-from typing import NamedTuple
+from collections import namedtuple
 
 download_dir = os.environ.get('XDG_DOWNLOAD_DIR')
 if not download_dir:
     download_dir = '~/Downloads'
 
 class PluginConfig:
-    Setting = NamedTuple(
-            "Setting",
-            [
-                ("key", str),
-                ("default", str),
-                ("desc", str),
-            ]
-    )
+    Setting = namedtuple("Setting", ["key", "default", "desc"])
 
     general_settings = [
         Setting(
