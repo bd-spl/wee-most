@@ -1,7 +1,61 @@
 
 import weechat
 import wee_most
+from collections import namedtuple
 from wee_most.globals import config
+
+Command = namedtuple("Command", ["name", "args", "description", "completion"])
+
+commands = [
+    Command(
+        name = "server add",
+        args = "<server-name>",
+        description = "add a server",
+        completion = "",
+    ),
+    Command(
+        name = "connect",
+        args = "<server-name>",
+        description = "connect to a server",
+        completion = "",
+    ),
+    Command(
+        name = "disconnect",
+        args = "<server-name>",
+        description = "disconnect from a server",
+        completion = "%(mattermost_server_commands)",
+    ),
+    Command(
+        name = "command",
+        args = "<mattermost-command>",
+        description = "send a plain slash command",
+        completion = "%(mattermost_slash_commands)",
+    ),
+    Command(
+        name = "reply",
+        args = "<post-id> <message>",
+        description = "reply to a post",
+        completion = "",
+    ),
+    Command(
+        name = "react",
+        args = "<post-id> <emoji-name>",
+        description = "react to a post",
+        completion = "",
+    ),
+    Command(
+        name = "unreact",
+        args = "<post-id> <emoji-name>",
+        description = "remove a reaction to a post",
+        completion = "",
+    ),
+    Command(
+        name = "delete",
+        args = "<post-id>",
+        description = "delete a post",
+        completion = "",
+    ),
+]
 
 def server_add_command_usage(buffer):
     weechat.prnt(buffer, "Usage: /mattermost server add <server-name>")
@@ -204,40 +258,10 @@ def slash_command_completion_cb(data, completion_item, current_buffer, completio
 def setup_commands():
     weechat.hook_command(
         "mattermost",
-        "Mattermost chat protocol command",
-         # Synopsis
-        (
-            "server add <server-name> ||"
-            "connect <server-name> ||"
-            "disconnect <server-name> ||"
-            "<mattermost-command> ||"
-            "reply <post-id> <message> ||"
-            "react <post-id> <emoji-name> ||"
-            "unreact <post-id> <emoji-name>  ||"
-            "delete <post-id>"
-        ),
-        # Description
-        (
-            "server: add Mattermost servers\n"
-            "connect Mattermost servers\n"
-            "disconnect Mattermost servers\n"
-            "send a plain Mattermost command\n"
-            "reply to a post\n"
-            "react to a post\n"
-            "unreact to a post\n"
-            "delete a post\n"
-        ),
-        # Completions
-        (
-            "server add ||"
-            "connect ||"
-            "disconnect %(mattermost_server_commands) ||"
-            "command %(mattermost_slash_commands) ||"
-            "reply ||"
-            "react ||"
-            "unreact ||"
-            "delete"
-        ),
+        "Mattermost commands",
+        "||".join([c.name + " " + c.args for c in commands]),
+        "\n".join([c.name.rjust(10) + ": " + c.description for c in commands]),
+        "||".join([c.name + " " + c.completion for c in commands]),
         "mattermost_command_cb",
         ""
     )
