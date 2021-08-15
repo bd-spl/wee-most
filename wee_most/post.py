@@ -26,10 +26,10 @@ class Post:
         self.username_override = kwargs["props"].get("override_username")
 
 class Reaction:
-    def __init__(self, user, post_id, emoji_name):
-        self.user = user
-        self.post_id = post_id
-        self.emoji_name = emoji_name
+    def __init__(self, server, **kwargs):
+        self.user = server.users[kwargs["user_id"]]
+        self.post_id = kwargs["post_id"]
+        self.emoji_name = kwargs["emoji_name"]
 
 def post_post_cb(buffer, command, rc, out, err):
     if rc != 0:
@@ -333,19 +333,11 @@ def write_post(post):
         write_message_lines(post)
     wee_most.file.write_file_lines(post)
 
-def get_reaction_from_reaction_data(reaction_data, server):
-    user = server.users[reaction_data["user_id"]]
-
-    return Reaction(user, reaction_data["post_id"], reaction_data["emoji_name"])
-
 def get_reactions_from_post_data(post_data, server):
     if "reactions" in post_data["metadata"]:
         reactions = []
         for reaction_data in post_data["metadata"]["reactions"]:
-            reaction = get_reaction_from_reaction_data(reaction_data, server)
-            if not reaction:
-                continue
-            reactions.append(reaction)
+            reactions.append(Reaction(server, **reaction_data))
         return reactions
 
     return []
