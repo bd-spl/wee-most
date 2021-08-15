@@ -8,91 +8,91 @@ if not download_dir:
     download_dir = '~/Downloads'
 
 class PluginConfig:
-    Setting = namedtuple("Setting", ["key", "default", "desc"])
+    Setting = namedtuple("Setting", ["name", "default", "description"])
 
     general_settings = [
         Setting(
-            key= 'autoconnect',
+            name= 'autoconnect',
             default= '',
-            desc= 'Comma separated list of server names to automatically connect to at start',
+            description= 'Comma separated list of server names to automatically connect to at start',
         ),
         Setting(
-            key= 'bot_suffix',
+            name= 'bot_suffix',
             default= ' [BOT]',
-            desc= 'The suffix for bot names',
+            description= 'The suffix for bot names',
         ),
         Setting(
-            key= 'channel_prefix_direct',
+            name= 'channel_prefix_direct',
             default= '',
-            desc= 'The prefix of buffer names for direct messages channels',
+            description= 'The prefix of buffer names for direct messages channels',
         ),
         Setting(
-            key= 'channel_prefix_group',
+            name= 'channel_prefix_group',
             default= '&',
-            desc= 'The prefix of buffer names for group channels',
+            description= 'The prefix of buffer names for group channels',
         ),
         Setting(
-            key= 'channel_prefix_private',
+            name= 'channel_prefix_private',
             default= '%',
-            desc= 'The prefix of buffer names for private channels',
+            description= 'The prefix of buffer names for private channels',
         ),
         Setting(
-            key= 'channel_prefix_public',
+            name= 'channel_prefix_public',
             default= '#',
-            desc= 'The prefix of buffer names for public channels',
+            description= 'The prefix of buffer names for public channels',
         ),
         Setting(
-            key= 'color_bot_suffix',
+            name= 'color_bot_suffix',
             default= 'darkgray',
-            desc= 'Color for the bot suffix in message attachments',
+            description= 'Color for the bot suffix in message attachments',
         ),
         Setting(
-            key= 'color_deleted',
+            name= 'color_deleted',
             default= 'red',
-            desc= 'Color for deleted messages',
+            description= 'Color for deleted messages',
         ),
         Setting(
-            key= 'color_parent_reply',
+            name= 'color_parent_reply',
             default= 'lightgreen',
-            desc= 'Color for parent message of a reply',
+            description= 'Color for parent message of a reply',
         ),
         Setting(
-            key= 'color_quote',
+            name= 'color_quote',
             default= 'yellow',
-            desc= 'Color for quoted messages',
+            description= 'Color for quoted messages',
         ),
         Setting(
-            key= 'download_location',
+            name= 'download_location',
             default= download_dir + '/wee-most',
-            desc= 'Location for storing downloaded files',
+            description= 'Location for storing downloaded files',
         ),
         Setting(
-            key= 'channel_loading_indicator',
+            name= 'channel_loading_indicator',
             default= '…',
-            desc= 'Indicator for channels being loaded with content',
+            description= 'Indicator for channels being loaded with content',
         ),
     ]
 
     server_settings = [
         Setting(
-            key= 'url',
+            name= 'url',
             default= '',
-            desc= 'URL of {} server',
+            description= 'URL of {} server',
         ),
         Setting(
-            key= 'password',
+            name= 'password',
             default= '',
-            desc= 'Password for authentication to {} server',
+            description= 'Password for authentication to {} server',
         ),
         Setting(
-            key= 'username',
+            name= 'username',
             default= '',
-            desc= 'Username for authentication to {} server',
+            description= 'Username for authentication to {} server',
         ),
     ]
 
-    def get_value(self, key):
-        return weechat.config_get_plugin(key)
+    def get_value(self, name):
+        return weechat.config_get_plugin(name)
 
     def get_download_location(self):
         return weechat.config_get_plugin("download_location")
@@ -101,8 +101,8 @@ class PluginConfig:
         auto_connect = weechat.config_get_plugin("autoconnect")
         return list(filter(bool, auto_connect.split(",")))
 
-    def get_server_config(self, server_id, key):
-        option = "server." + server_id + "." + key
+    def get_server_config(self, server_id, name):
+        option = "server." + server_id + "." + name
         config_value = weechat.config_get_plugin(option)
         expanded_value = weechat.string_eval_expression(config_value, {}, {}, {})
         return expanded_value
@@ -112,18 +112,18 @@ class PluginConfig:
         return weechat.config_is_set_plugin(test_option)
 
     def _add_setting(self, s):
-        if weechat.config_is_set_plugin(s.key):
+        if weechat.config_is_set_plugin(s.name):
             return
 
-        weechat.config_set_plugin(s.key, s.default)
-        weechat.config_set_desc_plugin(s.key, '%s (default: "%s")' % (s.desc, s.default))
+        weechat.config_set_plugin(s.name, s.default)
+        weechat.config_set_desc_plugin(s.name, '%s (default: "%s")' % (s.description, s.default))
 
     def add_server_options(self, server_id):
         for s in self.server_settings:
             self._add_setting(self.Setting(
-                key= "server." + server_id + "." + s.key,
+                name= "server." + server_id + "." + s.name,
                 default= s.default,
-                desc= s.desc.format(server_id),
+                description= s.description.format(server_id),
                 ))
 
     def setup(self):
