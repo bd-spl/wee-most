@@ -26,7 +26,7 @@ commands = [
         completion = "%(mattermost_server_commands)",
     ),
     Command(
-        name = "command",
+        name = "slash",
         args = "<mattermost-command>",
         description = "send a plain slash command",
         completion = "%(mattermost_slash_commands)",
@@ -96,7 +96,7 @@ def server_command(args, buffer):
 
 def slash_command(args, buffer):
     if 0 == len(args.split()):
-        write_command_error(buffer, "command " + args, "Error with subcommand arguments")
+        write_command_error(buffer, "slash " + args, "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     server = wee_most.server.get_server_from_buffer(buffer)
@@ -119,7 +119,7 @@ def mattermost_command_cb(data, buffer, command):
         return connect_command(args, buffer)
     if prefix == "disconnect":
         return disconnect_command(args, buffer)
-    if prefix == "command":
+    if prefix == "slash":
         return slash_command(args, buffer)
     if prefix == "reply":
         return reply_command(args, buffer)

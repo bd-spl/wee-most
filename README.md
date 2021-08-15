@@ -45,7 +45,7 @@ Then you can connect/disconnect to servers
 You can send Mattermost commands using this prefix.
 
 ```
-/mattermost command me Aya ! :3
+/mattermost slash me Aya ! :3
 ```
 
 ## Reply, React, Remove
