@@ -32,7 +32,7 @@ class Post:
 class Reaction:
     def __init__(self, server, **kwargs):
         self.user = server.users[kwargs["user_id"]]
-        self.post_id = kwargs["post_id"]
+        self.post = server.get_post(kwargs["post_id"])
         self.emoji_name = kwargs["emoji_name"]
 
 def post_post_cb(buffer, command, rc, out, err):
@@ -382,7 +382,7 @@ def find_buffer_first_post_line_data(buffer, post_id):
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
 
 def add_reaction_to_post(buffer, reaction):
-    line_data = find_buffer_last_post_line_data(buffer, reaction.post_id)
+    line_data = find_buffer_last_post_line_data(buffer, reaction.post.id)
 
     tags = get_line_data_tags(line_data)
     old_message = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message")
@@ -403,7 +403,7 @@ def add_reaction_to_post(buffer, reaction):
     )
 
 def remove_reaction_from_post(buffer, reaction):
-    line_data = find_buffer_last_post_line_data(buffer, reaction.post_id)
+    line_data = find_buffer_last_post_line_data(buffer, reaction.post.id)
 
     tags = get_line_data_tags(line_data)
 
