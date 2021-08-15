@@ -29,11 +29,17 @@ class Post:
         self.from_bot = kwargs["props"].get("from_bot", False) or kwargs["props"].get("from_webhook", False)
         self.username_override = kwargs["props"].get("override_username")
 
+    def get_reactions_line(self):
+        return " ".join([str(r) for r in self.reactions])
+
 class Reaction:
     def __init__(self, server, **kwargs):
         self.user = server.users[kwargs["user_id"]]
         self.post = server.get_post(kwargs["post_id"])
         self.emoji_name = kwargs["emoji_name"]
+
+    def __str__(self):
+        return "[:{}:]".format(colorize_sentence(self.emoji_name, self.user.color))
 
 def post_post_cb(buffer, command, rc, out, err):
     if rc != 0:
@@ -41,16 +47,6 @@ def post_post_cb(buffer, command, rc, out, err):
         return weechat.WEECHAT_RC_ERROR
 
     return weechat.WEECHAT_RC_OK
-
-def build_reaction_message(reaction):
-    return "[:{}:]".format(colorize_sentence(reaction.emoji_name, reaction.user.color))
-
-def build_reaction_line(post):
-    reaction_line = ""
-    for reaction in post.reactions:
-        reaction_line += " " + build_reaction_message(reaction)
-
-    return reaction_line.strip()
 
 def build_quote_message(message):
     if 69 < len(message):
@@ -248,7 +244,7 @@ def write_reply_message_lines(post):
                 + "	"
                 + post.message
                 + " | "
-                + build_reaction_line(post)
+                + post.get_reactions_line()
             )
         )
         return
@@ -306,7 +302,7 @@ def write_message_lines(post):
                 + "	"
                 + message
                 + " | "
-                + build_reaction_line(post)
+                + post.get_reactions_line()
             )
         )
         return
@@ -389,9 +385,9 @@ def add_reaction_to_post(reaction):
     old_message = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message")
 
     if "reactions" in tags:
-        new_message = old_message + " " + build_reaction_message(reaction)
+        new_message = old_message + " " + str(reaction)
     else:
-        new_message = old_message + " | " + build_reaction_message(reaction)
+        new_message = old_message + " | " + str(reaction)
         tags.append("reactions")
 
     weechat.hdata_update(
@@ -411,9 +407,7 @@ def remove_reaction_from_post(reaction):
 
     old_message, _, old_reactions = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message").partition(' | ')
 
-
-    reaction_message = build_reaction_message(reaction)
-    new_reactions = old_reactions.replace(reaction_message, "", 1).replace("  ", " ").strip()
+    new_reactions = old_reactions.replace(str(reaction), "", 1).replace("  ", " ").strip()
 
     if "" == new_reactions:
         tags.remove("reactions")
