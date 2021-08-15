@@ -19,7 +19,11 @@ class Post:
 
         self.user = server.users[kwargs["user_id"]]
         self.files = wee_most.file.get_files_from_post_data(kwargs, server)
-        self.reactions = get_reactions_from_post_data(kwargs, server)
+
+        self.reactions = []
+        if "reactions" in kwargs["metadata"]:
+            for reaction_data in kwargs["metadata"]["reactions"]:
+                self.reactions.append(Reaction(server, **reaction_data))
 
         self.attachments = kwargs["props"].get("attachments", [])
         self.from_bot = kwargs["props"].get("from_bot", False) or kwargs["props"].get("from_webhook", False)
@@ -332,15 +336,6 @@ def write_post(post):
     else:
         write_message_lines(post)
     wee_most.file.write_file_lines(post)
-
-def get_reactions_from_post_data(post_data, server):
-    if "reactions" in post_data["metadata"]:
-        reactions = []
-        for reaction_data in post_data["metadata"]["reactions"]:
-            reactions.append(Reaction(server, **reaction_data))
-        return reactions
-
-    return []
 
 def get_line_data_tags(line_data):
     tags = []
