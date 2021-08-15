@@ -63,7 +63,7 @@ def slash_command(args, buffer):
 
     return weechat.WEECHAT_RC_OK
 
-def matter_command_usage(buffer):
+def mattermost_command_usage(buffer):
     weechat.prnt(buffer,
         (
             "Usage: \n"
@@ -71,12 +71,16 @@ def matter_command_usage(buffer):
             "    /mattermost connect <server-name>\n"
             "    /mattermost disconnect <server-name>\n"
             "    /mattermost command <mattermost-command>\n"
+            "    /mattermost reply <post-id> <message>\n"
+            "    /mattermost react <post-id> <emoji-name>\n"
+            "    /mattermost unreact <post-id> <emoji-name>\n"
+            "    /mattermost delete <post-id>\n"
         )
     )
 
-def matter_command_cb(data, buffer, command):
+def mattermost_command_cb(data, buffer, command):
     if 0 == len(command.split()):
-        matter_command_usage(buffer)
+        mattermost_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
 
     prefix, _, args = command.partition(" ")
@@ -89,13 +93,21 @@ def matter_command_cb(data, buffer, command):
         return disconnect_command(args, buffer)
     if prefix == "command":
         return slash_command(args, buffer)
+    if prefix == "reply":
+        return reply_command(args, buffer)
+    if prefix == "react":
+        return react_command(args, buffer)
+    if prefix == "unreact":
+        return unreact_command(args, buffer)
+    if prefix == "delete":
+        return delete_command(args, buffer)
 
     return weechat.WEECHAT_RC_ERROR
 
 def reply_command_usage(buffer):
     weechat.prnt(buffer, "Usage: /reply <post-id> <message>")
 
-def reply_command_cb(data, buffer, args):
+def reply_command(args, buffer):
     if 2 != len(args.split(' ', 1)):
         reply_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
@@ -128,7 +140,7 @@ def reply_command_cb(data, buffer, args):
 def react_command_usage(buffer):
     weechat.prnt(buffer, "Usage: /react <post-id> <emoji-name>")
 
-def react_command_cb(data, buffer, args):
+def react_command(args, buffer):
     if 2 != len(args.split()):
         react_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
@@ -147,7 +159,7 @@ def react_command_cb(data, buffer, args):
 def unreact_command_usage(buffer):
     weechat.prnt(buffer, "Usage: /unreact <post-id> <emoji-name>")
 
-def unreact_command_cb(data, buffer, args):
+def unreact_command(args, buffer):
     if 2 != len(args.split()):
         unreact_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
@@ -163,10 +175,10 @@ def unreact_command_cb(data, buffer, args):
 
     return weechat.WEECHAT_RC_OK
 
-def delete_post_command_cb_usage(buffer):
+def delete_post_command_usage(buffer):
     weechat.prnt(buffer, "Usage: /delete <post-id>")
 
-def delete_post_command_cb(data, buffer, args):
+def delete_post_command(args, buffer):
     if 1 != len(args.split()):
         delete_post_command_usage(buffer)
         return weechat.WEECHAT_RC_ERROR
@@ -198,7 +210,11 @@ def setup_commands():
             "server add <server-name> ||"
             "connect <server-name> ||"
             "disconnect <server-name> ||"
-            "<mattermost-command>"
+            "<mattermost-command> ||"
+            "reply <post-id> <message> ||"
+            "react <post-id> <emoji-name> ||"
+            "unreact <post-id> <emoji-name>  ||"
+            "delete <post-id>"
         ),
         # Description
         (
@@ -206,6 +222,10 @@ def setup_commands():
             "connect Mattermost servers\n"
             "disconnect Mattermost servers\n"
             "send a plain Mattermost command\n"
+            "reply to a post\n"
+            "react to a post\n"
+            "unreact to a post\n"
+            "delete a post\n"
         ),
         # Completions
         (
@@ -213,15 +233,14 @@ def setup_commands():
             "connect ||"
             "disconnect %(mattermost_server_commands) ||"
             "command %(mattermost_slash_commands) ||"
+            "reply ||"
+            "react ||"
+            "unreact ||"
+            "delete"
         ),
-        "matter_command_cb",
+        "mattermost_command_cb",
         ""
     )
-
-    weechat.hook_command("reply", "Reply to a post", "<post-id> <message>", "Reply to a post", "", "reply_command_cb", "")
-    weechat.hook_command("react", "React to a post", "<post-id> <emoji-name>", "React to a post", "", "react_command_cb", "")
-    weechat.hook_command("unreact", "Unreact to a post", "<post-id> <emoji-name>", "Unreact to a post", "", "unreact_command_cb", "")
-    weechat.hook_command("delete", "Delete a post", "<post-id>", "Delete a post", "", "delete_post_command_cb", "")
 
     weechat.hook_focus("chat", "channel_click_cb", "")
 

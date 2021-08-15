@@ -55,10 +55,15 @@ Mouse click or select a line print the short post id in the input field.
 Some command uses this id to interact with posts.
 
 ```
-/reply abc Yeah you right !
-/react abc rofl
-/react abc 100
-/delete abc
+/mattermost reply abc Yeah you right !
+/mattermost react abc rofl
+/mattermost react abc 100
+/mattermost delete abc
+```
+
+You can add aliases for some of these commands (if there's no conflict with other plugins)
+```
+alias add reply /mattermost reply
 ```
 
 ## Buffers display

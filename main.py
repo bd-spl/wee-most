@@ -8,9 +8,7 @@ from wee_most.channel import (handle_multiline_message_cb, channel_input_cb,
 
 from wee_most.server import (server_completion_cb, config_server_buffer_cb)
 
-from wee_most.commands import (matter_command_cb, reply_command_cb,
-                                 react_command_cb, unreact_command_cb,
-                                 delete_post_command_cb, slash_command_completion_cb)
+from wee_most.commands import (mattermost_command_cb, slash_command_completion_cb)
 
 from wee_most.websocket import (receive_ws_callback, ws_ping_cb,
                                   reconnection_loop_cb)
