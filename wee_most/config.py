@@ -12,82 +12,82 @@ class PluginConfig:
 
     general_settings = [
         Setting(
-            name= 'autoconnect',
-            default= '',
-            description= 'Comma separated list of server names to automatically connect to at start',
+            name = 'autoconnect',
+            default = '',
+            description = 'Comma separated list of server names to automatically connect to at start',
         ),
         Setting(
-            name= 'bot_suffix',
-            default= ' [BOT]',
-            description= 'The suffix for bot names',
+            name = 'bot_suffix',
+            default = ' [BOT]',
+            description = 'The suffix for bot names',
         ),
         Setting(
-            name= 'channel_prefix_direct',
-            default= '',
-            description= 'The prefix of buffer names for direct messages channels',
+            name = 'channel_prefix_direct',
+            default = '',
+            description = 'The prefix of buffer names for direct messages channels',
         ),
         Setting(
-            name= 'channel_prefix_group',
-            default= '&',
-            description= 'The prefix of buffer names for group channels',
+            name = 'channel_prefix_group',
+            default = '&',
+            description = 'The prefix of buffer names for group channels',
         ),
         Setting(
-            name= 'channel_prefix_private',
-            default= '%',
-            description= 'The prefix of buffer names for private channels',
+            name = 'channel_prefix_private',
+            default = '%',
+            description = 'The prefix of buffer names for private channels',
         ),
         Setting(
-            name= 'channel_prefix_public',
-            default= '#',
-            description= 'The prefix of buffer names for public channels',
+            name = 'channel_prefix_public',
+            default = '#',
+            description = 'The prefix of buffer names for public channels',
         ),
         Setting(
-            name= 'color_bot_suffix',
-            default= 'darkgray',
-            description= 'Color for the bot suffix in message attachments',
+            name = 'color_bot_suffix',
+            default = 'darkgray',
+            description = 'Color for the bot suffix in message attachments',
         ),
         Setting(
-            name= 'color_deleted',
-            default= 'red',
-            description= 'Color for deleted messages',
+            name = 'color_deleted',
+            default = 'red',
+            description = 'Color for deleted messages',
         ),
         Setting(
-            name= 'color_parent_reply',
-            default= 'lightgreen',
-            description= 'Color for parent message of a reply',
+            name = 'color_parent_reply',
+            default = 'lightgreen',
+            description = 'Color for parent message of a reply',
         ),
         Setting(
-            name= 'color_quote',
-            default= 'yellow',
-            description= 'Color for quoted messages',
+            name = 'color_quote',
+            default = 'yellow',
+            description = 'Color for quoted messages',
         ),
         Setting(
-            name= 'download_location',
-            default= download_dir + '/wee-most',
-            description= 'Location for storing downloaded files',
+            name = 'download_location',
+            default = download_dir + '/wee-most',
+            description = 'Location for storing downloaded files',
         ),
         Setting(
-            name= 'channel_loading_indicator',
-            default= '…',
-            description= 'Indicator for channels being loaded with content',
+            name = 'channel_loading_indicator',
+            default = '…',
+            description = 'Indicator for channels being loaded with content',
         ),
     ]
 
     server_settings = [
         Setting(
-            name= 'url',
-            default= '',
-            description= 'URL of {} server',
+            name = 'url',
+            default = '',
+            description = 'URL of {} server',
         ),
         Setting(
-            name= 'password',
-            default= '',
-            description= 'Password for authentication to {} server',
+            name = 'password',
+            default = '',
+            description = 'Password for authentication to {} server',
         ),
         Setting(
-            name= 'username',
-            default= '',
-            description= 'Username for authentication to {} server',
+            name = 'username',
+            default = '',
+            description = 'Username for authentication to {} server',
         ),
     ]
 
@@ -121,9 +121,9 @@ class PluginConfig:
     def add_server_options(self, server_id):
         for s in self.server_settings:
             self._add_setting(self.Setting(
-                name= "server." + server_id + "." + s.name,
-                default= s.default,
-                description= s.description.format(server_id),
+                name = "server." + server_id + "." + s.name,
+                default = s.default,
+                description = s.description.format(server_id),
                 ))
 
     def setup(self):

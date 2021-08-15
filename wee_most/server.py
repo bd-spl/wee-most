@@ -267,8 +267,8 @@ def connect_server_cb(server_id, command, rc, out, err):
     me = User(**response)
     me.color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_self"))
 
-    server.token=token_search.group(1)
-    server.me= me
+    server.token = token_search.group(1)
+    server.me = me
 
     try:
         worker = wee_most.websocket.Worker(server)
@@ -278,8 +278,8 @@ def connect_server_cb(server_id, command, rc, out, err):
 
     reconnection_loop_hook = weechat.hook_timer(5 * 1000, 0, 0, "reconnection_loop_cb", server.id)
 
-    server.worker= worker
-    server.reconnection_loop_hook= reconnection_loop_hook
+    server.worker = worker
+    server.reconnection_loop_hook = reconnection_loop_hook
 
     weechat.prnt("", "Connected to " + server_id)
 
