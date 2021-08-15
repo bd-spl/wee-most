@@ -6,49 +6,30 @@ import json
 import socket
 from websocket import (create_connection, WebSocketConnectionClosedException,
                        WebSocketTimeoutException, ABNF)
-from typing import NamedTuple
 from ssl import SSLWantReadError
 from wee_most.globals import servers
 
-Worker = NamedTuple(
-    "Worker",
-    [
-        ("ws", any),
-        ("hook_data_read", any),
-        ("hook_ping", any),
-        ("last_ping_time", int),
-        ("last_pong_time", int),
-    ]
-)
+class Worker:
+    def __init__(self, server):
+        self.last_ping_time = 0
+        self.last_pong_time = 0
 
-def create_worker(server):
-    url = server.url.replace('http', 'ws', 1) + "/api/v4/websocket"
-    try:
-        ws = create_connection(url)
-        ws.sock.setblocking(0)
-    except:
-        return
+        url = server.url.replace('http', 'ws', 1) + "/api/v4/websocket"
+        self.ws = create_connection(url)
+        self.ws.sock.setblocking(0)
 
-    params = {
-        "seq": 1,
-        "action": "authentication_challenge",
-        "data": {
-            "token": server.token,
+        params = {
+            "seq": 1,
+            "action": "authentication_challenge",
+            "data": {
+                "token": server.token,
+            }
         }
-    }
 
-    hook_data_read = weechat.hook_fd(ws.sock.fileno(), 1, 0, 0, "receive_ws_callback", server.id)
-    ws.send(json.dumps(params))
+        self.hook_data_read = weechat.hook_fd(self.ws.sock.fileno(), 1, 0, 0, "receive_ws_callback", server.id)
+        self.ws.send(json.dumps(params))
 
-    hook_ping = weechat.hook_timer(5 * 1000, 0, 0, "ws_ping_cb", server.id)
-
-    return Worker(
-        ws= ws,
-        hook_data_read= hook_data_read,
-        hook_ping= hook_ping,
-        last_ping_time= 0,
-        last_pong_time= 0,
-    )
+        self.hook_ping = weechat.hook_timer(5 * 1000, 0, 0, "ws_ping_cb", server.id)
 
 def rehydrate_server_buffer(server, buffer):
     last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
@@ -74,15 +55,16 @@ def reconnection_loop_cb(server_id, remaining_calls):
 
     weechat.prnt("", "Reconnecting...")
 
-    new_worker = create_worker(server)
-    if new_worker:
-        server.worker = new_worker
-        weechat.prnt("", "Reconnected.")
-        rehydrate_server_buffers(server)
-        return weechat.WEECHAT_RC_OK
+    try:
+        new_worker = Worker(server)
+    except:
+        weechat.prnt("", "Reconnection issue. Trying again in a few seconds...")
+        return weechat.WEECHAT_RC_ERROR
 
-    weechat.prnt("", "Reconnection issue. Trying again in a few seconds...")
-    return weechat.WEECHAT_RC_ERROR
+    server.worker = new_worker
+    weechat.prnt("", "Reconnected.")
+    rehydrate_server_buffers(server)
+    return weechat.WEECHAT_RC_OK
 
 def close_worker(worker):
     weechat.unhook(worker.hook_data_read)
@@ -104,7 +86,7 @@ def ws_ping_cb(server_id, remaining_calls):
 
     try:
         worker.ws.ping()
-        worker = worker._replace(last_ping_time=time.time())
+        worker.last_ping_time = time.time()
         server.worker = worker
     except (WebSocketConnectionClosedException, socket.error) as e:
         handle_lost_connection(server)
@@ -288,7 +270,7 @@ def receive_ws_callback(server_id, data):
             return weechat.WEECHAT_RC_OK
 
         if opcode == ABNF.OPCODE_PONG:
-            worker = worker._replace(last_pong_time=time.time())
+            worker.last_pong_time = time.time()
             server.worker = worker
             return weechat.WEECHAT_RC_OK
 

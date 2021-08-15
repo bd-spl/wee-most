@@ -270,10 +270,12 @@ def connect_server_cb(server_id, command, rc, out, err):
     server.token=token_search.group(1)
     server.me= me
 
-    worker = wee_most.websocket.create_worker(server)
-    if not worker:
+    try:
+        worker = wee_most.websocket.Worker(server)
+    except:
         weechat.prnt("", "An error occurred while creating the websocket worker")
         return weechat.WEECHAT_RC_ERROR
+
     reconnection_loop_hook = weechat.hook_timer(5 * 1000, 0, 0, "reconnection_loop_cb", server.id)
 
     server.worker= worker
