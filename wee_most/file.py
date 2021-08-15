@@ -14,7 +14,9 @@ File = NamedTuple(
     ]
 )
 
-def write_file_lines(buffer, post):
+def write_file_lines(post):
+    buffer = post.channel.buffer
+
     for file in post.files:
         weechat.prnt_date_tags(
             buffer,

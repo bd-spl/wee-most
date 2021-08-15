@@ -120,7 +120,9 @@ def build_message_with_attachments(message, attachments):
 
     return "\n\n".join(msg_parts)
 
-def delete_message(buffer, post):
+def delete_message(post):
+    buffer = post.channel.buffer
+
     lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), buffer, "lines")
     line = weechat.hdata_pointer(weechat.hdata_get("lines"), lines, "last_line")
     line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
@@ -149,7 +151,8 @@ def delete_message(buffer, post):
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": line})
 
 
-def write_edited_message_lines(buffer, post):
+def write_edited_message_lines(post):
+    buffer = post.channel.buffer
     tags = "post_id_%s" % post.id
 
     first_initial_line_data = find_buffer_first_post_line_data(buffer, post.id)
@@ -189,7 +192,8 @@ def write_edited_message_lines(buffer, post):
         )
     )
 
-def write_reply_message_lines(buffer, post):
+def write_reply_message_lines(post):
+    buffer = post.channel.buffer
     tags = "post_id_%s" % post.id
 
     parent_line_data = find_buffer_first_post_line_data(buffer, post.parent_id)
@@ -256,7 +260,10 @@ def write_reply_message_lines(buffer, post):
         )
     )
 
-def write_message_lines(buffer, post):
+    weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
+
+def write_message_lines(post):
+    buffer = post.channel.buffer
     tags = "post_id_%s" % post.id
 
     # remove tabs to prevent display issue on multiline messages
@@ -307,28 +314,24 @@ def write_message_lines(buffer, post):
         build_nick(post.user, post.from_bot, post.username_override) + "	" + message
     )
 
+    weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
+
 def write_post_edited(post):
     server = post.channel.server
     if server.get_post(post.id) is not None:
-        buffer = post.channel.buffer
-        write_edited_message_lines(buffer, post)
+        write_edited_message_lines(post)
 
 def write_post_deleted(post):
     server = post.channel.server
     if server.get_post(post.id) is not None:
-        buffer = post.channel.buffer
-        delete_message(buffer, post)
+        delete_message(post)
 
 def write_post(post):
-    buffer = post.channel.buffer
-
     if post.parent_id:
-        write_reply_message_lines(buffer, post)
+        write_reply_message_lines(post)
     else:
-        write_message_lines(buffer, post)
-    wee_most.file.write_file_lines(buffer, post)
-
-    weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
+        write_message_lines(post)
+    wee_most.file.write_file_lines(post)
 
 def get_reaction_from_reaction_data(reaction_data, server):
     user = server.users[reaction_data["user_id"]]
