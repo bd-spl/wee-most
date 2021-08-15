@@ -2,17 +2,13 @@
 import weechat
 import wee_most
 import os, platform
-from typing import NamedTuple
 from wee_most.globals import config
 
-File = NamedTuple(
-    "File",
-    [
-        ("id", str),
-        ("name", str),
-        ("url", str),
-    ]
-)
+class File:
+    def __init__(self, server, **kwargs):
+        self.id = kwargs["id"]
+        self.name = kwargs["name"]
+        self.url = wee_most.http.build_file_url(kwargs["id"], server)
 
 def write_file_lines(post):
     buffer = post.channel.buffer
@@ -78,13 +74,7 @@ def get_files_from_post_data(post_data, server):
     if "files" in post_data["metadata"]:
         files = []
         for file_data in post_data["metadata"]["files"]:
-            files.append(
-                File(
-                    id= file_data["id"],
-                    name= file_data["name"],
-                    url= wee_most.http.build_file_url(file_data["id"], server)
-                )
-            )
+            files.append(File(server, **file_data))
         return files
 
     return []
