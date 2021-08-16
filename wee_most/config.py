@@ -22,6 +22,11 @@ class PluginConfig:
             description = 'The suffix for bot names',
         ),
         Setting(
+            name = 'channel_loading_indicator',
+            default = '…',
+            description = 'Indicator for channels being loaded with content',
+        ),
+        Setting(
             name = 'channel_prefix_direct',
             default = '',
             description = 'The prefix of buffer names for direct messages channels',
@@ -66,23 +71,18 @@ class PluginConfig:
             default = download_dir + '/wee-most',
             description = 'Location for storing downloaded files',
         ),
-        Setting(
-            name = 'channel_loading_indicator',
-            default = '…',
-            description = 'Indicator for channels being loaded with content',
-        ),
     ]
 
     server_settings = [
         Setting(
-            name = 'url',
-            default = '',
-            description = 'URL of {} server',
-        ),
-        Setting(
             name = 'password',
             default = '',
             description = 'Password for authentication to {} server',
+        ),
+        Setting(
+            name = 'url',
+            default = '',
+            description = 'URL of {} server',
         ),
         Setting(
             name = 'username',
