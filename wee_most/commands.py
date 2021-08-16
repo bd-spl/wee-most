@@ -59,7 +59,7 @@ commands = [
 
 def server_add_command(args, buffer):
     if 1 != len(args.split()):
-        write_command_error(buffer, "server add " + args, "Error with subcommand arguments")
+        write_command_error("server add " + args, "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     config.add_server_options(args)
@@ -71,19 +71,19 @@ def server_add_command(args, buffer):
 
 def connect_command(args, buffer):
     if 1 != len(args.split()):
-        write_command_error(buffer, "connect " + args, "Error with subcommand arguments")
+        write_command_error("connect " + args, "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
     return wee_most.server.connect_server(args)
 
 def disconnect_command(args, buffer):
     if 1 != len(args.split()):
-        write_command_error(buffer, "disconnect " + args, "Error with subcommand arguments")
+        write_command_error("disconnect " + args, "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
     return wee_most.server.disconnect_server(args)
 
 def server_command(args, buffer):
     if 0 == len(args.split()):
-        write_command_error(buffer, "server " + args, "Error with subcommand arguments")
+        write_command_error("server " + args, "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     command, _, args = args.partition(" ")
@@ -91,12 +91,12 @@ def server_command(args, buffer):
     if command == "add":
         return server_add_command(args, buffer)
 
-    write_command_error(buffer, "server " + command + " " + args, "Invalid server subcommand")
+    write_command_error("server " + command + " " + args, "Invalid server subcommand")
     return weechat.WEECHAT_RC_ERROR
 
 def slash_command(args, buffer):
     if 0 == len(args.split()):
-        write_command_error(buffer, "slash " + args, "Error with subcommand arguments")
+        write_command_error("slash " + args, "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     server = wee_most.server.get_server_from_buffer(buffer)
@@ -108,7 +108,7 @@ def slash_command(args, buffer):
 
 def mattermost_command_cb(data, buffer, command):
     if 0 == len(command.split()):
-        write_command_error(buffer, "", "Missing subcommand")
+        write_command_error("", "Missing subcommand")
         return weechat.WEECHAT_RC_ERROR
 
     prefix, _, args = command.partition(" ")
@@ -130,12 +130,12 @@ def mattermost_command_cb(data, buffer, command):
     if prefix == "delete":
         return delete_command(args, buffer)
 
-    write_command_error(buffer, command, "Invalid subcommand")
+    write_command_error(command, "Invalid subcommand")
     return weechat.WEECHAT_RC_ERROR
 
 def reply_command(args, buffer):
     if 2 != len(args.split(' ', 1)):
-        write_command_error(buffer, "reply " + args, "Error with subcommand arguments")
+        write_command_error("reply " + args, "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     short_post_id, _, message = args.partition(" ")
@@ -165,7 +165,7 @@ def reply_command(args, buffer):
 
 def react_command(args, buffer):
     if 2 != len(args.split()):
-        write_command_error(buffer, "react " + args, "Error with subcommand arguments")
+        write_command_error("react " + args, "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     short_post_id, _, emoji_name = args.partition(" ")
@@ -181,7 +181,7 @@ def react_command(args, buffer):
 
 def unreact_command(args, buffer):
     if 2 != len(args.split()):
-        write_command_error(buffer, "unreact " + args, "Error with subcommand arguments")
+        write_command_error("unreact " + args, "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     short_post_id, _, emoji_name = args.partition(" ")
@@ -197,7 +197,7 @@ def unreact_command(args, buffer):
 
 def delete_post_command(args, buffer):
     if 1 != len(args.split()):
-        write_command_error(buffer, "delete " + args, "Error with subcommand arguments")
+        write_command_error("delete " + args, "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     post_id = wee_most.post.find_full_post_id(buffer, args)
@@ -218,7 +218,8 @@ def slash_command_completion_cb(data, completion_item, current_buffer, completio
         weechat.hook_completion_list_add(completion, slash_command, 0, weechat.WEECHAT_LIST_POS_SORT)
     return weechat.WEECHAT_RC_OK
 
-def write_command_error(buffer, args, message):
+def write_command_error(args, message):
+    buffer = weechat.buffer_search_main()
     weechat.prnt(buffer, message + " \"/mattermost " + args + "\" (help on command: /help mattermost)")
 
 def setup_commands():
