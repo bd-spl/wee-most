@@ -11,11 +11,9 @@ class File:
         self.url = wee_most.http.build_file_url(kwargs["id"], server)
 
 def write_file_lines(post):
-    buffer = post.channel.buffer
-
     for file in post.files:
         weechat.prnt_date_tags(
-            buffer,
+            post.buffer,
             post.date,
             "file_id_" + file.id,
             "	[{}]({})".format(file.name, file.url)

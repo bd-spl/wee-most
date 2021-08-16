@@ -107,10 +107,8 @@ def handle_posted_message(server, message):
     post = wee_most.post.Post(server, **post)
     wee_most.post.write_post(post)
 
-    buffer = post.channel.buffer
-
-    if buffer == weechat.current_buffer():
-        wee_most.channel.mark_channel_as_read(buffer)
+    if post.buffer == weechat.current_buffer():
+        wee_most.channel.mark_channel_as_read(post.buffer)
 
 def handle_reaction_added_message(server, message):
     data = message["data"]

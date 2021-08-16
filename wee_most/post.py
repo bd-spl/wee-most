@@ -29,6 +29,14 @@ class Post:
         self.from_bot = kwargs["props"].get("from_bot", False) or kwargs["props"].get("from_webhook", False)
         self.username_override = kwargs["props"].get("override_username")
 
+    @property
+    def buffer(self):
+        return self.channel.buffer
+
+    @property
+    def server(self):
+        return self.channel.server
+
     def get_reactions_line(self):
         return " ".join([str(r) for r in self.reactions])
 
@@ -37,6 +45,10 @@ class Reaction:
         self.user = server.users[kwargs["user_id"]]
         self.post = server.get_post(kwargs["post_id"])
         self.emoji_name = kwargs["emoji_name"]
+
+    @property
+    def buffer(self):
+        return self.post.buffer
 
     def __str__(self):
         return "[:{}:]".format(colorize_sentence(self.emoji_name, self.user.color))
@@ -121,9 +133,7 @@ def build_message_with_attachments(message, attachments):
     return "\n\n".join(msg_parts)
 
 def delete_message(post):
-    buffer = post.channel.buffer
-
-    lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), buffer, "lines")
+    lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), post.buffer, "lines")
     line = weechat.hdata_pointer(weechat.hdata_get("lines"), lines, "last_line")
     line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
 
@@ -152,11 +162,10 @@ def delete_message(post):
 
 
 def write_edited_message_lines(post):
-    buffer = post.channel.buffer
     tags = "post_id_%s" % post.id
 
-    first_initial_line_data = find_buffer_first_post_line_data(buffer, post.id)
-    last_initial_line_data = find_buffer_last_post_line_data(buffer, post.id)
+    first_initial_line_data = find_buffer_first_post_line_data(post.buffer, post.id)
+    last_initial_line_data = find_buffer_last_post_line_data(post.buffer, post.id)
 
     initial_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), first_initial_line_data, "date")
     initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
@@ -166,7 +175,7 @@ def write_edited_message_lines(post):
     initial_message = weechat.string_remove_color(initial_message, "")
 
     weechat.prnt_date_tags(
-        buffer,
+        post.buffer,
         initial_message_date,
         "edited_post,notify_none",
         initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), config.get_value("color_quote"))
@@ -182,7 +191,7 @@ def write_edited_message_lines(post):
         tags += ",notify_none"
 
     weechat.prnt_date_tags(
-        buffer,
+        post.buffer,
         post.date,
         tags,
         (
@@ -193,10 +202,9 @@ def write_edited_message_lines(post):
     )
 
 def write_reply_message_lines(post):
-    buffer = post.channel.buffer
     tags = "post_id_%s" % post.id
 
-    parent_line_data = find_buffer_first_post_line_data(buffer, post.parent_id)
+    parent_line_data = find_buffer_first_post_line_data(post.buffer, post.parent_id)
     if not parent_line_data:
         return # probably replying a out of range message
 
@@ -208,19 +216,19 @@ def write_reply_message_lines(post):
     else:
         parent_message = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "message").rsplit(' | ', 1)[0]
     weechat.prnt_date_tags(
-        buffer,
+        post.buffer,
         parent_message_date,
         "quote,notify_none",
         parent_message_prefix + "	" + colorize_sentence(build_quote_message(parent_message), config.get_value("color_parent_reply"))
     )
 
     parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
-    own_prefix = weechat.buffer_get_string(buffer, "localvar_nick")
+    own_prefix = weechat.buffer_get_string(post.buffer, "localvar_nick")
 
     parent_post_id = find_post_id_in_tags(parent_tags)
     tags += ",reply_to_{}".format(parent_post_id)
 
-    channel_type = weechat.buffer_get_string(buffer, "localvar_type")
+    channel_type = weechat.buffer_get_string(post.buffer, "localvar_type")
     if channel_type == "channel":
         tags += ",notify_message"
     else:
@@ -236,7 +244,7 @@ def write_reply_message_lines(post):
     if post.reactions:
         tags += ",reactions"
         weechat.prnt_date_tags(
-            buffer,
+            post.buffer,
             post.date,
             tags,
             (
@@ -250,7 +258,7 @@ def write_reply_message_lines(post):
         return
 
     weechat.prnt_date_tags(
-        buffer,
+        post.buffer,
         post.date,
         tags,
         (
@@ -260,10 +268,9 @@ def write_reply_message_lines(post):
         )
     )
 
-    weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
+    weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
 
 def write_message_lines(post):
-    buffer = post.channel.buffer
     tags = "post_id_%s" % post.id
 
     # remove tabs to prevent display issue on multiline messages
@@ -271,7 +278,7 @@ def write_message_lines(post):
     tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
     message = post.message.replace("\t", " " * tab_width)
 
-    channel_type = weechat.buffer_get_string(buffer, "localvar_type")
+    channel_type = weechat.buffer_get_string(post.buffer, "localvar_type")
     if channel_type == "channel":
         tags += ",notify_message"
     else:
@@ -294,7 +301,7 @@ def write_message_lines(post):
     if post.reactions:
         tags += ",reactions"
         weechat.prnt_date_tags(
-            buffer,
+            post.buffer,
             post.date,
             tags,
             (
@@ -308,22 +315,20 @@ def write_message_lines(post):
         return
 
     weechat.prnt_date_tags(
-        buffer,
+        post.buffer,
         post.date,
         tags,
         build_nick(post.user, post.from_bot, post.username_override) + "	" + message
     )
 
-    weechat.buffer_set(buffer, "localvar_set_last_post_id", post.id)
+    weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
 
 def write_post_edited(post):
-    server = post.channel.server
-    if server.get_post(post.id) is not None:
+    if post.server.get_post(post.id) is not None:
         write_edited_message_lines(post)
 
 def write_post_deleted(post):
-    server = post.channel.server
-    if server.get_post(post.id) is not None:
+    if post.server.get_post(post.id) is not None:
         delete_message(post)
 
 def write_post(post):
@@ -378,8 +383,7 @@ def find_buffer_first_post_line_data(buffer, post_id):
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
 
 def add_reaction_to_post(reaction):
-    buffer = reaction.post.channel.buffer
-    line_data = find_buffer_last_post_line_data(buffer, reaction.post.id)
+    line_data = find_buffer_last_post_line_data(reaction.buffer, reaction.post.id)
 
     tags = get_line_data_tags(line_data)
     old_message = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message")
@@ -400,8 +404,7 @@ def add_reaction_to_post(reaction):
     )
 
 def remove_reaction_from_post(reaction):
-    buffer = reaction.post.channel.buffer
-    line_data = find_buffer_last_post_line_data(buffer, reaction.post.id)
+    line_data = find_buffer_last_post_line_data(reaction.buffer, reaction.post.id)
 
     tags = get_line_data_tags(line_data)
 
