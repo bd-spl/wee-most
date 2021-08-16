@@ -383,6 +383,9 @@ def find_buffer_first_post_line_data(buffer, post_id):
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
 
 def add_reaction_to_post(reaction):
+    if reaction.post is None:
+        return
+
     line_data = find_buffer_last_post_line_data(reaction.buffer, reaction.post.id)
 
     tags = get_line_data_tags(line_data)
@@ -404,6 +407,9 @@ def add_reaction_to_post(reaction):
     )
 
 def remove_reaction_from_post(reaction):
+    if reaction.post is None:
+        return
+
     line_data = find_buffer_last_post_line_data(reaction.buffer, reaction.post.id)
 
     tags = get_line_data_tags(line_data)
