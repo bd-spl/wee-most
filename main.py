@@ -1,14 +1,15 @@
 import weechat
 
 from wee_most.channel import (handle_multiline_message_cb, channel_input_cb,
-                             buffer_switch_cb, channel_completion_cb,
-                             private_completion_cb,
+                             buffer_switch_cb,
                              channel_click_cb)
 
+from wee_most.server import (config_server_buffer_cb)
 
-from wee_most.server import (server_completion_cb, config_server_buffer_cb)
+from wee_most.commands import (mattermost_command_cb)
 
-from wee_most.commands import (mattermost_command_cb, slash_command_completion_cb)
+from wee_most.completions import (channel_completion_cb, private_completion_cb,
+                                  server_completion_cb, slash_command_completion_cb)
 
 from wee_most.websocket import (receive_ws_callback, ws_ping_cb,
                                   reconnection_loop_cb)
@@ -37,6 +38,7 @@ weechat.register(
 )
 
 wee_most.commands.setup_commands()
+wee_most.completions.setup_completions()
 config.setup()
 wee_most.server.auto_connect()
 

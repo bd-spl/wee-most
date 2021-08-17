@@ -15,7 +15,7 @@ from wee_most.file import file_get_cb
 
 from wee_most.server import (connect_server_cb, connect_server_teams_cb,
                                connect_server_team_channels_cb,
-                               connect_server_users_cb, server_completion_cb,
+                               connect_server_users_cb,
                                connect_server_team_channel_cb, connect_server_team_cb,
                                new_user_cb)
 

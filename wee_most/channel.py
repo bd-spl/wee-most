@@ -118,23 +118,6 @@ def remove_buffer_hydratating(channel_id):
 def get_buffer_from_channel_id(channel_id):
     return channel_buffers[channel_id]
 
-def private_completion_cb(data, completion_item, current_buffer, completion):
-    for server in servers.values():
-        for channel in server.channels.values():
-            buffer_name = weechat.buffer_get_string(channel.buffer, "short_name")
-            weechat.hook_completion_list_add(completion, buffer_name, 0, weechat.WEECHAT_LIST_POS_SORT)
-    return weechat.WEECHAT_RC_OK
-
-def channel_completion_cb(data, completion_item, current_buffer, completion):
-    for server in servers.values():
-        weechat.hook_completion_list_add(completion, server.id, 0, weechat.WEECHAT_LIST_POS_SORT)
-        for team in server.teams.values():
-            for channel in team.channels.values():
-                buffer_name = weechat.buffer_get_string(channel.buffer, "short_name")
-                weechat.hook_completion_list_add(completion, buffer_name, 0, weechat.WEECHAT_LIST_POS_SORT)
-
-    return weechat.WEECHAT_RC_OK
-
 def mark_channel_as_read(buffer):
     server = wee_most.server.get_server_from_buffer(buffer)
     channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")

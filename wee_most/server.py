@@ -135,11 +135,6 @@ def get_server_from_buffer(buffer):
     server_id = weechat.buffer_get_string(buffer, "localvar_server_id")
     return servers[server_id]
 
-def server_completion_cb(data, completion_item, current_buffer, completion):
-    for server_id in servers:
-        weechat.hook_completion_list_add(completion, server_id, 0, weechat.WEECHAT_LIST_POS_SORT)
-    return weechat.WEECHAT_RC_OK
-
 def connect_server_team_channel(channel_id, server):
     wee_most.channel.register_buffer_hydratating(channel_id)
     wee_most.http.enqueue_request(

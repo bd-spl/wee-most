@@ -1,5 +1,6 @@
 from wee_most import file
 from wee_most import commands
+from wee_most import completions
 from wee_most import config
 from wee_most import http
 from wee_most import post
