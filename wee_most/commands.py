@@ -211,5 +211,3 @@ def setup_commands():
         "mattermost_command_cb",
         ""
     )
-
-    weechat.hook_focus("chat", "channel_click_cb", "")

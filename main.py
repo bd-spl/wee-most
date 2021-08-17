@@ -46,6 +46,7 @@ weechat.hook_modifier("input_text_for_buffer", "handle_multiline_message_cb", ""
 weechat.hook_signal("buffer_switch", "buffer_switch_cb", "")
 weechat.hook_timer(int(0.2 * 1000), 0, 0, "handle_queued_request_cb", "")
 weechat.hook_config("irc.look.server_buffer", "config_server_buffer_cb", "")
+weechat.hook_focus("chat", "channel_click_cb", "")
 
 def shutdown_cb():
     wee_most.server.disconnect_all()
