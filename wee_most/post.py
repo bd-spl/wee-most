@@ -323,6 +323,15 @@ def write_message_lines(post):
 
     weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
 
+def write_file_lines(post):
+    for file in post.files:
+        weechat.prnt_date_tags(
+            post.buffer,
+            post.date,
+            "file_id_" + file.id,
+            "	[{}]({})".format(file.name, file.url)
+        )
+
 def write_post_edited(post):
     if post.server.get_post(post.id) is not None:
         write_edited_message_lines(post)
@@ -336,7 +345,8 @@ def write_post(post):
         write_reply_message_lines(post)
     else:
         write_message_lines(post)
-    wee_most.file.write_file_lines(post)
+
+    write_file_lines(post)
 
 def get_line_data_tags(line_data):
     tags = []

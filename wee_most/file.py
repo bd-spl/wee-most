@@ -10,15 +10,6 @@ class File:
         self.name = kwargs["name"]
         self.url = wee_most.http.build_file_url(kwargs["id"], server)
 
-def write_file_lines(post):
-    for file in post.files:
-        weechat.prnt_date_tags(
-            post.buffer,
-            post.date,
-            "file_id_" + file.id,
-            "	[{}]({})".format(file.name, file.url)
-        )
-
 def prepare_download_location():
     location = config.get_download_location()
 
