@@ -56,17 +56,17 @@ class Server:
 
         return None
 
-    def has_buffer(self, buffer):
+    def get_channel_from_buffer(self, buffer):
         for channel in self.channels.values():
             if channel.buffer == buffer:
-                return True
+                return channel
 
         for team in self.teams.values():
             for channel in team.channels.values():
                 if channel.buffer == buffer:
-                    return True
+                    return channel
 
-        return False
+        return None
 
     def get_post(self, post_id):
         for channel in self.channels.values():
