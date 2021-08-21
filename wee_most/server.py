@@ -56,6 +56,18 @@ class Server:
 
         return None
 
+    def has_buffer(self, buffer):
+        for channel in self.channels.values():
+            if channel.buffer == buffer:
+                return True
+
+        for team in self.teams.values():
+            for channel in team.channels.values():
+                if channel.buffer == buffer:
+                    return True
+
+        return False
+
     def get_post(self, post_id):
         for channel in self.channels.values():
             if post_id in channel.posts:
@@ -163,7 +175,7 @@ def connect_server_team_channels_cb(server_id, command, rc, out, err):
 
     response = json.loads(out)
     for channel_data in response:
-        if wee_most.channel.already_loaded_buffer(channel_data["id"]):
+        if server.get_channel(channel_data["id"]):
             continue
         wee_most.channel.create_channel_from_channel_data(channel_data, server)
 

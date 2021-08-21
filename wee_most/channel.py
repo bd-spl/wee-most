@@ -3,7 +3,7 @@ import weechat
 import json
 import wee_most
 import re
-from wee_most.globals import (config, servers, channel_buffers)
+from wee_most.globals import (config, servers)
 
 hydrating_buffers = []
 
@@ -41,8 +41,6 @@ class ChannelBase:
 
         weechat.buffer_set(self.buffer, "highlight_words", "@{0},{0},@here,@channel,@all".format(self.server.me.username))
         weechat.buffer_set(self.buffer, "localvar_set_nick", self.server.me.username)
-
-        channel_buffers[self.id] = self.buffer
 
     def _format_buffer_name(self):
         parent_buffer_name = weechat.buffer_get_string(self.server.buffer, "name")
@@ -91,32 +89,26 @@ class PublicChannel(ChannelBase):
         parent_buffer_name = weechat.buffer_get_string(self.team.buffer, "name")
         return "{}.{}".format(parent_buffer_name, self.name)
 
-def already_loaded_buffer(channel_id):
-    return channel_id in channel_buffers
-
 def is_buffer_hydratating(channel_id):
     return channel_id in hydrating_buffers
 
-def register_buffer_hydratating(channel_id):
+def register_buffer_hydratating(server, channel_id):
     if is_buffer_hydratating(channel_id):
         return
     hydrating_buffers.append(channel_id)
 
-    buffer = get_buffer_from_channel_id(channel_id)
+    buffer = server.get_channel(channel_id).buffer
     old_name = weechat.buffer_get_string(buffer, "short_name")
     loading_indicator = config.get_value("channel_loading_indicator")
     weechat.buffer_set(buffer, "short_name", "{}{}".format(loading_indicator, old_name))
 
-def remove_buffer_hydratating(channel_id):
-    buffer = get_buffer_from_channel_id(channel_id)
+def remove_buffer_hydratating(server, channel_id):
+    buffer = server.get_channel(channel_id).buffer
     old_name = weechat.buffer_get_string(buffer, "short_name")
     loading_indicator = config.get_value("channel_loading_indicator")
     weechat.buffer_set(buffer, "short_name", re.sub("^{}".format(loading_indicator), "", old_name))
 
     hydrating_buffers.remove(channel_id)
-
-def get_buffer_from_channel_id(channel_id):
-    return channel_buffers[channel_id]
 
 def mark_channel_as_read(buffer):
     server = wee_most.server.get_server_from_buffer(buffer)
@@ -164,7 +156,7 @@ def hydrate_channel_posts_cb(buffer, command, rc, out, err):
         )
     else:
         channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
-        remove_buffer_hydratating(channel_id)
+        remove_buffer_hydratating(server, channel_id)
 
     return weechat.WEECHAT_RC_OK
 
@@ -196,7 +188,7 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
             post.id, post.channel.id, server, "hydrate_channel_posts_cb", buffer
         )
     else:
-        remove_buffer_hydratating(post.channel.id)
+        remove_buffer_hydratating(server, post.channel.id)
 
     return weechat.WEECHAT_RC_OK
 
@@ -273,7 +265,7 @@ def create_channel_from_channel_data(channel_data, server):
 
         team.channels[channel.id] = channel
 
-    register_buffer_hydratating(channel_data["id"])
+    register_buffer_hydratating(server, channel_data["id"])
     wee_most.http.enqueue_request(
         "run_get_read_channel_posts",
         server.me.id, channel_data["id"], server, "hydrate_channel_read_posts_cb", channel.buffer
@@ -284,17 +276,17 @@ def create_channel_from_channel_data(channel_data, server):
     )
 
 def set_channel_properties_from_channel_data(channel_data, server):
-    buffer = channel_buffers[channel_data["id"]]
+    buffer = server.get_channel(channel_data["id"]).buffer
 
     channel_name = build_channel_name_from_channel_data(channel_data, server)
     weechat.buffer_set(buffer, "short_name", channel_name)
     weechat.buffer_set(buffer, "title", channel_data["header"])
 
 def buffer_switch_cb(data, signal, buffer):
-    if buffer not in channel_buffers.values():
-        return weechat.WEECHAT_RC_OK
-
-    mark_channel_as_read(buffer)
+    for server in servers.values():
+        if server.has_buffer(buffer):
+            mark_channel_as_read(buffer)
+            return weechat.WEECHAT_RC_OK
 
     return weechat.WEECHAT_RC_OK
 
@@ -311,11 +303,11 @@ def channel_click_cb(data, info):
         wee_most.file.handle_file_click(data, info)
 
 def handle_multiline_message_cb(data, modifier, buffer, string):
-    if buffer not in channel_buffers.values():
-        return string
-
-    if "\n" in string and not string[0] == "/":
-        channel_input_cb(data, buffer, string)
-        return ""
+    for server in servers.values():
+        if server.has_buffer(buffer):
+            if "\n" in string and not string[0] == "/":
+                channel_input_cb(data, buffer, string)
+                return ""
+            return string
 
     return string

@@ -3,7 +3,7 @@ import weechat
 import wee_most.server
 import wee_most.post
 import wee_most.file
-from wee_most.globals import (config, channel_buffers)
+from wee_most.globals import (config)
 
 class Post:
     def __init__(self, server, **kwargs):

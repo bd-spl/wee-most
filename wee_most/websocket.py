@@ -34,7 +34,7 @@ class Worker:
 def rehydrate_server_buffer(server, buffer):
     last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
     channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
-    wee_most.channel.register_buffer_hydratating(channel_id)
+    wee_most.channel.register_buffer_hydratating(server, channel_id)
     wee_most.http.enqueue_request(
         "run_get_channel_posts_after",
         last_post_id, channel_id, server, "hydrate_channel_posts_cb", buffer
@@ -156,7 +156,7 @@ def handle_channel_updated_message(server, message):
 def handle_channel_viewed_message(server, message):
     data = message["data"]
 
-    buffer = wee_most.channel.get_buffer_from_channel_id(data["channel_id"])
+    buffer = server.get_channel(data["channel_id"]).buffer
     if buffer:
         weechat.buffer_set(buffer, "unread", "-")
         weechat.buffer_set(buffer, "hotlist", "-1")
@@ -171,7 +171,7 @@ def handle_user_added_message(server, message):
     if data["user_id"] == server.me.id: # we are geing invited
         wee_most.server.connect_server_team_channel(broadcast["channel_id"], server)
     else:
-        buffer = wee_most.channel.get_buffer_from_channel_id(broadcast["channel_id"])
+        buffer = server.get_channel(broadcast["channel_id"]).buffer
         wee_most.channel.create_channel_user_from_user_data(data, buffer, server)
 
 def handle_channel_added_message(server, message):
@@ -197,7 +197,7 @@ def handle_user_removed_message(server, message):
 
     if broadcast["channel_id"]:
         user = server.users[data["user_id"]]
-        buffer = wee_most.channel.get_buffer_from_channel_id(broadcast["channel_id"])
+        buffer = server.get_channel(broadcast["channel_id"]).buffer
         wee_most.channel.remove_channel_user(buffer, user)
 
 def handle_added_to_team_message(server, message):
