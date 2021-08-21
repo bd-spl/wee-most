@@ -178,6 +178,9 @@ def handle_channel_added_message(server, message):
     broadcast = message["broadcast"]
     wee_most.server.connect_server_team_channel(broadcast["channel_id"], server)
 
+def handle_group_added_message(server, message):
+    handle_channel_added_message(server, message)
+
 def handle_direct_added_message(server, message):
     handle_channel_added_message(server, message)
 
@@ -220,36 +223,12 @@ def handle_leave_team_message(server, message):
     team.unload()
 
 def handle_ws_event_message(server, message):
-    if "posted" == message["event"]:
-        return handle_posted_message(server, message)
-    if "reaction_added" == message["event"]:
-        return handle_reaction_added_message(server, message)
-    if "reaction_removed" == message["event"]:
-        return handle_reaction_removed_message(server, message)
-    if "post_edited" == message["event"]:
-        return handle_post_edited_message(server, message)
-    if "post_deleted" == message["event"]:
-        return handle_post_deleted_message(server, message)
-    if "channel_created" == message["event"]:
-        return handle_channel_created_message(server, message)
-    if "channel_updated" == message["event"]:
-        return handle_channel_updated_message(server, message)
-    if "channel_viewed" == message["event"]:
-        return handle_channel_viewed_message(server, message)
-    if "new_user" == message["event"]:
-        return handle_new_user_message(server, message)
-    if "direct_added" == message["event"]:
-        return handle_direct_added_message(server, message)
-    if "group_added" == message["event"]:
-        return handle_direct_added_message(server, message)
-    if "user_added" == message["event"]:
-        return handle_user_added_message(server, message)
-    if "user_removed" == message["event"]:
-        return handle_user_removed_message(server, message)
-    if "added_to_team" == message["event"]:
-        return handle_added_to_team_message(server, message)
-    if "leave_team" == message["event"]:
-        return handle_leave_team_message(server, message)
+    handler_function_name = "handle_" + message["event"] + "_message"
+
+    if handler_function_name not in globals():
+        return
+
+    globals()[handler_function_name](server, message)
 
 def handle_ws_message(server, message):
     if "event" in message:
