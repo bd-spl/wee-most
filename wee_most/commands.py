@@ -112,12 +112,13 @@ def mattermost_command_cb(data, buffer, command):
         return weechat.WEECHAT_RC_ERROR
 
     prefix, _, args = command.partition(" ")
+    command_function_name = "command_" + prefix
 
-    if prefix not in [c.name for c in commands]:
+    if command_function_name not in globals():
         write_command_error(command, "Invalid subcommand")
         return weechat.WEECHAT_RC_ERROR
 
-    return globals()['command_' + prefix](args, buffer)
+    return globals()[command_function_name](args, buffer)
 
 def command_reply(args, buffer):
     if 2 != len(args.split(' ', 1)):
