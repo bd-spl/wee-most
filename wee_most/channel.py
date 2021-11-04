@@ -58,7 +58,14 @@ class ChannelBase:
         return "{}.!.{}".format(parent_buffer_name, self.name)
 
     def _format_name(self, display_name, name):
-        return config.get_value("channel_prefix_" + self.type) + display_name
+        final_name = display_name
+
+        name_override = config.get_value("channel." + name);
+
+        if name_override:
+            final_name = name_override
+
+        return config.get_value("channel_prefix_" + self.type) + final_name
 
     def unload(self):
         weechat.buffer_close(self.buffer)
