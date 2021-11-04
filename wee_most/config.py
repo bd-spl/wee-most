@@ -77,9 +77,14 @@ class PluginConfig:
             description = 'Location for storing downloaded files',
         ),
         Setting(
+            name = 'group_reactions',
+            default = "true",
+            description = 'Group reactions by emoji',
+        ),
+        Setting(
             name = 'reaction_show_nick',
             default = "false",
-            description = 'Display the nick of the user alongside the reaction',
+            description = 'Display the nick of the user(s) alongside the reaction',
         ),
     ]
 
