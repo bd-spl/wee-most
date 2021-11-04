@@ -49,13 +49,19 @@ class Post:
         if not self.reactions:
             return ""
 
-        reactions_count = {}
-        for r in self.reactions:
-            reactions_count[r.emoji_name] = reactions_count.get(r.emoji_name, 0) + 1
+        if weechat.config_string_to_boolean(config.get_value("reaction_show_nick")):
+            reactions_string = []
+            for r in self.reactions:
+                reactions_string.append(":{}:(@{})".format(r.emoji_name, r.user.username))
 
-        reactions_string = []
-        for name, count in reactions_count.items():
-            reactions_string.append(":{}:{}".format(name, count))
+        else:
+            reactions_count = {}
+            for r in self.reactions:
+                reactions_count[r.emoji_name] = reactions_count.get(r.emoji_name, 0) + 1
+
+            reactions_string = []
+            for name, count in reactions_count.items():
+                reactions_string.append(":{}:{}".format(name, count))
 
         line = " [{}]".format(" ".join(reactions_string))
 

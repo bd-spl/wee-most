@@ -76,6 +76,11 @@ class PluginConfig:
             default = download_dir + '/wee-most',
             description = 'Location for storing downloaded files',
         ),
+        Setting(
+            name = 'reaction_show_nick',
+            default = "false",
+            description = 'Display the nick of the user alongside the reaction',
+        ),
     ]
 
     server_settings = [
