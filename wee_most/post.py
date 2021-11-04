@@ -46,6 +46,9 @@ class Post:
                 del self.reactions[i]
 
     def get_reactions_line(self):
+        if not self.reactions:
+            return ""
+
         reactions_count = {}
         for r in self.reactions:
             reactions_count[r.emoji_name] = reactions_count.get(r.emoji_name, 0) + 1
@@ -54,7 +57,7 @@ class Post:
         for name, count in reactions_count.items():
             reactions_string.append(":{}:{}".format(name, count))
 
-        line = "[{}]".format(" ".join(reactions_string))
+        line = " [{}]".format(" ".join(reactions_string))
 
         return colorize_sentence(line, config.get_value("color_reaction"))
 
@@ -180,14 +183,14 @@ def write_edited_message_lines(post):
     tags = "post_id_%s" % post.id
 
     first_initial_line_data = find_buffer_first_post_line_data(post.buffer, post.id)
-    last_initial_line_data = find_buffer_last_post_line_data(post.buffer, post.id)
 
+    initial_tags = get_line_data_tags(first_initial_line_data)
+    initial_post_id = find_post_id_in_tags(initial_tags)
+    initial_post = post.channel.posts[initial_post_id]
+
+    initial_message = initial_post.message
     initial_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), first_initial_line_data, "date")
     initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
-
-    initial_message = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "message").rsplit(' | ', 1)[0]
-    _, _, initial_reactions = weechat.hdata_string(weechat.hdata_get("line_data"), last_initial_line_data, "message").partition(' | ')
-    initial_message = weechat.string_remove_color(initial_message, "")
 
     weechat.prnt_date_tags(
         post.buffer,
@@ -196,8 +199,8 @@ def write_edited_message_lines(post):
         initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), config.get_value("color_quote"))
     )
 
-    if initial_reactions:
-        new_message = post.message + " | " + initial_reactions
+    if post.reactions:
+        new_message = post.message + post.get_reactions_line()
     else:
         new_message = post.message
 
@@ -223,12 +226,13 @@ def write_reply_message_lines(post):
         return # probably replying a out of range message
 
     parent_tags = get_line_data_tags(parent_line_data)
+    parent_post_id = find_post_id_in_tags(parent_tags)
+    parent_post = post.channel.posts[parent_post_id]
+
+    parent_message = parent_post.message
     parent_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), parent_line_data, "date")
     parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
-    if not "reactions" in parent_tags:
-        parent_message = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "message")
-    else:
-        parent_message = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "message").rsplit(' | ', 1)[0]
+
     weechat.prnt_date_tags(
         post.buffer,
         parent_message_date,
@@ -264,7 +268,6 @@ def write_reply_message_lines(post):
                 build_nick(post.user, post.from_bot, post.username_override)
                 + "	"
                 + post.message
-                + " | "
                 + post.get_reactions_line()
             )
         )
@@ -319,7 +322,6 @@ def write_message_lines(post):
                 build_nick(post.user, post.from_bot, post.username_override)
                 + "	"
                 + message
-                + " | "
                 + post.get_reactions_line()
             )
         )
@@ -409,7 +411,7 @@ def add_reaction_to_post(reaction):
         return
 
     post.add_reaction(reaction)
-    new_message = post.message + " | " + post.get_reactions_line()
+    new_message = post.message + post.get_reactions_line()
 
     line_data = find_buffer_last_post_line_data(reaction.buffer, post.id)
 
@@ -433,7 +435,7 @@ def remove_reaction_from_post(reaction):
     if not post.reactions:
         new_message = post.message
     else:
-        new_message = post.message + " | " + post.get_reactions_line()
+        new_message = post.message + post.get_reactions_line()
 
     weechat.hdata_update(
         weechat.hdata_get("line_data"),
