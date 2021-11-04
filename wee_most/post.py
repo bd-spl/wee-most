@@ -196,7 +196,6 @@ def write_edited_message_lines(post):
 
     if initial_reactions:
         new_message = post.message + " | " + initial_reactions
-        tags += ",reactions"
     else:
         new_message = post.message
 
@@ -255,7 +254,6 @@ def write_reply_message_lines(post):
         tags += ",notify_highlight"
 
     if post.reactions:
-        tags += ",reactions"
         weechat.prnt_date_tags(
             post.buffer,
             post.date,
@@ -312,7 +310,6 @@ def write_message_lines(post):
         message = "{}{}".format(prefix, message)
 
     if post.reactions:
-        tags += ",reactions"
         weechat.prnt_date_tags(
             post.buffer,
             post.date,
@@ -415,16 +412,11 @@ def add_reaction_to_post(reaction):
 
     line_data = find_buffer_last_post_line_data(reaction.buffer, post.id)
 
-    tags = get_line_data_tags(line_data)
-    if "reactions" not in tags:
-        tags.append("reactions")
-
     weechat.hdata_update(
         weechat.hdata_get("line_data"),
         line_data,
         {
             "message": new_message,
-            "tags_array": ",".join(tags),
         }
     )
 
@@ -436,10 +428,8 @@ def remove_reaction_from_post(reaction):
     post.remove_reaction(reaction)
 
     line_data = find_buffer_last_post_line_data(reaction.buffer, post.id)
-    tags = get_line_data_tags(line_data)
 
     if not post.reactions:
-        tags.remove("reactions")
         new_message = post.message
     else:
         new_message = post.message + " | " + post.get_reactions_line()
@@ -449,7 +439,6 @@ def remove_reaction_from_post(reaction):
         line_data,
         {
             "message": new_message,
-            "tags_array": ",".join(tags),
         }
     )
 
