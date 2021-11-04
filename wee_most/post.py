@@ -37,8 +37,24 @@ class Post:
     def server(self):
         return self.channel.server
 
+    def add_reaction(self, reaction):
+        self.reactions.append(reaction)
+
+    def remove_reaction(self, reaction):
+        for i, r in enumerate(self.reactions):
+            if r.user == reaction.user and r.emoji_name == reaction.emoji_name:
+                del self.reactions[i]
+
     def get_reactions_line(self):
-        return " ".join([str(r) for r in self.reactions])
+        reactions_count = {}
+        for r in self.reactions:
+            reactions_count[r.emoji_name] = reactions_count.get(r.emoji_name, 0) + 1
+
+        reactions_string = []
+        for name, count in reactions_count.items():
+            reactions_string.append(":{}:{}".format(name, count))
+
+        return "[{}]".format(" ".join(reactions_string))
 
 class Reaction:
     def __init__(self, server, **kwargs):
@@ -49,9 +65,6 @@ class Reaction:
     @property
     def buffer(self):
         return self.post.buffer
-
-    def __str__(self):
-        return "[:{}:]".format(colorize_sentence(self.emoji_name, self.user.color))
 
 def post_post_cb(buffer, command, rc, out, err):
     if rc != 0:
@@ -393,18 +406,17 @@ def find_buffer_first_post_line_data(buffer, post_id):
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
 
 def add_reaction_to_post(reaction):
-    if reaction.post is None:
+    post = reaction.post
+    if post is None:
         return
 
-    line_data = find_buffer_last_post_line_data(reaction.buffer, reaction.post.id)
+    post.add_reaction(reaction)
+    new_message = post.message + " | " + post.get_reactions_line()
+
+    line_data = find_buffer_last_post_line_data(reaction.buffer, post.id)
 
     tags = get_line_data_tags(line_data)
-    old_message = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message")
-
-    if "reactions" in tags:
-        new_message = old_message + " " + str(reaction)
-    else:
-        new_message = old_message + " | " + str(reaction)
+    if "reactions" not in tags:
         tags.append("reactions")
 
     weechat.hdata_update(
@@ -412,27 +424,25 @@ def add_reaction_to_post(reaction):
         line_data,
         {
             "message": new_message,
-            "tags_array": ",".join(tags)
+            "tags_array": ",".join(tags),
         }
     )
 
 def remove_reaction_from_post(reaction):
-    if reaction.post is None:
+    post = reaction.post
+    if post is None:
         return
 
-    line_data = find_buffer_last_post_line_data(reaction.buffer, reaction.post.id)
+    post.remove_reaction(reaction)
 
+    line_data = find_buffer_last_post_line_data(reaction.buffer, post.id)
     tags = get_line_data_tags(line_data)
 
-    old_message, _, old_reactions = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "message").partition(' | ')
-
-    new_reactions = old_reactions.replace(str(reaction), "", 1).replace("  ", " ").strip()
-
-    if "" == new_reactions:
+    if not post.reactions:
         tags.remove("reactions")
-        new_message = old_message
+        new_message = post.message
     else:
-        new_message = old_message + " | " + new_reactions
+        new_message = post.message + " | " + post.get_reactions_line()
 
     weechat.hdata_update(
         weechat.hdata_get("line_data"),
