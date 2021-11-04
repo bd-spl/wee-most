@@ -190,7 +190,7 @@ def write_edited_message_lines(post):
     weechat.prnt_date_tags(
         post.buffer,
         initial_message_date,
-        "edited_post,notify_none",
+        "notify_none",
         initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), config.get_value("color_quote"))
     )
 
@@ -299,7 +299,6 @@ def write_message_lines(post):
         tags += ",notify_none"
 
     if post.attachments:
-        tags += ",attachments"
         message = build_message_with_attachments(message, post.attachments)
 
     if post.type in [ "system_join_channel", "system_join_team" ]:
