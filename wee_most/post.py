@@ -54,7 +54,9 @@ class Post:
         for name, count in reactions_count.items():
             reactions_string.append(":{}:{}".format(name, count))
 
-        return "[{}]".format(" ".join(reactions_string))
+        line = "[{}]".format(" ".join(reactions_string))
+
+        return colorize_sentence(line, config.get_value("color_reaction"))
 
 class Reaction:
     def __init__(self, server, **kwargs):

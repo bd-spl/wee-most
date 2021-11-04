@@ -67,6 +67,11 @@ class PluginConfig:
             description = 'Color for quoted messages',
         ),
         Setting(
+            name = 'color_reaction',
+            default = 'darkgray',
+            description = 'Color for the messages reactions',
+        ),
+        Setting(
             name = 'download_location',
             default = download_dir + '/wee-most',
             description = 'Location for storing downloaded files',
