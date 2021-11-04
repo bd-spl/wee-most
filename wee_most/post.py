@@ -65,8 +65,11 @@ class Post:
                 if weechat.config_string_to_boolean(config.get_value("reaction_show_nick")):
                     users_string = []
                     for u in users:
-                        colorized_user = colorize_sentence('@{}'.format(u.username), u.color)
-                        users_string.append(colorized_user)
+                        user_string = '@{}'.format(u.username)
+                        if weechat.config_string_to_boolean(config.get_value("reaction_colorize_nick")):
+                            user_string = colorize_sentence(user_string, u.color)
+                        users_string.append(user_string)
+
                     reaction_string = ":{}:({})".format(colorized_name, ','.join(users_string))
                 else:
                     reaction_string = ":{}:{}".format(colorized_name, len(users))
@@ -78,8 +81,11 @@ class Post:
                 colorized_name = colorize_sentence(r.emoji_name, config.get_value("color_reaction"))
 
                 if weechat.config_string_to_boolean(config.get_value("reaction_show_nick")):
-                    colorized_user = colorize_sentence('@{}'.format(r.user.username), r.user.color)
-                    reaction_string = ":{}:({})".format(colorized_name, colorized_user)
+                    user_string = '@{}'.format(r.user.username)
+                    if weechat.config_string_to_boolean(config.get_value("reaction_colorize_nick")):
+                        user_string = colorize_sentence(user_string, r.user.color)
+
+                    reaction_string = ":{}:({})".format(colorized_name, user_string)
                 else:
                     reaction_string = ":{}:".format(colorized_name)
 

@@ -82,6 +82,11 @@ class PluginConfig:
             description = 'Group reactions by emoji',
         ),
         Setting(
+            name = 'reaction_colorize_nick',
+            default = "true",
+            description = 'Colorize the reaction nick with the user color',
+        ),
+        Setting(
             name = 'reaction_show_nick',
             default = "false",
             description = 'Display the nick of the user(s) alongside the reaction',
