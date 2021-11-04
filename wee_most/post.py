@@ -49,6 +49,8 @@ class Post:
         if not self.reactions:
             return ""
 
+        my_username = self.channel.server.me.username
+
         reactions_string = []
 
         if weechat.config_string_to_boolean(config.get_value("reaction_group")):
@@ -61,6 +63,10 @@ class Post:
 
             for name, users in reactions_groups.items():
                 colorized_name = colorize_sentence(name, config.get_value("color_reaction"))
+                for u in users:
+                    if u.username == my_username:
+                        colorized_name = colorize_sentence(name, config.get_value("color_reaction_own"))
+                        break
 
                 if weechat.config_string_to_boolean(config.get_value("reaction_nick_show")):
                     users_string = []
@@ -78,7 +84,10 @@ class Post:
 
         else:
             for r in self.reactions:
-                colorized_name = colorize_sentence(r.emoji_name, config.get_value("color_reaction"))
+                if r.user.username == my_username:
+                    colorized_name = colorize_sentence(r.emoji_name, config.get_value("color_reaction_own"))
+                else:
+                    colorized_name = colorize_sentence(r.emoji_name, config.get_value("color_reaction"))
 
                 if weechat.config_string_to_boolean(config.get_value("reaction_nick_show")):
                     user_string = '@{}'.format(r.user.username)

@@ -72,6 +72,11 @@ class PluginConfig:
             description = 'Color for the messages reactions',
         ),
         Setting(
+            name = 'color_reaction_own',
+            default = 'gray',
+            description = 'Color for the messages reactions you have added',
+        ),
+        Setting(
             name = 'download_location',
             default = download_dir + '/wee-most',
             description = 'Location for storing downloaded files',
