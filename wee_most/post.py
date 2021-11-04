@@ -49,23 +49,23 @@ class Post:
         if not self.reactions:
             return ""
 
+        reactions_string = []
+
         if weechat.config_string_to_boolean(config.get_value("reaction_show_nick")):
-            reactions_string = []
             for r in self.reactions:
-                reactions_string.append(":{}:(@{})".format(r.emoji_name, r.user.username))
+                reaction_string = ":{}:(@{})".format(r.emoji_name, r.user.username)
+                reactions_string.append(colorize_sentence(reaction_string, r.user.color))
 
         else:
             reactions_count = {}
             for r in self.reactions:
                 reactions_count[r.emoji_name] = reactions_count.get(r.emoji_name, 0) + 1
 
-            reactions_string = []
             for name, count in reactions_count.items():
-                reactions_string.append(":{}:{}".format(name, count))
+                reaction_string = ":{}:{}".format(name, count)
+                reactions_string.append(colorize_sentence(reaction_string, config.get_value("color_reaction")))
 
-        line = " [{}]".format(" ".join(reactions_string))
-
-        return colorize_sentence(line, config.get_value("color_reaction"))
+        return " [{}]".format(" ".join(reactions_string))
 
 class Reaction:
     def __init__(self, server, **kwargs):
