@@ -53,7 +53,7 @@ class Post:
 
         reactions_string = []
 
-        if weechat.config_string_to_boolean(config.get_value("reaction_group")):
+        if config.reaction_group:
             reactions_groups = {}
             for r in self.reactions:
                 if r.emoji_name in reactions_groups:
@@ -62,17 +62,17 @@ class Post:
                     reactions_groups[r.emoji_name] = [ r.user ]
 
             for name, users in reactions_groups.items():
-                colorized_name = colorize_sentence(name, config.get_value("color_reaction"))
+                colorized_name = colorize_sentence(name, config.color_reaction)
                 for u in users:
                     if u.username == my_username:
-                        colorized_name = colorize_sentence(name, config.get_value("color_reaction_own"))
+                        colorized_name = colorize_sentence(name, config.color_reaction_own)
                         break
 
-                if weechat.config_string_to_boolean(config.get_value("reaction_nick_show")):
+                if config.reaction_nick_show:
                     users_string = []
                     for u in users:
                         user_string = '@{}'.format(u.username)
-                        if weechat.config_string_to_boolean(config.get_value("reaction_nick_colorize")):
+                        if config.reaction_nick_colorize:
                             user_string = colorize_sentence(user_string, u.color)
                         users_string.append(user_string)
 
@@ -85,13 +85,13 @@ class Post:
         else:
             for r in self.reactions:
                 if r.user.username == my_username:
-                    colorized_name = colorize_sentence(r.emoji_name, config.get_value("color_reaction_own"))
+                    colorized_name = colorize_sentence(r.emoji_name, config.color_reaction_own)
                 else:
-                    colorized_name = colorize_sentence(r.emoji_name, config.get_value("color_reaction"))
+                    colorized_name = colorize_sentence(r.emoji_name, config.color_reaction)
 
-                if weechat.config_string_to_boolean(config.get_value("reaction_nick_show")):
+                if config.reaction_nick_show:
                     user_string = '@{}'.format(r.user.username)
-                    if weechat.config_string_to_boolean(config.get_value("reaction_nick_colorize")):
+                    if config.reaction_nick_colorize:
                         user_string = colorize_sentence(user_string, r.user.color)
 
                     reaction_string = ":{}:({})".format(colorized_name, user_string)
@@ -144,7 +144,7 @@ def build_nick(user, from_bot, username_override):
         username = colorize_sentence(user.username, user.color)
 
     if from_bot:
-        username += colorize_sentence(config.get_value("bot_suffix"), config.get_value("color_bot_suffix"))
+        username += colorize_sentence(config.bot_suffix, config.color_bot_suffix)
 
     return (
         colorize_sentence(nick_prefix, nick_prefix_color_name)
@@ -213,7 +213,7 @@ def delete_message(post):
         return
 
     lines = [""] * len(pointers)
-    lines[0] = colorize_sentence("(deleted)", config.get_value("color_deleted"))
+    lines[0] = colorize_sentence("(deleted)", config.color_deleted)
 
     for pointer, line in zip(pointers, lines):
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
@@ -237,7 +237,7 @@ def write_edited_message_lines(post):
         post.buffer,
         initial_message_date,
         "notify_none",
-        initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), config.get_value("color_quote"))
+        initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), config.color_quote)
     )
 
     if post.reactions:
@@ -278,7 +278,7 @@ def write_reply_message_lines(post):
         post.buffer,
         parent_message_date,
         "quote,notify_none",
-        parent_message_prefix + "	" + colorize_sentence(build_quote_message(parent_message), config.get_value("color_parent_reply"))
+        parent_message_prefix + "	" + colorize_sentence(build_quote_message(parent_message), config.color_parent_reply)
     )
 
     parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")

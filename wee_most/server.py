@@ -340,7 +340,7 @@ def disconnect_server(server_id):
     return rc
 
 def auto_connect():
-    for server_id in config.get_auto_connect_servers():
+    for server_id in config.autoconnect:
         connect_server(server_id)
 
 def disconnect_all():

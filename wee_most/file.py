@@ -11,7 +11,7 @@ class File:
         self.url = wee_most.http.build_file_url(kwargs["id"], server)
 
 def prepare_download_location():
-    location = config.get_download_location()
+    location = config.download_location
 
     if not os.path.exists(location):
         try:
