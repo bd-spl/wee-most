@@ -15,7 +15,7 @@ from wee_most.file import file_get_cb
 
 from wee_most.server import (connect_server_cb, connect_server_teams_cb,
                                connect_server_team_channels_cb,
-                               connect_server_users_cb,
+                               connect_server_users_cb, connect_server_preferences_cb,
                                connect_server_team_channel_cb, connect_server_team_cb,
                                new_user_cb)
 
@@ -369,3 +369,16 @@ def run_get_file(file_id, file_out_path, server, cb, cb_data):
         build_buffer_cb_data(url, cb, cb_data)
     )
 
+def run_get_preferences(server, cb, cb_data):
+    url = server.url + "/api/v4/users/" + server.me.id + "/preferences"
+
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "failonerror": "1",
+            "httpheader": "Authorization: Bearer " + server.token,
+        },
+        30 * 1000,
+        "buffered_response_cb",
+        build_buffer_cb_data(url, cb, cb_data)
+    )

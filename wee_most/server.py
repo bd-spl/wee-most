@@ -34,6 +34,7 @@ class Server:
         self.channels = {}
         self.worker = None
         self.reconnection_loop_hook = ""
+        self.closed_channels = []
 
         self._create_buffer()
 
@@ -210,6 +211,21 @@ def connect_server_users_cb(data, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def connect_server_preferences_cb(server_id, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occurred while connecting preferences")
+        return weechat.WEECHAT_RC_ERROR
+
+    server = servers[server_id]
+
+    response = json.loads(out)
+
+    for pref in response:
+        if pref["category"] in ["direct_channel_show", "group_channel_show"] and pref["value"] == "false":
+            server.closed_channels.append(pref["name"])
+
+    return weechat.WEECHAT_RC_OK
+
 def connect_server_teams_cb(server_id, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occurred while connecting teams")
@@ -293,6 +309,11 @@ def connect_server_cb(server_id, command, rc, out, err):
     wee_most.http.enqueue_request(
         "run_get_users",
         server, 0, "connect_server_users_cb", "{}|0".format(server.id)
+    )
+
+    wee_most.http.enqueue_request(
+        "run_get_preferences",
+        server, "connect_server_preferences_cb", server.id
     )
 
     return weechat.WEECHAT_RC_OK

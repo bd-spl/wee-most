@@ -254,9 +254,16 @@ def create_channel_from_channel_data(channel_data, server):
         if channel_data["last_post_at"] == 0:
             return;
 
+        match = re.match('(\w+)__(\w+)', channel_data["name"])
+        if match.group(1) in server.closed_channels or match.group(2) in server.closed_channels:
+            return;
+
         channel = DirectMessagesChannel(server, **channel_data)
         server.channels[channel.id] = channel
     elif channel_data["type"] == "G":
+        if channel_data["id"] in server.closed_channels:
+            return;
+
         channel = GroupChannel(server, **channel_data)
         server.channels[channel.id] = channel
     else:
