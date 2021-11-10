@@ -38,6 +38,7 @@ class Server:
 
         self.token = ""
         self.me = None
+        self.highlight_words = []
         self.users = {}
         self.teams = {}
         self.buffer = None
@@ -60,6 +61,15 @@ class Server:
     def init_me(self, **kwargs):
         self.me = User(**kwargs)
         self.me.color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_self"))
+
+        if kwargs["notify_props"]["first_name"] == "true":
+            self.highlight_words.append(kwargs["first_name"])
+
+        if kwargs["notify_props"]["channel"] == "true":
+            self.highlight_words.extend(["@here", "@channel", "@all"])
+
+        if kwargs["notify_props"]["mention_keys"]:
+            self.highlight_words.extend(kwargs["notify_props"]["mention_keys"].split(","))
 
     def get_channel(self, channel_id):
         if channel_id in self.channels:

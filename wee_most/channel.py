@@ -39,7 +39,7 @@ class ChannelBase:
 
         weechat.buffer_set(self.buffer, "nicklist", "1")
 
-        weechat.buffer_set(self.buffer, "highlight_words", "@{0},{0},@here,@channel,@all".format(self.server.me.username))
+        weechat.buffer_set(self.buffer, "highlight_words", ",".join(self.server.highlight_words))
         weechat.buffer_set(self.buffer, "localvar_set_nick", self.server.me.get_nick())
 
     def mark_as_read(self):
