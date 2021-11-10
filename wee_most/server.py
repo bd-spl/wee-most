@@ -57,6 +57,10 @@ class Server:
 
         buffer_merge(self.buffer)
 
+    def init_me(self, **kwargs):
+        self.me = User(**kwargs)
+        self.me.color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_self"))
+
     def get_channel(self, channel_id):
         if channel_id in self.channels:
             return self.channels[channel_id]
@@ -297,11 +301,8 @@ def connect_server_cb(server_id, command, rc, out, err):
 
     server = servers[server_id]
 
-    me = User(**response)
-    me.color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_self"))
-
     server.token = token_search.group(1)
-    server.me = me
+    server.init_me(**response)
 
     try:
         worker = wee_most.websocket.Worker(server)
