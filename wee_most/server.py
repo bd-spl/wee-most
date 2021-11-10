@@ -9,11 +9,18 @@ class User:
     def __init__(self, **kwargs):
         self.id = kwargs["id"]
         self.username = kwargs["username"]
+        self.first_name = kwargs["first_name"]
+        self.last_name = kwargs["last_name"]
         self.deleted = kwargs["delete_at"] != 0
         self.color = weechat.info_get("nick_color_name", self.username)
 
     def get_nick(self):
-        return self.username
+        nick = self.username
+
+        if config.nick_full_name and self.first_name and self.last_name:
+            nick = '{} {}'.format(self.first_name, self.last_name)
+
+        return nick
 
 class Server:
     def __init__(self, id):

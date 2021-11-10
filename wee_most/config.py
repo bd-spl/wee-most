@@ -96,6 +96,12 @@ class PluginConfig:
             type = "string",
         ),
         Setting(
+            name = 'nick_full_name',
+            default = "false",
+            description = 'Use full name instead of username as nick',
+            type = "boolean",
+        ),
+        Setting(
             name = 'reaction_group',
             default = "true",
             description = 'Group reactions by emoji',
