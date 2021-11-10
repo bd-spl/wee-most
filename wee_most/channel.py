@@ -40,7 +40,7 @@ class ChannelBase:
         weechat.buffer_set(self.buffer, "nicklist", "1")
 
         weechat.buffer_set(self.buffer, "highlight_words", "@{0},{0},@here,@channel,@all".format(self.server.me.username))
-        weechat.buffer_set(self.buffer, "localvar_set_nick", self.server.me.username)
+        weechat.buffer_set(self.buffer, "localvar_set_nick", self.server.me.get_nick())
 
     def mark_as_read(self):
         last_post_id = weechat.buffer_get_string(self.buffer, "localvar_last_post_id")
@@ -77,11 +77,12 @@ class DirectMessagesChannel(ChannelBase):
 
     def _format_name(self, display_name, name):
         match = re.match('(\w+)__(\w+)', name)
-        username = self.server.users[match.group(1)].username
-        if username == self.server.me.username:
-            username = self.server.users[match.group(2)].username
 
-        return username
+        user = self.server.users[match.group(1)]
+        if user.username == self.server.me.username:
+            user = self.server.users[match.group(2)]
+
+        return user.get_nick()
 
 class GroupChannel(ChannelBase):
     def __init__(self, server, **kwargs):
@@ -202,7 +203,9 @@ def create_channel_user_from_user_data(user_data, buffer, server):
     if user.deleted:
         return
 
-    weechat.nicklist_add_nick(buffer, "", user.username, user.color, "@", user.color, 1)
+    nick = user.get_nick()
+
+    weechat.nicklist_add_nick(buffer, "", nick, user.color, "", user.color, 1)
 
 def hydrate_channel_users_cb(buffer, command, rc, out, err):
     if rc != 0:
@@ -232,7 +235,7 @@ def hydrate_channel_user_cb(buffer, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def remove_channel_user(buffer, user):
-    nick = weechat.nicklist_search_nick(buffer, "", user.username)
+    nick = weechat.nicklist_search_nick(buffer, "", user.get_nick())
     weechat.nicklist_remove_nick(buffer, nick)
 
 def build_channel_name_from_channel_data(channel_data, server):
@@ -242,10 +245,12 @@ def build_channel_name_from_channel_data(channel_data, server):
         channel_name = prefix + channel_data["display_name"]
     else:
         match = re.match('(\w+)__(\w+)', channel_data["name"])
+
         if match:
-            channel_name = server.users[match.group(1)].username
-            if channel_name == server.me.username:
-                channel_name = server.users[match.group(2)].username
+            user = server.users[match.group(1)]
+            if user.username == server.me.username:
+                user = server.users[match.group(2)]
+            channel_name = user.get_nick()
 
     return channel_name
 

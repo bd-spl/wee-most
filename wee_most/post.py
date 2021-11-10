@@ -71,7 +71,7 @@ class Post:
                 if config.reaction_nick_show:
                     users_string = []
                     for u in users:
-                        user_string = '@{}'.format(u.username)
+                        user_string = u.get_nick()
                         if config.reaction_nick_colorize:
                             user_string = colorize_sentence(user_string, u.color)
                         users_string.append(user_string)
@@ -90,7 +90,7 @@ class Post:
                     colorized_name = colorize_sentence(r.emoji_name, config.color_reaction)
 
                 if config.reaction_nick_show:
-                    user_string = '@{}'.format(r.user.username)
+                    user_string = u.get_nick()
                     if config.reaction_nick_colorize:
                         user_string = colorize_sentence(user_string, r.user.color)
 
@@ -139,16 +139,18 @@ def build_nick(user, from_bot, username_override):
     )
 
     if username_override:
-        username = colorize_sentence(username_override, user.color)
+        nick = username_override
     else:
-        username = colorize_sentence(user.username, user.color)
+        nick = user.get_nick()
+
+    nick = colorize_sentence(nick, user.color)
 
     if from_bot:
-        username += colorize_sentence(config.bot_suffix, config.color_bot_suffix)
+        nick += colorize_sentence(config.bot_suffix, config.color_bot_suffix)
 
     return (
         colorize_sentence(nick_prefix, nick_prefix_color_name)
-        + username
+        + nick
         + colorize_sentence(nick_suffix, nick_suffix_color_name)
     )
 
@@ -297,7 +299,7 @@ def write_reply_message_lines(post):
         tags += ",notify_none"
 
     # if somebody (not us) reply to our post
-    if parent_message_prefix == own_prefix and parent_message_prefix != post.user.username:
+    if parent_message_prefix == own_prefix and parent_message_prefix != post.user.get_nick():
         tags += ",notify_highlight"
 
     if post.reactions:

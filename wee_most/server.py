@@ -12,6 +12,9 @@ class User:
         self.deleted = kwargs["delete_at"] != 0
         self.color = weechat.info_get("nick_color_name", self.username)
 
+    def get_nick(self):
+        return self.username
+
 class Server:
     def __init__(self, id):
         self.id = id
