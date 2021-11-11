@@ -221,19 +221,6 @@ def hydrate_channel_users_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def hydrate_channel_user_cb(buffer, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occurred while hydrating channel user")
-        return weechat.WEECHAT_RC_ERROR
-
-    user_data = json.loads(out)
-
-    server = wee_most.server.get_server_from_buffer(buffer)
-
-    create_channel_user_from_user_data(user_data, buffer, server)
-
-    return weechat.WEECHAT_RC_OK
-
 def remove_channel_user(buffer, user):
     nick = weechat.nicklist_search_nick(buffer, "", user.get_nick())
     weechat.nicklist_remove_nick(buffer, nick)

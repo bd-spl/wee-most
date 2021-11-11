@@ -7,7 +7,7 @@ import re
 import urllib.request
 
 from wee_most.channel import (hydrate_channel_read_posts_cb, hydrate_channel_posts_cb,
-                             hydrate_channel_users_cb, hydrate_channel_user_cb)
+                             hydrate_channel_users_cb)
 
 from wee_most.post import post_post_cb
 
@@ -220,19 +220,6 @@ def run_post_command(channel_id, command, server, cb, cb_data):
         build_buffer_cb_data(url, cb, cb_data)
     )
 
-def run_get_channel_posts(channel_id, server, cb, cb_data):
-    url = server.url + "/api/v4/channels/" + channel_id + "/posts"
-    weechat.hook_process_hashtable(
-        "url:" + url,
-        {
-            "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.token,
-        },
-        30 * 1000,
-        "buffered_response_cb",
-        build_buffer_cb_data(url, cb, cb_data)
-    )
-
 def run_get_read_channel_posts(user_id, channel_id, server, cb, cb_data):
     url = server.url + "/api/v4/users/" + user_id + "/channels/" + channel_id + "/posts/unread?limit_after=1"
     weechat.hook_process_hashtable(
@@ -261,19 +248,6 @@ def run_get_channel_posts_after(post_id, channel_id, server, cb, cb_data):
 
 def run_get_channel_members(channel_id, server, cb, cb_data):
     url = server.url + "/api/v4/channels/" + channel_id + "/members"
-    weechat.hook_process_hashtable(
-        "url:" + url,
-        {
-            "failonerror": "1",
-            "httpheader": "Authorization: Bearer " + server.token,
-        },
-        30 * 1000,
-        "buffered_response_cb",
-        build_buffer_cb_data(url, cb, cb_data)
-    )
-
-def run_get_channel_member(channel_id, member_id, server, cb, cb_data):
-    url = server.url + "/api/v4/channels/" + channel_id + "/members/" + member_id
     weechat.hook_process_hashtable(
         "url:" + url,
         {
