@@ -40,7 +40,7 @@ class ChannelBase:
         weechat.buffer_set(self.buffer, "nicklist", "1")
 
         weechat.buffer_set(self.buffer, "highlight_words", ",".join(self.server.highlight_words))
-        weechat.buffer_set(self.buffer, "localvar_set_nick", self.server.me.get_nick())
+        weechat.buffer_set(self.buffer, "localvar_set_nick", self.server.me.nick)
 
     def mark_as_read(self):
         last_post_id = weechat.buffer_get_string(self.buffer, "localvar_last_post_id")
@@ -82,7 +82,7 @@ class DirectMessagesChannel(ChannelBase):
         if user.username == self.server.me.username:
             user = self.server.users[match.group(2)]
 
-        return user.get_nick()
+        return user.nick
 
 class GroupChannel(ChannelBase):
     def __init__(self, server, **kwargs):
@@ -203,7 +203,7 @@ def create_channel_user_from_user_data(user_data, buffer, server):
     if user.deleted:
         return
 
-    nick = user.get_nick()
+    nick = user.nick
 
     weechat.nicklist_add_nick(buffer, "", nick, user.color, "", user.color, 1)
 
@@ -222,7 +222,7 @@ def hydrate_channel_users_cb(buffer, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def remove_channel_user(buffer, user):
-    nick = weechat.nicklist_search_nick(buffer, "", user.get_nick())
+    nick = weechat.nicklist_search_nick(buffer, "", user.nick)
     weechat.nicklist_remove_nick(buffer, nick)
 
 def build_channel_name_from_channel_data(channel_data, server):
@@ -237,7 +237,7 @@ def build_channel_name_from_channel_data(channel_data, server):
             user = server.users[match.group(1)]
             if user.username == server.me.username:
                 user = server.users[match.group(2)]
-            channel_name = user.get_nick()
+            channel_name = user.nick
 
     return channel_name
 

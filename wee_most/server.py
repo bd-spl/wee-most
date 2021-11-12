@@ -14,7 +14,8 @@ class User:
         self.deleted = kwargs["delete_at"] != 0
         self.color = weechat.info_get("nick_color_name", self.username)
 
-    def get_nick(self):
+    @property
+    def nick(self):
         nick = self.username
 
         if config.nick_full_name and self.first_name and self.last_name:
