@@ -171,8 +171,8 @@ def handle_user_added_message(server, message):
     if data["user_id"] == server.me.id: # we are geing invited
         wee_most.server.connect_server_team_channel(broadcast["channel_id"], server)
     else:
-        buffer = server.get_channel(broadcast["channel_id"]).buffer
-        wee_most.channel.create_channel_user_from_user_data(data, buffer, server)
+        channel = server.get_channel(broadcast["channel_id"])
+        channel.add_user(data["user_id"])
 
 def handle_channel_added_message(server, message):
     broadcast = message["broadcast"]

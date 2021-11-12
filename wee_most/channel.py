@@ -52,6 +52,14 @@ class ChannelBase:
 
         weechat.buffer_set(self.buffer, "localvar_set_last_read_post_id", last_post_id)
 
+    def add_user(self, user_id):
+        user = self.server.users[user_id]
+
+        if user.deleted:
+            return
+
+        weechat.nicklist_add_nick(self.buffer, "", user.nick, user.color, "", user.color, 1)
+
     def _format_buffer_name(self):
         parent_buffer_name = weechat.buffer_get_string(self.server.buffer, "name")
         # use "!" character so that the buffer gets sorted just after the server buffer and before all teams buffers
@@ -197,16 +205,6 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def create_channel_user_from_user_data(user_data, buffer, server):
-    user = server.users[user_data["user_id"]]
-
-    if user.deleted:
-        return
-
-    nick = user.nick
-
-    weechat.nicklist_add_nick(buffer, "", nick, user.color, "", user.color, 1)
-
 def hydrate_channel_users_cb(buffer, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occurred while hydrating channel users")
@@ -215,9 +213,10 @@ def hydrate_channel_users_cb(buffer, command, rc, out, err):
     response = json.loads(out)
 
     server = wee_most.server.get_server_from_buffer(buffer)
+    channel = server.get_channel_from_buffer(buffer)
 
     for user_data in response:
-        create_channel_user_from_user_data(user_data, buffer, server)
+        channel.add_user(user_data["user_id"])
 
     return weechat.WEECHAT_RC_OK
 
