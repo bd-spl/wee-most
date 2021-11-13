@@ -192,6 +192,7 @@ class PluginConfig:
                 name = "server." + server_id + "." + s.name,
                 default = s.default,
                 description = s.description.format(server_id),
+                type = "string"
                 ))
 
     def setup(self):
