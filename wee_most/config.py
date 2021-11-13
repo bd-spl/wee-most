@@ -164,7 +164,8 @@ class PluginConfig:
         return weechat.config_get_plugin(key)
 
     def _get_list(self, key):
-        return weechat.config_get_plugin(key).split(",")
+        autoconnect = weechat.config_get_plugin(key)
+        return list(filter(None, autoconnect.split(",")))
 
     def get_value(self, key):
         return getattr(self, key)
