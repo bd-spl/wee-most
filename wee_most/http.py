@@ -246,8 +246,8 @@ def run_get_channel_posts_after(post_id, channel_id, server, cb, cb_data):
         build_buffer_cb_data(url, cb, cb_data)
     )
 
-def run_get_channel_members(channel_id, server, cb, cb_data):
-    url = server.url + "/api/v4/channels/" + channel_id + "/members"
+def run_get_channel_members(channel_id, server, page, cb, cb_data):
+    url = server.url + "/api/v4/channels/" + channel_id + "/members?page=" + str(page)
     weechat.hook_process_hashtable(
         "url:" + url,
         {

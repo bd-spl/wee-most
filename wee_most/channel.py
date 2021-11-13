@@ -205,15 +205,23 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def hydrate_channel_users_cb(buffer, command, rc, out, err):
+def hydrate_channel_users_cb(data, command, rc, out, err):
     if rc != 0:
         weechat.prnt("", "An error occurred while hydrating channel users")
         return weechat.WEECHAT_RC_ERROR
 
+    server_id, channel_id, page = data.split("|")
+    page = int(page)
+    server = servers[server_id]
+    channel = server.get_channel(channel_id)
+
     response = json.loads(out)
 
-    server = wee_most.server.get_server_from_buffer(buffer)
-    channel = server.get_channel_from_buffer(buffer)
+    if len(response) == 60:
+        wee_most.http.enqueue_request(
+            "run_get_channel_members",
+            channel.id, server, page+1, "hydrate_channel_users_cb", "{}|{}|{}".format(server_id, channel_id, page+1)
+        )
 
     for user_data in response:
         channel.add_user(user_data["user_id"])
@@ -277,7 +285,7 @@ def create_channel_from_channel_data(channel_data, server):
     )
     wee_most.http.enqueue_request(
         "run_get_channel_members",
-        channel_data["id"], server, "hydrate_channel_users_cb", channel.buffer
+        channel.id, server, 0, "hydrate_channel_users_cb", "{}|{}|0".format(server.id, channel.id)
     )
 
 def set_channel_properties_from_channel_data(channel_data, server):
