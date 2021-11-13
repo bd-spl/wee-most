@@ -64,7 +64,7 @@ def command_server_add(args, buffer):
 
     config.add_server_options(args)
 
-    weechat.prnt(buffer, "Server \"%s\" added. You should now configure it." % args)
+    weechat.prnt(buffer, 'Server "%s" added. You should now configure it.' % args)
     weechat.prnt(buffer, "/set plugins.var.python.wee-most.server.%s.*" % args)
 
     return weechat.WEECHAT_RC_OK
@@ -121,7 +121,7 @@ def mattermost_command_cb(data, buffer, command):
     return globals()[command_function_name](args, buffer)
 
 def command_reply(args, buffer):
-    if 2 != len(args.split(' ', 1)):
+    if 2 != len(args.split(" ", 1)):
         write_command_error("reply " + args, "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
@@ -129,7 +129,7 @@ def command_reply(args, buffer):
 
     line_data = wee_most.post.find_buffer_last_post_line_data(buffer, short_post_id)
     if not line_data:
-        weechat.prnt(buffer, "Can't find post id for \"%s\"" % short_post_id)
+        weechat.prnt(buffer, 'Cannot find post id for "%s"' % short_post_id)
         return weechat.WEECHAT_RC_ERROR
 
     tags = wee_most.post.get_line_data_tags(line_data)
@@ -139,9 +139,9 @@ def command_reply(args, buffer):
         post_id = wee_most.post.find_post_id_in_tags(tags)
 
     post = {
-        'channel_id': weechat.buffer_get_string(buffer, "localvar_channel_id"),
-        'message': message,
-        'parent_id': post_id,
+        "channel_id": weechat.buffer_get_string(buffer, "localvar_channel_id"),
+        "message": message,
+        "parent_id": post_id,
     }
 
     server = wee_most.server.get_server_from_buffer(buffer)
@@ -158,7 +158,7 @@ def command_react(args, buffer):
     short_post_id, _, emoji_name = args.partition(" ")
     post_id = wee_most.post.find_full_post_id(buffer, short_post_id)
     if not post_id:
-        weechat.prnt(buffer, "Can't find post id for \"%s\"" % short_post_id)
+        weechat.prnt(buffer, 'Cannot find post id for "%s"' % short_post_id)
         return weechat.WEECHAT_RC_ERROR
 
     server = wee_most.server.get_server_from_buffer(buffer)
@@ -174,7 +174,7 @@ def command_unreact(args, buffer):
     short_post_id, _, emoji_name = args.partition(" ")
     post_id = find_full_post_id(buffer, short_post_id)
     if not post_id:
-        weechat.prnt(buffer, "Can't find post id for \"%s\"" % short_post_id)
+        weechat.prnt(buffer, 'Cannot find post id for "%s"' % short_post_id)
         return weechat.WEECHAT_RC_ERROR
 
     server = wee_most.server.get_server_from_buffer(buffer)
@@ -189,7 +189,7 @@ def command_delete(args, buffer):
 
     post_id = wee_most.post.find_full_post_id(buffer, args)
     if not post_id:
-        weechat.prnt(buffer, "Can't find post id for \"%s\"" % args)
+        weechat.prnt(buffer, 'Cannot find post id for "%s"' % args)
         return weechat.WEECHAT_RC_ERROR
 
     server = wee_most.server.get_server_from_buffer(buffer)
@@ -200,7 +200,7 @@ def command_delete(args, buffer):
 
 def write_command_error(args, message):
     buffer = weechat.buffer_search_main()
-    weechat.prnt(buffer, message + " \"/mattermost " + args + "\" (help on command: /help mattermost)")
+    weechat.prnt(buffer, message + ' "/mattermost ' + args + '" (help on command: /help mattermost)')
 
 def setup_commands():
     weechat.hook_command(

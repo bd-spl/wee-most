@@ -76,7 +76,7 @@ class Post:
                             user_string = colorize_sentence(user_string, u.color)
                         users_string.append(user_string)
 
-                    reaction_string = ":{}:({})".format(colorized_name, ','.join(users_string))
+                    reaction_string = ":{}:({})".format(colorized_name, ",".join(users_string))
                 else:
                     reaction_string = ":{}:{}".format(colorized_name, len(users))
 
@@ -114,7 +114,7 @@ class Reaction:
 
 def post_post_cb(buffer, command, rc, out, err):
     if rc != 0:
-        weechat.prnt(buffer, "Can't send post")
+        weechat.prnt(buffer, "Cannot send post")
         return weechat.WEECHAT_RC_ERROR
 
     return weechat.WEECHAT_RC_OK
@@ -409,7 +409,7 @@ def get_line_data_tags(line_data):
 
     tags_count = weechat.hdata_integer(weechat.hdata_get("line_data"), line_data, "tags_count")
     for i in range(tags_count):
-        tag = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, '{}|tags_array'.format(i))
+        tag = weechat.hdata_string(weechat.hdata_get("line_data"), line_data, "{}|tags_array".format(i))
         tags.append(tag)
 
     return tags

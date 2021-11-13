@@ -19,7 +19,7 @@ class User:
         nick = self.username
 
         if config.nick_full_name and self.first_name and self.last_name:
-            nick = '{} {}'.format(self.first_name, self.last_name)
+            nick = "{} {}".format(self.first_name, self.last_name)
 
         return nick
 
@@ -305,7 +305,7 @@ def connect_server_cb(server_id, command, rc, out, err):
         weechat.prnt("", "An error occurred while connecting")
         return weechat.WEECHAT_RC_ERROR
 
-    token_search = re.search('[tT]oken: (\w*)', out)
+    token_search = re.search("[tT]oken: (\w*)", out)
 
     out = out.splitlines()[-1] # we remove the headers line
     response = json.loads(out)

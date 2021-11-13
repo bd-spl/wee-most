@@ -17,19 +17,19 @@ def prepare_download_location():
         try:
             os.makedirs(location)
         except:
-            weechat.prnt('', 'ERROR: Failed to create directory at files_download_location: {}'
+            weechat.prnt("", "ERROR: Failed to create directory at files_download_location: {}"
                     .format(location))
 
     return location
 
 def open_file(file_path):
-    if platform.system() == 'Darwin':       # macOS
-        weechat.hook_process("open \"{}\"".format(file_path), 100, "", "")
-    elif platform.system() == 'Windows':    # Windows
+    if platform.system() == "Darwin":       # macOS
+        weechat.hook_process('open "{}"'.format(file_path), 100, "", "")
+    elif platform.system() == "Windows":    # Windows
         os.startfile(file_path)
         weechat.hook_process(file_path, 100, "", "")
     else:                                   # linux variants
-        weechat.hook_process("xdg-open \"{}\"".format(file_path), 100, "", "")
+        weechat.hook_process('xdg-open "{}"'.format(file_path), 100, "", "")
 
 def file_get_cb(file_path, command, rc, out, err):
     if rc != 0:

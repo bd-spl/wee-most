@@ -32,9 +32,9 @@ def singularity_cb(data, command, rc, out, err):
 
 response_buffers = {}
 def buffered_response_cb(data, command, rc, out, err):
-    arg_search = re.search('([^\|]*)\|([^\|]*)\|(.*)', data)
+    arg_search = re.search("([^\|]*)\|([^\|]*)\|(.*)", data)
     if not arg_search:
-        weechat.prnt("", "Bad usage of buffered response cb \"{}\"".format(data))
+        weechat.prnt("", 'Bad usage of buffered response cb "{}"'.format(data))
         return weechat.WEECHAT_RC_ERROR
     response_buffer_name = arg_search.group(1)
     real_cb = arg_search.group(2)
@@ -123,7 +123,7 @@ def run_get_user(server, user_id, cb, cb_data):
 def logout_user(server):
     url = server.url + "/api/v4/users/logout"
     req = urllib.request.Request(url)
-    req.add_header('Authorization', 'Bearer ' + server.token)
+    req.add_header("Authorization", "Bearer " + server.token)
 
     try:
         urllib.request.urlopen(req, b'', 10 * 1000)

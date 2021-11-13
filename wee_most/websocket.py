@@ -14,7 +14,7 @@ class Worker:
         self.last_ping_time = 0
         self.last_pong_time = 0
 
-        url = server.url.replace('http', 'ws', 1) + "/api/v4/websocket"
+        url = server.url.replace("http", "ws", 1) + "/api/v4/websocket"
         self.ws = create_connection(url)
         self.ws.sock.setblocking(0)
 
@@ -252,7 +252,7 @@ def receive_ws_callback(server_id, data):
             return weechat.WEECHAT_RC_OK
 
         if data:
-            message = json.loads(data.decode('utf-8'))
+            message = json.loads(data.decode("utf-8"))
             handle_ws_message(server, message)
 
     return weechat.WEECHAT_RC_OK

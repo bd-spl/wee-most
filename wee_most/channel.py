@@ -84,7 +84,7 @@ class DirectMessagesChannel(ChannelBase):
         weechat.buffer_set(self.buffer, "localvar_set_type", "private")
 
     def _format_name(self, display_name, name):
-        match = re.match('(\w+)__(\w+)', name)
+        match = re.match("(\w+)__(\w+)", name)
 
         user = self.server.users[match.group(1)]
         if user.username == self.server.me.username:
@@ -140,8 +140,8 @@ def channel_input_cb(data, buffer, input_data):
     server = wee_most.server.get_server_from_buffer(buffer)
 
     post = {
-        'channel_id': weechat.buffer_get_string(buffer, "localvar_channel_id"),
-        'message': input_data,
+        "channel_id": weechat.buffer_get_string(buffer, "localvar_channel_id"),
+        "message": input_data,
     }
 
     wee_most.http.run_post_post(post, server, "post_post_cb", buffer)
@@ -230,7 +230,7 @@ def build_channel_name_from_channel_data(channel_data, server):
         prefix = config.get_value("channel_prefix_" + CHANNEL_TYPES.get(channel_data["type"]))
         channel_name = prefix + channel_data["display_name"]
     else:
-        match = re.match('(\w+)__(\w+)', channel_data["name"])
+        match = re.match("(\w+)__(\w+)", channel_data["name"])
 
         if match:
             user = server.users[match.group(1)]
@@ -245,7 +245,7 @@ def create_channel_from_channel_data(channel_data, server):
         if channel_data["last_post_at"] == 0:
             return;
 
-        match = re.match('(\w+)__(\w+)', channel_data["name"])
+        match = re.match("(\w+)__(\w+)", channel_data["name"])
         if match.group(1) in server.closed_channels or match.group(2) in server.closed_channels:
             return;
 
