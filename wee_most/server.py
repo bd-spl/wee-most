@@ -3,7 +3,7 @@ import weechat
 import wee_most
 import json
 import re
-from wee_most.globals import (config, servers)
+from wee_most.globals import (config, servers, DEFAULT_PAGE_COUNT)
 
 class User:
     def __init__(self, **kwargs):
@@ -223,7 +223,7 @@ def connect_server_users_cb(data, command, rc, out, err):
         else:
             server.users[user["id"]] = User(**user)
 
-    if len(response) == 60:
+    if len(response) == DEFAULT_PAGE_COUNT:
         wee_most.http.enqueue_request(
             "run_get_users",
             server, page+1, "connect_server_users_cb", "{}|{}".format(server.id, page+1)

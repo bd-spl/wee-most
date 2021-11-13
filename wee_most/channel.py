@@ -3,7 +3,7 @@ import weechat
 import json
 import wee_most
 import re
-from wee_most.globals import (config, servers)
+from wee_most.globals import (config, servers, DEFAULT_PAGE_COUNT)
 
 hydrating_buffers = []
 
@@ -217,7 +217,7 @@ def hydrate_channel_users_cb(data, command, rc, out, err):
 
     response = json.loads(out)
 
-    if len(response) == 60:
+    if len(response) == DEFAULT_PAGE_COUNT:
         wee_most.http.enqueue_request(
             "run_get_channel_members",
             channel.id, server, page+1, "hydrate_channel_users_cb", "{}|{}|{}".format(server_id, channel_id, page+1)
