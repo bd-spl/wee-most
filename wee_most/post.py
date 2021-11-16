@@ -175,12 +175,13 @@ def build_attachment(attachment):
     if attachment["author_name"]:
         att.append(attachment["author_name"])
 
+    # write link as markdown link for later generic formatting
     if attachment["title"] and attachment["title_link"]:
-        att.append(attachment["title"] + " (" + attachment["title_link"] + ")")
+        att.append(attachment["title"] + " [](" + attachment["title_link"] + ")")
     elif attachment["title"]:
         att.append(attachment["title"])
     elif attachment["title_link"]:
-        att.append(attachment["title_link"])
+        att.append("[](" + attachment["title_link"] + ")")
 
     if attachment["text"]:
         att.append(attachment["text"])
@@ -205,7 +206,9 @@ def format_markdown_links(text):
         text, url = match.groups()
         counter = len(links) + 1
         links.append("[{}] {}".format(counter, url))
-        return "{} [{}]".format(text, counter)
+        if text:
+            return "{} [{}]".format(text, counter)
+        return "[{}]".format(counter)
 
     p = re.compile('\[([^]]*)\]\(([^\)*]*)\)')
     new_text = p.sub(link_repl, text)
