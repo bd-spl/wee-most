@@ -1,5 +1,6 @@
 
 import weechat
+import re
 import wee_most.server
 import wee_most.post
 import wee_most.file
@@ -161,37 +162,58 @@ def build_message_with_attachments(message, attachments):
         msg_parts = []
 
     for attachment in attachments:
-        att = []
-
-        if attachment["pretext"]:
-            att.append(attachment["pretext"])
-
-        if attachment["author_name"]:
-            att.append(attachment["author_name"])
-
-        if attachment["title"] and attachment["title_link"]:
-            att.append(attachment["title"] + " (" + attachment["title_link"] + ")")
-        elif attachment["title"]:
-            att.append(attachment["title"])
-        elif attachment["title_link"]:
-            att.append(attachment["title_link"])
-
-        if attachment["text"]:
-            att.append(attachment["text"])
-
-        if attachment["fields"]:
-            for field in attachment["fields"]:
-                if field["title"] and field["value"]:
-                    att.append(field["title"] + ": " + field["value"])
-                elif field["value"]:
-                    att.append(field["value"])
-
-        if attachment["footer"]:
-            att.append(attachment["footer"])
-
-        msg_parts.append("\n".join(att))
+        msg_parts.append(build_attachment(attachment))
 
     return "\n\n".join(msg_parts)
+
+def build_attachment(attachment):
+    att = []
+
+    if attachment["pretext"]:
+        att.append(attachment["pretext"])
+
+    if attachment["author_name"]:
+        att.append(attachment["author_name"])
+
+    if attachment["title"] and attachment["title_link"]:
+        att.append(attachment["title"] + " (" + attachment["title_link"] + ")")
+    elif attachment["title"]:
+        att.append(attachment["title"])
+    elif attachment["title_link"]:
+        att.append(attachment["title_link"])
+
+    if attachment["text"]:
+        att.append(attachment["text"])
+
+    if attachment["fields"]:
+        for field in attachment["fields"]:
+            if field["title"] and field["value"]:
+                att.append(field["title"] + ": " + field["value"])
+            elif field["value"]:
+                att.append(field["value"])
+
+    if attachment["footer"]:
+        att.append(attachment["footer"])
+
+    return format_markdown_links("\n".join(att))
+
+def format_markdown_links(text):
+    links = []
+
+    def link_repl(match):
+        nonlocal links
+        text, url = match.groups()
+        counter = len(links) + 1
+        links.append("[{}] {}".format(counter, url))
+        return "{} [{}]".format(text, counter)
+
+    p = re.compile('\[([^]]*)\]\(([^\)*]*)\)')
+    new_text = p.sub(link_repl, text)
+
+    if links:
+        return new_text + "\n" + "\n".join(links)
+
+    return new_text
 
 def delete_message(post):
     lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), post.buffer, "lines")
