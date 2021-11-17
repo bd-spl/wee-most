@@ -479,7 +479,9 @@ def add_reaction_to_post(reaction):
         return
 
     post.add_reaction(reaction)
-    new_message = post.message + post.get_reactions_line()
+    message_last_line = post.message.split("\n")[-1]
+
+    new_message = message_last_line + post.get_reactions_line()
 
     line_data = find_buffer_last_post_line_data(reaction.buffer, post.id)
 
@@ -497,13 +499,14 @@ def remove_reaction_from_post(reaction):
         return
 
     post.remove_reaction(reaction)
+    message_last_line = post.message.split("\n")[-1]
 
     line_data = find_buffer_last_post_line_data(reaction.buffer, post.id)
 
     if not post.reactions:
-        new_message = post.message
+        new_message = message_last_line
     else:
-        new_message = post.message + post.get_reactions_line()
+        new_message = message_last_line + post.get_reactions_line()
 
     weechat.hdata_update(
         weechat.hdata_get("line_data"),
