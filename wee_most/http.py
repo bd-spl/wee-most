@@ -67,8 +67,8 @@ def handle_queued_request_cb(data, remaining_calls):
     eval(request[0])(*request[1])
     return weechat.WEECHAT_RC_OK
 
-def run_get_user_teams(user_id, server, cb, cb_data):
-    url = server.url + "/api/v4/users/" + user_id + "/teams"
+def run_get_user_teams(server, cb, cb_data):
+    url = server.url + "/api/v4/users/me/teams"
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -166,8 +166,8 @@ def run_get_channel(channel_id, server, cb, cb_data):
         build_buffer_cb_data(url, cb, cb_data)
     )
 
-def run_get_user_team_channels(user_id, team_id, server, cb, cb_data):
-    url = server.url + "/api/v4/users/" + user_id + "/teams/" + team_id + "/channels"
+def run_get_user_team_channels(team_id, server, cb, cb_data):
+    url = server.url + "/api/v4/users/me/teams/" + team_id + "/channels"
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -220,8 +220,8 @@ def run_post_command(channel_id, command, server, cb, cb_data):
         build_buffer_cb_data(url, cb, cb_data)
     )
 
-def run_get_read_channel_posts(user_id, channel_id, server, cb, cb_data):
-    url = server.url + "/api/v4/users/" + user_id + "/channels/" + channel_id + "/posts/unread?limit_after=1"
+def run_get_read_channel_posts(channel_id, server, cb, cb_data):
+    url = server.url + "/api/v4/users/me/channels/" + channel_id + "/posts/unread?limit_after=1"
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -259,8 +259,8 @@ def run_get_channel_members(channel_id, server, page, cb, cb_data):
         build_buffer_cb_data(url, cb, cb_data)
     )
 
-def run_post_channel_view(user_id, channel_id, server, cb, cb_data):
-    url = server.url + "/api/v4/channels/members/" + user_id + "/view"
+def run_post_channel_view(channel_id, server, cb, cb_data):
+    url = server.url + "/api/v4/channels/members/me/view"
     params = {
         "channel_id": channel_id,
     }
@@ -299,7 +299,7 @@ def run_post_reaction(emoji_name, post_id, server, cb, cb_data):
     )
 
 def run_delete_reaction(emoji_name, post_id, server, cb, cb_data):
-    url = server.url + "/api/v4/users/" + server.me.id + "/posts/" + post_id + "/reactions/" + emoji_name
+    url = server.url + "/api/v4/users/me/posts/" + post_id + "/reactions/" + emoji_name
 
     weechat.hook_process_hashtable(
         "url:" + url,
@@ -344,7 +344,7 @@ def run_get_file(file_id, file_out_path, server, cb, cb_data):
     )
 
 def run_get_preferences(server, cb, cb_data):
-    url = server.url + "/api/v4/users/" + server.me.id + "/preferences"
+    url = server.url + "/api/v4/users/me/preferences"
 
     weechat.hook_process_hashtable(
         "url:" + url,

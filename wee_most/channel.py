@@ -48,7 +48,7 @@ class ChannelBase:
         if last_post_id and last_post_id == last_read_post_id: # prevent spamming on buffer switch
             return
 
-        wee_most.http.run_post_channel_view(self.server.me.id, self.id, self.server, "singularity_cb", "")
+        wee_most.http.run_post_channel_view(self.id, self.server, "singularity_cb", "")
 
         weechat.buffer_set(self.buffer, "localvar_set_last_read_post_id", last_post_id)
 
@@ -281,7 +281,7 @@ def create_channel_from_channel_data(channel_data, server):
     register_buffer_hydratating(server, channel_data["id"])
     wee_most.http.enqueue_request(
         "run_get_read_channel_posts",
-        server.me.id, channel_data["id"], server, "hydrate_channel_read_posts_cb", channel.buffer
+        channel_data["id"], server, "hydrate_channel_read_posts_cb", channel.buffer
     )
     wee_most.http.enqueue_request(
         "run_get_channel_members",

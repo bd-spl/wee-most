@@ -231,7 +231,7 @@ def connect_server_users_cb(data, command, rc, out, err):
     else:
         wee_most.http.enqueue_request(
             "run_get_user_teams",
-            server.me.id, server, "connect_server_teams_cb", server.id
+            server, "connect_server_teams_cb", server.id
         )
 
     return weechat.WEECHAT_RC_OK
@@ -265,7 +265,7 @@ def connect_server_teams_cb(server_id, command, rc, out, err):
 
         wee_most.http.enqueue_request(
             "run_get_user_team_channels",
-            server.me.id, team_data["id"], server, "connect_server_team_channels_cb", server.id
+            team_data["id"], server, "connect_server_team_channels_cb", server.id
         )
 
     return weechat.WEECHAT_RC_OK
@@ -283,7 +283,7 @@ def connect_server_team_cb(server_id, command, rc, out, err):
 
     wee_most.http.enqueue_request(
         "run_get_user_team_channels",
-        server.me.id, team_data["id"], server, "connect_server_team_channels_cb", server.id
+        team_data["id"], server, "connect_server_team_channels_cb", server.id
     )
 
     return weechat.WEECHAT_RC_OK
