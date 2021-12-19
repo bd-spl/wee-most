@@ -339,18 +339,17 @@ def write_reply_message_lines(post):
                 + post.get_reactions_line()
             )
         )
-        return
-
-    weechat.prnt_date_tags(
-        post.buffer,
-        post.date,
-        tags,
-        (
-            build_nick(post.user, post.from_bot, post.username_override)
-            + "	"
-            + post.message
+    else:
+        weechat.prnt_date_tags(
+            post.buffer,
+            post.date,
+            tags,
+            (
+                build_nick(post.user, post.from_bot, post.username_override)
+                + "	"
+                + post.message
+            )
         )
-    )
 
     weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
 
@@ -393,14 +392,13 @@ def write_message_lines(post):
                 + post.get_reactions_line()
             )
         )
-        return
-
-    weechat.prnt_date_tags(
-        post.buffer,
-        post.date,
-        tags,
-        build_nick(post.user, post.from_bot, post.username_override) + "	" + message
-    )
+    else:
+        weechat.prnt_date_tags(
+            post.buffer,
+            post.date,
+            tags,
+            build_nick(post.user, post.from_bot, post.username_override) + "	" + message
+        )
 
     weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
 
