@@ -9,7 +9,7 @@ from wee_most.globals import (config)
 class Post:
     def __init__(self, server, **kwargs):
         self.id = kwargs["id"]
-        self.parent_id = kwargs["parent_id"]
+        self.root_id = kwargs["root_id"]
         self.channel = server.get_channel(kwargs["channel_id"])
         self.message = kwargs["message"]
         self.type = kwargs["type"]
@@ -289,7 +289,7 @@ def write_edited_message_lines(post):
 def write_reply_message_lines(post):
     tags = "post_id_%s" % post.id
 
-    parent_line_data = find_buffer_first_post_line_data(post.buffer, post.parent_id)
+    parent_line_data = find_buffer_first_post_line_data(post.buffer, post.root_id)
     if not parent_line_data:
         return # probably replying a out of range message
 
@@ -420,7 +420,7 @@ def write_post_deleted(post):
         delete_message(post)
 
 def write_post(post):
-    if post.parent_id:
+    if post.root_id:
         write_reply_message_lines(post)
     else:
         write_message_lines(post)

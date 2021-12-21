@@ -141,7 +141,7 @@ def command_reply(args, buffer):
     post = {
         "channel_id": weechat.buffer_get_string(buffer, "localvar_channel_id"),
         "message": message,
-        "parent_id": post_id,
+        "root_id": post_id,
     }
 
     server = wee_most.server.get_server_from_buffer(buffer)
