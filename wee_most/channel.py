@@ -300,9 +300,10 @@ def set_channel_properties_from_channel_data(channel_data, server):
 
 def buffer_switch_cb(data, signal, buffer):
     for server in servers.values():
-        if server.get_channel_from_buffer(buffer):
-            server.get_channel_from_buffer(buffer).mark_as_read()
-            return weechat.WEECHAT_RC_OK
+        channel = server.get_channel_from_buffer(buffer)
+        if channel:
+            channel.mark_as_read()
+            break
 
     return weechat.WEECHAT_RC_OK
 
