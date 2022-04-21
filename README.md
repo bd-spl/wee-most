@@ -2,6 +2,8 @@
 
 WeeChat plugin for Mattermost
 
+Tested only on latest Mattermost and WeeChat stable versions
+
 ## Installation
 
 Python dependencies from PyPi:
