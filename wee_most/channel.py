@@ -53,6 +53,9 @@ class ChannelBase:
         weechat.buffer_set(self.buffer, "localvar_set_last_read_post_id", last_post_id)
 
     def add_user(self, user_id):
+        if user_id not in self.server.users:
+            return
+
         user = self.server.users[user_id]
 
         if user.deleted:
