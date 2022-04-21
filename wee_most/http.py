@@ -141,6 +141,12 @@ def run_user_login(server, cb, cb_data):
         "password": server.password,
     }
 
+    if server.command_2fa:
+        token = server.retrieve_2fa_token()
+        if not token:
+            return weechat.WEECHAT_RC_ERROR
+        params["token"] = token
+
     weechat.hook_process_hashtable(
         "url:" + url,
         {

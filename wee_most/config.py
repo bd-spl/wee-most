@@ -141,6 +141,12 @@ class PluginConfig:
 
     server_settings = [
         Setting(
+            name = "command_2fa",
+            default = "",
+            description = "Shell command to retrieve the 2FA token",
+            type = "string",
+        ),
+        Setting(
             name = "password",
             default = "",
             description = "Password for authentication to {} server",

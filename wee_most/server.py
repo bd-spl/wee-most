@@ -3,6 +3,7 @@ import weechat
 import wee_most
 import json
 import re
+import subprocess
 from wee_most.globals import (config, servers, DEFAULT_PAGE_COUNT)
 
 class User:
@@ -33,6 +34,7 @@ class Server:
         self.url = config.get_server_config(id, "url").strip("/")
         self.username = config.get_server_config(id, "username")
         self.password = config.get_server_config(id, "password")
+        self.command_2fa = config.get_server_config(id, "command_2fa")
 
         if not self.url or not self.username or not self.password:
             raise ValueError("Server " + id + " is not fully configured")
@@ -112,6 +114,15 @@ class Server:
     def add_team(self, **kwargs):
         team = Team(self, **kwargs)
         self.teams[team.id] = team
+
+    def retrieve_2fa_token(self):
+        try:
+            out = subprocess.check_output(self.command_2fa, shell=True)
+        except (subprocess.CalledProcessError):
+            weechat.prnt("", "Failed to retrieve 2FA token")
+            return ""
+
+        return out.decode("utf-8")
 
     def unload(self):
         weechat.prnt("", "Unloading server")
