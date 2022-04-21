@@ -175,23 +175,31 @@ def build_attachment(attachment):
     if attachment["author_name"]:
         att.append(attachment["author_name"])
 
+    title = ""
     # write link as markdown link for later generic formatting
     if attachment["title"] and attachment["title_link"]:
-        att.append(attachment["title"] + " [](" + attachment["title_link"] + ")")
+        title = attachment["title"] + " [](" + attachment["title_link"] + ")"
     elif attachment["title"]:
-        att.append(attachment["title"])
+        title = attachment["title"]
     elif attachment["title_link"]:
-        att.append("[](" + attachment["title_link"] + ")")
+        title = "[](" + attachment["title_link"] + ")"
+
+    if title:
+        att.append(colorize_sentence(title, config.color_attachment_title))
 
     if attachment["text"]:
         att.append(attachment["text"])
 
     if attachment["fields"]:
         for field in attachment["fields"]:
+            field_text = ""
             if field["title"] and field["value"]:
-                att.append(field["title"] + ": " + field["value"])
+                field_text = field["title"] + ": " + field["value"]
             elif field["value"]:
-                att.append(field["value"])
+                field_text = field["value"]
+
+            if field_text:
+                att.append(colorize_sentence(field_text, config.color_attachment_field))
 
     if attachment["footer"]:
         att.append(attachment["footer"])
@@ -205,7 +213,7 @@ def format_markdown_links(text):
         nonlocal links
         text, url = match.groups()
         counter = len(links) + 1
-        links.append("[{}] {}".format(counter, url))
+        links.append(colorize_sentence("[{}] {}".format(counter, url), config.color_attachment_link))
         if text:
             return "{} [{}]".format(text, counter)
         return "[{}]".format(counter)

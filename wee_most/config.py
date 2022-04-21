@@ -54,6 +54,24 @@ class PluginConfig:
             type = "string",
         ),
         Setting(
+            name = "color_attachment_field",
+            default = "default",
+            description = "Color for the message attachment fields",
+            type = "string",
+        ),
+        Setting(
+            name = "color_attachment_link",
+            default = "/gray",
+            description = "Color for the message attachment links",
+            type = "string",
+        ),
+        Setting(
+            name = "color_attachment_title",
+            default = "*",
+            description = "Color for the message attachment title",
+            type = "string",
+        ),
+        Setting(
             name = "color_bot_suffix",
             default = "darkgray",
             description = "Color for the bot suffix in message attachments",
