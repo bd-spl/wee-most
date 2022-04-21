@@ -60,7 +60,7 @@ def find_file_id_in_tags(tags):
             return tag[8:]
 
 def get_files_from_post_data(post_data, server):
-    if "files" in post_data["metadata"]:
+    if "metadata" in post_data and "files" in post_data["metadata"]:
         files = []
         for file_data in post_data["metadata"]["files"]:
             files.append(File(server, **file_data))

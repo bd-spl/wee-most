@@ -22,7 +22,7 @@ class Post:
         self.files = wee_most.file.get_files_from_post_data(kwargs, server)
 
         self.reactions = []
-        if "reactions" in kwargs["metadata"]:
+        if "metadata" in kwargs and "reactions" in kwargs["metadata"]:
             for reaction_data in kwargs["metadata"]["reactions"]:
                 self.reactions.append(Reaction(server, **reaction_data))
 
