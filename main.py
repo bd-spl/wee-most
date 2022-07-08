@@ -40,7 +40,9 @@ weechat.register(
 wee_most.commands.setup_commands()
 wee_most.completions.setup_completions()
 config.setup()
-wee_most.server.auto_connect()
+
+if weechat.info_get("auto_connect", "") == '1':
+    wee_most.server.auto_connect()
 
 weechat.hook_modifier("input_text_for_buffer", "handle_multiline_message_cb", "")
 weechat.hook_signal("buffer_switch", "buffer_switch_cb", "")
