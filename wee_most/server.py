@@ -12,6 +12,7 @@ class User:
         self.username = kwargs["username"]
         self.first_name = kwargs["first_name"]
         self.last_name = kwargs["last_name"]
+        self.status = None
         self.deleted = kwargs["delete_at"] != 0
         self.color = weechat.info_get("nick_color_name", self.username)
 

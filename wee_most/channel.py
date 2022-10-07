@@ -14,6 +14,13 @@ CHANNEL_TYPES = {
     "P": "private",
 }
 
+NICK_GROUPS = {
+    "away": "1|Away",
+    "dnd": "2|Do not disturb",
+    "offline": "3|Offline",
+    "online": "0|Online",
+}
+
 class ChannelBase:
     def __init__(self, server, **kwargs):
         self.id = kwargs["id"]
@@ -23,6 +30,7 @@ class ChannelBase:
         self.name = self._format_name(kwargs["display_name"], kwargs["name"])
         self.buffer = None
         self.posts = {}
+        self.users = {}
 
         self._create_buffer()
 
@@ -61,7 +69,32 @@ class ChannelBase:
         if user.deleted:
             return
 
-        weechat.nicklist_add_nick(self.buffer, "", user.nick, user.color, "", user.color, 1)
+        self.users[user_id] = user
+
+    def update_nicklist(self):
+        user_without_status_ids = [u.id for i, u in self.users.items() if u.status is None]
+
+        if user_without_status_ids:
+            wee_most.http.enqueue_request(
+                    "run_post_users_status_ids",
+                    user_without_status_ids, self.server, "hydrate_channel_users_status_cb", "{}|{}".format(self.server.id, self.id)
+                    )
+            return
+
+        for id, user in self.users.items():
+            group = self._get_nick_group(user.status)
+            weechat.nicklist_add_nick(self.buffer, group, user.nick, user.color, "", user.color, 1)
+
+    def _get_nick_group(self, status):
+        name = NICK_GROUPS.get(status)
+        if not name:
+            return ""
+
+        group = weechat.nicklist_search_group(self.buffer, "", name)
+        if not group:
+            group = weechat.nicklist_add_group(self.buffer, "", name, "weechat.color.nicklist_group", 1)
+
+        return group
 
     def _format_buffer_name(self):
         parent_buffer_name = weechat.buffer_get_string(self.server.buffer, "name")
@@ -231,6 +264,28 @@ def hydrate_channel_users_cb(data, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def hydrate_channel_users_status_cb(data, command, rc, out, err):
+    if rc != 0:
+        weechat.prnt("", "An error occurred while hydrating channel users status")
+        return weechat.WEECHAT_RC_ERROR
+
+    server_id, channel_id = data.split("|")
+    server = servers[server_id]
+    channel = server.get_channel(channel_id)
+
+    response = json.loads(out)
+
+    for user_data in response:
+        user_id = user_data["user_id"]
+        if user_id not in channel.users:
+            continue
+        user = channel.users[user_id]
+        user.status = user_data["status"]
+
+    channel.update_nicklist()
+
+    return weechat.WEECHAT_RC_OK
+
 def remove_channel_user(buffer, user):
     nick = weechat.nicklist_search_nick(buffer, "", user.nick)
     weechat.nicklist_remove_nick(buffer, nick)
@@ -303,6 +358,7 @@ def buffer_switch_cb(data, signal, buffer):
         channel = server.get_channel_from_buffer(buffer)
         if channel:
             channel.mark_as_read()
+            channel.update_nicklist()
             break
 
     return weechat.WEECHAT_RC_OK
