@@ -19,6 +19,7 @@ NICK_GROUPS = {
     "dnd": "2|Do not disturb",
     "offline": "3|Offline",
     "online": "0|Online",
+    "unknown": "9|Unknown",
 }
 
 class ChannelBase:
@@ -88,7 +89,7 @@ class ChannelBase:
     def _get_nick_group(self, status):
         name = NICK_GROUPS.get(status)
         if not name:
-            return ""
+            name = NICK_GROUPS.get("unknown")
 
         group = weechat.nicklist_search_group(self.buffer, "", name)
         if not group:
