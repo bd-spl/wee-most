@@ -185,7 +185,7 @@ def build_attachment(attachment):
         title = "[](" + attachment["title_link"] + ")"
 
     if title:
-        att.append(colorize_sentence(title, config.color_attachment_title))
+        att.append(colorize_sentence(format_style(title), config.color_attachment_title))
 
     if attachment["text"]:
         att.append(attachment["text"])
@@ -199,7 +199,7 @@ def build_attachment(attachment):
                 field_text = field["value"]
 
             if field_text:
-                att.append(colorize_sentence(field_text, config.color_attachment_field))
+                att.append(colorize_sentence(format_style(field_text), config.color_attachment_field))
 
     if attachment["footer"]:
         att.append(attachment["footer"])
