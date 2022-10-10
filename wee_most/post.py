@@ -206,6 +206,33 @@ def build_attachment(attachment):
 
     return format_markdown_links("\n".join(att))
 
+def format_style(text):
+    text = re.sub(
+            r"(^| )(?:\*\*\*|___)([^*\n`]+)(?:\*\*\*|___)(?=[^\w]|$)",
+            r"\1{}{}\2{}{}".format(
+                weechat.color("bold"), weechat.color("italic"), weechat.color("-bold"), weechat.color("-italic")
+                ),
+            text,
+            flags=re.MULTILINE,
+            )
+    text = re.sub(
+            r"(^| )(?:\*\*|__)([^*\n`]+)(?:\*\*|__)(?=[^\w]|$)",
+            r"\1{}\2{}".format(
+                weechat.color("bold"), weechat.color("-bold")
+                ),
+            text,
+            flags=re.MULTILINE,
+            )
+    text = re.sub(
+            r"(^| )(?:\*|_)([^*\n`]+)(?:\*|_)(?=[^\w]|$)",
+            r"\1{}\2{}".format(
+                weechat.color("italic"), weechat.color("-italic")
+                ),
+            text,
+            flags=re.MULTILINE,
+            )
+    return text
+
 def format_markdown_links(text):
     links = []
 
@@ -272,13 +299,13 @@ def write_edited_message_lines(post):
         post.buffer,
         initial_message_date,
         "notify_none",
-        initial_message_prefix + "	" + colorize_sentence(build_quote_message(initial_message), config.color_quote)
+        initial_message_prefix + "	" + colorize_sentence(build_quote_message(format_style(initial_message)), config.color_quote)
     )
 
     if post.reactions:
-        new_message = post.message + post.get_reactions_line()
+        new_message = format_style(post.message) + post.get_reactions_line()
     else:
-        new_message = post.message
+        new_message = format_style(post.message)
 
     if post.read:
         tags += ",notify_none"
@@ -313,7 +340,7 @@ def write_reply_message_lines(post):
         post.buffer,
         parent_message_date,
         "quote,notify_none",
-        parent_message_prefix + "	" + colorize_sentence(build_quote_message(parent_message), config.color_parent_reply)
+        parent_message_prefix + "	" + colorize_sentence(build_quote_message(format_style(parent_message)), config.color_parent_reply)
     )
 
     parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
@@ -343,7 +370,7 @@ def write_reply_message_lines(post):
             (
                 build_nick(post.user, post.from_bot, post.username_override)
                 + "	"
-                + post.message
+                + format_style(post.message)
                 + post.get_reactions_line()
             )
         )
@@ -355,7 +382,7 @@ def write_reply_message_lines(post):
             (
                 build_nick(post.user, post.from_bot, post.username_override)
                 + "	"
-                + post.message
+                + format_style(post.message)
             )
         )
 
@@ -396,7 +423,7 @@ def write_message_lines(post):
             (
                 build_nick(post.user, post.from_bot, post.username_override)
                 + "	"
-                + message
+                + format_style(message)
                 + post.get_reactions_line()
             )
         )
@@ -405,7 +432,7 @@ def write_message_lines(post):
             post.buffer,
             post.date,
             tags,
-            build_nick(post.user, post.from_bot, post.username_override) + "	" + message
+            build_nick(post.user, post.from_bot, post.username_override) + "	" + format_style(message)
         )
 
     weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
