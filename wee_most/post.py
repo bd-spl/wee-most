@@ -289,9 +289,8 @@ def write_edited_message_lines(post):
 
     initial_tags = get_line_data_tags(first_initial_line_data)
     initial_post_id = find_post_id_in_tags(initial_tags)
-    initial_post = post.channel.posts[initial_post_id]
 
-    initial_message = initial_post.message
+    initial_message = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "message")
     initial_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), first_initial_line_data, "date")
     initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
 
