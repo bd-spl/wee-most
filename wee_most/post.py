@@ -329,9 +329,8 @@ def write_reply_message_lines(post):
 
     parent_tags = get_line_data_tags(parent_line_data)
     parent_post_id = find_post_id_in_tags(parent_tags)
-    parent_post = post.channel.posts[parent_post_id]
 
-    parent_message = parent_post.message
+    parent_message = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "message")
     parent_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), parent_line_data, "date")
     parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
 
