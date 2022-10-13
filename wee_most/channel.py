@@ -72,6 +72,12 @@ class ChannelBase:
 
         self.users[user_id] = user
 
+        color = ""
+        if weechat.config_string_to_boolean(weechat.config_string(weechat.config_get("irc.look.color_nicks_in_nicklist"))):
+            color = user.color
+
+        weechat.nicklist_add_nick(self.buffer, "", user.nick, color, "", color, 1)
+
     def update_nicklist(self):
         user_without_status_ids = [u.id for i, u in self.users.items() if u.status is None]
 
@@ -85,6 +91,9 @@ class ChannelBase:
         for id, user in self.users.items():
             group = self._get_nick_group(user.status)
             color = ""
+
+            nick = weechat.nicklist_search_nick(self.buffer, "", user.nick)
+            weechat.nicklist_remove_nick(self.buffer, nick)
 
             if weechat.config_string_to_boolean(weechat.config_string(weechat.config_get("irc.look.color_nicks_in_nicklist"))):
                 if user.status == "online":
