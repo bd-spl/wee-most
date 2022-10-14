@@ -89,19 +89,23 @@ class ChannelBase:
             return
 
         for id, user in self.users.items():
-            group = self._get_nick_group(user.status)
-            color = ""
+            self.update_nicklist_user(user)
 
-            nick = weechat.nicklist_search_nick(self.buffer, "", user.nick)
-            weechat.nicklist_remove_nick(self.buffer, nick)
+    def update_nicklist_user(self, user):
+        group = self._get_nick_group(user.status)
+        color = ""
 
-            if weechat.config_string_to_boolean(weechat.config_string(weechat.config_get("irc.look.color_nicks_in_nicklist"))):
-                if user.status == "online":
-                    color = user.color
-                else:
-                    color = weechat.config_string(weechat.config_get("weechat.color.nicklist_away"))
+        nick = weechat.nicklist_search_nick(self.buffer, "", user.nick)
+        weechat.nicklist_remove_nick(self.buffer, nick)
 
-            weechat.nicklist_add_nick(self.buffer, group, user.nick, color, "", color, 1)
+        if weechat.config_string_to_boolean(weechat.config_string(weechat.config_get("irc.look.color_nicks_in_nicklist"))):
+            if user.status == "online":
+                color = user.color
+            else:
+                color = weechat.config_string(weechat.config_get("weechat.color.nicklist_away"))
+
+        weechat.nicklist_add_nick(self.buffer, group, user.nick, color, "", color, 1)
+
 
     def _get_nick_group(self, status):
         name = NICK_GROUPS.get(status)

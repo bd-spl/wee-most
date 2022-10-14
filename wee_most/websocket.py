@@ -222,6 +222,26 @@ def handle_leave_team_message(server, message):
     team = server.teams.pop(data["team_id"])
     team.unload()
 
+def handle_status_change_message(server, message):
+    data = message["data"]
+
+    # this event seems only to be triggered on own user
+    user_id = data["user_id"]
+
+    if user_id not in server.users:
+        return
+
+    user = server.users[user_id]
+    user.status = data["status"]
+
+    for channel in server.channels.values():
+        if user_id in channel.users:
+            channel.update_nicklist_user(user)
+    for team in server.teams.values():
+        for channel in team.channels.values():
+            if user_id in channel.users:
+                channel.update_nicklist_user(user)
+
 def handle_ws_event_message(server, message):
     handler_function_name = "handle_" + message["event"] + "_message"
 
