@@ -185,6 +185,20 @@ def get_server_from_buffer(buffer):
     server_id = weechat.buffer_get_string(buffer, "localvar_server_id")
     return servers[server_id]
 
+def get_buffer_user_status_cb(data, remaining_calls):
+    buffer = weechat.current_buffer()
+
+    for server in servers.values():
+        channel = server.get_channel_from_buffer(buffer)
+        if channel:
+            wee_most.http.enqueue_request(
+                    "run_post_users_status_ids",
+                    list(channel.users.keys()), server, "hydrate_channel_users_status_cb", "{}|{}".format(server.id, channel.id)
+                    )
+            break
+
+    return weechat.WEECHAT_RC_OK
+
 def connect_server_team_channel(channel_id, server):
     wee_most.channel.register_buffer_hydratating(channel_id)
     wee_most.http.enqueue_request(

@@ -79,15 +79,6 @@ class ChannelBase:
         weechat.nicklist_add_nick(self.buffer, "", user.nick, color, "", color, 1)
 
     def update_nicklist(self):
-        user_without_status_ids = [u.id for i, u in self.users.items() if u.status is None]
-
-        if user_without_status_ids:
-            wee_most.http.enqueue_request(
-                    "run_post_users_status_ids",
-                    user_without_status_ids, self.server, "hydrate_channel_users_status_cb", "{}|{}".format(self.server.id, self.id)
-                    )
-            return
-
         for id, user in self.users.items():
             self.update_nicklist_user(user)
 
@@ -380,7 +371,10 @@ def buffer_switch_cb(data, signal, buffer):
         channel = server.get_channel_from_buffer(buffer)
         if channel:
             channel.mark_as_read()
-            channel.update_nicklist()
+            wee_most.http.enqueue_request(
+                    "run_post_users_status_ids",
+                    list(channel.users.keys()), server, "hydrate_channel_users_status_cb", "{}|{}".format(server.id, channel.id)
+                    )
             break
 
     return weechat.WEECHAT_RC_OK

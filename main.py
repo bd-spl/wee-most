@@ -4,7 +4,7 @@ from wee_most.channel import (handle_multiline_message_cb, channel_input_cb,
                              buffer_switch_cb,
                              channel_click_cb)
 
-from wee_most.server import (config_server_buffer_cb)
+from wee_most.server import (config_server_buffer_cb, get_buffer_user_status_cb)
 
 from wee_most.commands import (mattermost_command_cb)
 
@@ -47,6 +47,7 @@ if weechat.info_get("auto_connect", "") == '1':
 weechat.hook_modifier("input_text_for_buffer", "handle_multiline_message_cb", "")
 weechat.hook_signal("buffer_switch", "buffer_switch_cb", "")
 weechat.hook_timer(int(0.2 * 1000), 0, 0, "handle_queued_request_cb", "")
+weechat.hook_timer(60 * 1000, 0, 0, "get_buffer_user_status_cb", "")
 weechat.hook_config("irc.look.server_buffer", "config_server_buffer_cb", "")
 weechat.hook_focus("chat", "channel_click_cb", "")
 
