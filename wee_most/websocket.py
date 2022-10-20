@@ -234,13 +234,10 @@ def handle_status_change_message(server, message):
     user = server.users[user_id]
     user.status = data["status"]
 
-    for channel in server.channels.values():
-        if user_id in channel.users:
-            channel.update_nicklist_user(user)
-    for team in server.teams.values():
-        for channel in team.channels.values():
-            if user_id in channel.users:
-                channel.update_nicklist_user(user)
+    buffer = weechat.current_buffer()
+    channel = server.get_channel_from_buffer(buffer)
+    if channel and user_id in channel.users:
+        channel.update_nicklist_user(user)
 
 def handle_ws_event_message(server, message):
     handler_function_name = "handle_" + message["event"] + "_message"
