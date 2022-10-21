@@ -210,18 +210,6 @@ def handle_status_change_message(server, data, broadcast):
     if channel and user_id in channel.users:
         channel.update_nicklist_user(user)
 
-def handle_ws_event_message(server, message):
-    handler_function_name = "handle_" + message["event"] + "_message"
-
-    if handler_function_name not in globals():
-        return
-
-    globals()[handler_function_name](server, message["data"], message["broadcast"])
-
-def handle_ws_message(server, message):
-    if "event" in message:
-        handle_ws_event_message(server, message)
-
 def receive_ws_callback(server_id, data):
     server = servers[server_id]
     worker = server.worker
@@ -241,7 +229,11 @@ def receive_ws_callback(server_id, data):
 
         if data:
             message = json.loads(data.decode("utf-8"))
-            handle_ws_message(server, message)
+            if "event" in message:
+                handler_function_name = "handle_" + message["event"] + "_message"
+                if handler_function_name not in globals():
+                    return weechat.WEECHAT_RC_OK
+                globals()[handler_function_name](server, message["data"], message["broadcast"])
 
     return weechat.WEECHAT_RC_OK
 
