@@ -209,6 +209,7 @@ def handle_status_change_message(server, data, broadcast):
     channel = server.get_channel_from_buffer(buffer)
     if channel and user_id in channel.users:
         channel.update_nicklist_user(user)
+        channel.remove_empty_nick_groups()
 
 def receive_ws_callback(server_id, data):
     server = servers[server_id]

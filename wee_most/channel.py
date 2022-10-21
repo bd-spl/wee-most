@@ -79,8 +79,10 @@ class ChannelBase:
         weechat.nicklist_add_nick(self.buffer, "", user.nick, color, "", color, 1)
 
     def update_nicklist(self):
-        for id, user in self.users.items():
+        for user in self.users.values():
             self.update_nicklist_user(user)
+
+        self.remove_empty_nick_groups()
 
     def update_nicklist_user(self, user):
         group = self._get_nick_group(user.status)
@@ -97,6 +99,18 @@ class ChannelBase:
 
         weechat.nicklist_add_nick(self.buffer, group, user.nick, color, "", color, 1)
 
+    def remove_empty_nick_groups(self):
+        root = weechat.hdata_pointer(weechat.hdata_get("buffer"), self.buffer, "nicklist_root")
+        group = weechat.hdata_pointer(weechat.hdata_get("nick_group"), root, "children")
+
+        while group:
+            if not weechat.hdata_pointer(weechat.hdata_get("nick_group"), group, "last_nick"):
+                # tried deleting or marking group as not visible via hdata_update but it doesn't seem to work
+                name = weechat.hdata_string(weechat.hdata_get("nick_group"), group, "name")
+                g = weechat.nicklist_search_group(self.buffer, "", name)
+                weechat.nicklist_remove_group(self.buffer, g)
+
+            group = weechat.hdata_pointer(weechat.hdata_get("nick_group"), group, "next_group")
 
     def _get_nick_group(self, status):
         name = NICK_GROUPS.get(status)
