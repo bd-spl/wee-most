@@ -140,13 +140,14 @@ def handle_channel_updated_message(server, data, broadcast):
     wee_most.channel.set_channel_properties_from_channel_data(channel_data, server)
 
 def handle_channel_viewed_message(server, data, broadcast):
-    buffer = server.get_channel(data["channel_id"]).buffer
-    if buffer:
-        weechat.buffer_set(buffer, "unread", "-")
-        weechat.buffer_set(buffer, "hotlist", "-1")
+    channel = server.get_channel(data["channel_id"])
 
-        last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
-        weechat.buffer_set(buffer, "localvar_set_last_read_post_id", last_post_id)
+    if channel:
+        weechat.buffer_set(channel.buffer, "unread", "-")
+        weechat.buffer_set(channel.buffer, "hotlist", "-1")
+
+        last_post_id = weechat.buffer_get_string(channel.buffer, "localvar_last_post_id")
+        weechat.buffer_set(channel.buffer, "localvar_set_last_read_post_id", last_post_id)
 
 def handle_user_added_message(server, data, broadcast):
     if data["user_id"] == server.me.id: # we are geing invited
