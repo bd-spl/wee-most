@@ -155,20 +155,17 @@ def handle_user_added_message(server, data, broadcast):
         channel = server.get_channel(broadcast["channel_id"])
         channel.add_user(data["user_id"])
 
-def handle_channel_added_message(server, data, broadcast):
+def handle_group_added_message(server, data, broadcast):
+    wee_most.server.connect_server_team_channel(broadcast["channel_id"], server)
+
+def handle_direct_added_message(server, data, broadcast):
     wee_most.server.connect_server_team_channel(broadcast["channel_id"], server)
 
 def handle_group_added_message(server, data, broadcast):
-    handle_channel_added_message(server, message)
-
-def handle_direct_added_message(server, data, broadcast):
-    handle_channel_added_message(server, message)
-
-def handle_group_added_message(server, data, broadcast):
-    handle_channel_added_message(server, message)
+    wee_most.server.connect_server_team_channel(broadcast["channel_id"], server)
 
 def handle_new_user_message(server, data, broadcast):
-    user_id = message["data"]["user_id"]
+    user_id = data["user_id"]
     wee_most.http.enqueue_request(
         "run_get_user",
         server, user_id, "new_user_cb", server.id
