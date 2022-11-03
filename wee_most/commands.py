@@ -2,6 +2,7 @@
 import weechat
 import wee_most
 from collections import namedtuple
+from functools import wraps
 from wee_most.globals import config
 
 Command = namedtuple("Command", ["name", "args", "description", "completion"])
@@ -57,6 +58,21 @@ commands = [
     ),
 ]
 
+def mattermost_channel_buffer_required(f):
+    @wraps(f)
+    def wrapper(args, buffer):
+        buffer_name = weechat.buffer_get_string(buffer, "name")
+        buffer_type = weechat.buffer_get_string(buffer, "localvar_type")
+        if not buffer_name.startswith("wee-most.") or buffer_type == "server":
+            command_name = f.__name__.replace("command_", "", 1)
+            weechat.prnt("", 'wee-most: command "{}" must be executed on a Mattermost channel buffer'.format(command_name))
+            return weechat.WEECHAT_RC_ERROR
+
+        return f(args, buffer)
+
+    return wrapper
+
+
 def command_server_add(args, buffer):
     if 1 != len(args.split()):
         write_command_error("server add " + args, "Error with subcommand arguments")
@@ -94,6 +110,7 @@ def command_server(args, buffer):
     write_command_error("server " + command + " " + args, "Invalid server subcommand")
     return weechat.WEECHAT_RC_ERROR
 
+@mattermost_channel_buffer_required
 def command_slash(args, buffer):
     if 0 == len(args.split()):
         write_command_error("slash " + args, "Error with subcommand arguments")
@@ -120,6 +137,7 @@ def mattermost_command_cb(data, buffer, command):
 
     return globals()[command_function_name](args, buffer)
 
+@mattermost_channel_buffer_required
 def command_reply(args, buffer):
     if 2 != len(args.split(" ", 1)):
         write_command_error("reply " + args, "Error with subcommand arguments")
@@ -150,6 +168,7 @@ def command_reply(args, buffer):
 
     return weechat.WEECHAT_RC_OK
 
+@mattermost_channel_buffer_required
 def command_react(args, buffer):
     if 2 != len(args.split()):
         write_command_error("react " + args, "Error with subcommand arguments")
@@ -166,6 +185,7 @@ def command_react(args, buffer):
 
     return weechat.WEECHAT_RC_OK
 
+@mattermost_channel_buffer_required
 def command_unreact(args, buffer):
     if 2 != len(args.split()):
         write_command_error("unreact " + args, "Error with subcommand arguments")
@@ -182,6 +202,7 @@ def command_unreact(args, buffer):
 
     return weechat.WEECHAT_RC_OK
 
+@mattermost_channel_buffer_required
 def command_delete(args, buffer):
     if 1 != len(args.split()):
         write_command_error("delete " + args, "Error with subcommand arguments")
