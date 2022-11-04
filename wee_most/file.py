@@ -10,15 +10,14 @@ class File:
         self.name = kwargs["name"]
         self.url = wee_most.http.build_file_url(kwargs["id"], server)
 
-def prepare_download_location():
+def prepare_download_location(server):
     location = os.path.expanduser(config.download_location)
 
     if not os.path.exists(location):
         try:
             os.makedirs(location)
         except:
-            weechat.prnt("", "ERROR: Failed to create directory at files_download_location: {}"
-                    .format(location))
+            server.print("ERROR: Failed to create directory at files_download_location: {}".format(location))
 
     return location
 
@@ -31,9 +30,12 @@ def open_file(file_path):
     else:                                   # linux variants
         weechat.hook_process('xdg-open "{}"'.format(file_path), 100, "", "")
 
-def file_get_cb(file_path, command, rc, out, err):
+def file_get_cb(data, command, rc, out, err):
+    server_id, file_path = data.split("|")
+    server = servers[server_id]
+
     if rc != 0:
-        weechat.prnt("", "An error occurred while downloading file")
+        server.print("An error occurred while downloading file")
         return weechat.WEECHAT_RC_ERROR
 
     open_file(file_path)
@@ -47,12 +49,12 @@ def handle_file_click(data, info):
 
     server = wee_most.server.get_server_from_buffer(info["_buffer"])
 
-    file_path = prepare_download_location() + "/" + file_id
+    file_path = prepare_download_location(server) + "/" + file_id
 
     if os.path.isfile(file_path):
         open_file(file_path)
     else:
-        wee_most.http.run_get_file(file_id, file_path, server, "file_get_cb", file_path)
+        wee_most.http.run_get_file(file_id, file_path, server, "file_get_cb", "{}|{}".format(server.id, file_path))
 
 def find_file_id_in_tags(tags):
     for tag in tags:

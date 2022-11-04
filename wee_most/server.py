@@ -75,6 +75,9 @@ class Server:
         if kwargs["notify_props"]["mention_keys"]:
             self.highlight_words.extend(kwargs["notify_props"]["mention_keys"].split(","))
 
+    def print(self, message):
+        weechat.prnt(self.buffer, message)
+
     def get_channel(self, channel_id):
         if channel_id in self.channels:
             return self.channels[channel_id]
@@ -120,13 +123,13 @@ class Server:
         try:
             out = subprocess.check_output(self.command_2fa, shell=True)
         except (subprocess.CalledProcessError):
-            weechat.prnt("", "Failed to retrieve 2FA token")
+            self.print("Failed to retrieve 2FA token")
             return ""
 
         return out.decode("utf-8")
 
     def unload(self):
-        weechat.prnt("", "Unloading server")
+        self.print("Unloading server")
 
         servers.pop(self.id)
 
@@ -207,11 +210,11 @@ def connect_server_team_channel(channel_id, server):
     )
 
 def connect_server_team_channel_cb(server_id, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occurred while connecting team channel")
-        return weechat.WEECHAT_RC_ERROR
-
     server = servers[server_id]
+
+    if rc != 0:
+        server.print("An error occurred while connecting team channel")
+        return weechat.WEECHAT_RC_ERROR
 
     channel_data = json.loads(out)
     wee_most.channel.create_channel_from_channel_data(channel_data, server)
@@ -219,11 +222,11 @@ def connect_server_team_channel_cb(server_id, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def connect_server_team_channels_cb(server_id, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occurred while connecting team channels")
-        return weechat.WEECHAT_RC_ERROR
-
     server = servers[server_id]
+
+    if rc != 0:
+        server.print("An error occurred while connecting team channels")
+        return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
     for channel_data in response:
@@ -234,13 +237,13 @@ def connect_server_team_channels_cb(server_id, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def connect_server_users_cb(data, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occurred while connecting users")
-        return weechat.WEECHAT_RC_ERROR
-
     server_id, page = data.split("|")
     page = int(page)
     server = servers[server_id]
+
+    if rc != 0:
+        server.print("An error occurred while connecting users")
+        return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
     for user in response:
@@ -263,11 +266,11 @@ def connect_server_users_cb(data, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def connect_server_preferences_cb(server_id, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occurred while connecting preferences")
-        return weechat.WEECHAT_RC_ERROR
-
     server = servers[server_id]
+
+    if rc != 0:
+        server.print("An error occurred while connecting preferences")
+        return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
 
@@ -278,11 +281,11 @@ def connect_server_preferences_cb(server_id, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def connect_server_teams_cb(server_id, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occurred while connecting teams")
-        return weechat.WEECHAT_RC_ERROR
-
     server = servers[server_id]
+
+    if rc != 0:
+        server.print("An error occurred while connecting teams")
+        return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
 
@@ -297,11 +300,11 @@ def connect_server_teams_cb(server_id, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def connect_server_team_cb(server_id, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occurred while connecting team")
-        return weechat.WEECHAT_RC_ERROR
-
     server = servers[server_id]
+
+    if rc != 0:
+        server.print("An error occurred while connecting team")
+        return weechat.WEECHAT_RC_ERROR
 
     team_data = json.loads(out)
 
@@ -315,11 +318,11 @@ def connect_server_team_cb(server_id, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def new_user_cb(server_id, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occurred while adding a new user")
-        return weechat.WEECHAT_RC_ERROR
-
     server = servers[server_id]
+
+    if rc != 0:
+        server.print("An error occurred while adding a new user")
+        return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
     server.users[response["id"]] = User(**response)
@@ -327,8 +330,10 @@ def new_user_cb(server_id, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def connect_server_cb(server_id, command, rc, out, err):
+    server = servers[server_id]
+
     if rc != 0:
-        weechat.prnt("", "An error occurred while connecting")
+        server.print("An error occurred while connecting")
         return weechat.WEECHAT_RC_ERROR
 
     token_search = re.search("[tT]oken: (\w*)", out)
@@ -336,15 +341,13 @@ def connect_server_cb(server_id, command, rc, out, err):
     out = out.splitlines()[-1] # we remove the headers line
     response = json.loads(out)
 
-    server = servers[server_id]
-
     server.token = token_search.group(1)
     server.init_me(**response)
 
     try:
         worker = wee_most.websocket.Worker(server)
     except:
-        weechat.prnt("", "An error occurred while creating the websocket worker")
+        server.print("An error occurred while creating the websocket worker")
         return weechat.WEECHAT_RC_ERROR
 
     reconnection_loop_hook = weechat.hook_timer(5 * 1000, 0, 0, "reconnection_loop_cb", server.id)
@@ -352,7 +355,7 @@ def connect_server_cb(server_id, command, rc, out, err):
     server.worker = worker
     server.reconnection_loop_hook = reconnection_loop_hook
 
-    weechat.prnt("", "Connected to " + server_id)
+    server.print("Connected to " + server_id)
 
     wee_most.http.enqueue_request(
         "run_get_users",
@@ -371,7 +374,7 @@ def connect_server(server_id):
         server = servers[server_id]
 
         if server != None and server.is_connected():
-            weechat.prnt("", "Already connected")
+            server.print("Already connected")
             return weechat.WEECHAT_RC_ERROR
 
         if server != None:
@@ -380,10 +383,10 @@ def connect_server(server_id):
     try:
         server = Server(server_id)
     except ValueError as ve:
-        weechat.prnt("", str(ve))
+        server.print(str(ve))
         return weechat.WEECHAT_RC_ERROR
 
-    weechat.prnt("", "Connecting to " + server_id)
+    server.print("Connecting to " + server_id)
 
     servers[server_id] = server
 
@@ -398,7 +401,7 @@ def disconnect_server(server_id):
     server = servers[server_id]
 
     if not server.is_connected():
-        weechat.prnt("", "Not connected")
+        server.print("Not connected")
         return weechat.WEECHAT_RC_ERROR
 
     rc = wee_most.http.logout_user(server)

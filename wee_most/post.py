@@ -114,8 +114,10 @@ class Reaction:
         return self.post.buffer
 
 def post_post_cb(buffer, command, rc, out, err):
+    server = wee_most.server.get_server_from_buffer(buffer)
+
     if rc != 0:
-        weechat.prnt(buffer, "Cannot send post")
+        server.print("Cannot send post")
         return weechat.WEECHAT_RC_ERROR
 
     return weechat.WEECHAT_RC_OK

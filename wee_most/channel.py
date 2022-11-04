@@ -57,7 +57,7 @@ class ChannelBase:
         if last_post_id and last_post_id == last_read_post_id: # prevent spamming on buffer switch
             return
 
-        wee_most.http.run_post_channel_view(self.id, self.server, "singularity_cb", "")
+        wee_most.http.run_post_channel_view(self.id, self.server, "singularity_cb", self.buffer)
 
         weechat.buffer_set(self.buffer, "localvar_set_last_read_post_id", last_post_id)
 
@@ -212,11 +212,11 @@ def channel_input_cb(data, buffer, input_data):
     return weechat.WEECHAT_RC_OK
 
 def hydrate_channel_posts_cb(buffer, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occurred while hydrating channel")
-        return weechat.WEECHAT_RC_ERROR
-
     server = wee_most.server.get_server_from_buffer(buffer)
+
+    if rc != 0:
+        server.print("An error occurred while hydrating channel")
+        return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
 
@@ -237,11 +237,11 @@ def hydrate_channel_posts_cb(buffer, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occurred while hydrating channel")
-        return weechat.WEECHAT_RC_ERROR
-
     server = wee_most.server.get_server_from_buffer(buffer)
+
+    if rc != 0:
+        server.print("An error occurred while hydrating channel")
+        return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
 
@@ -269,14 +269,14 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def hydrate_channel_users_cb(data, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occurred while hydrating channel users")
-        return weechat.WEECHAT_RC_ERROR
-
     server_id, channel_id, page = data.split("|")
     page = int(page)
     server = servers[server_id]
     channel = server.get_channel(channel_id)
+
+    if rc != 0:
+        server.print("An error occurred while hydrating channel users")
+        return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
 
@@ -292,13 +292,13 @@ def hydrate_channel_users_cb(data, command, rc, out, err):
     return weechat.WEECHAT_RC_OK
 
 def hydrate_channel_users_status_cb(data, command, rc, out, err):
-    if rc != 0:
-        weechat.prnt("", "An error occurred while hydrating channel users status")
-        return weechat.WEECHAT_RC_ERROR
-
     server_id, channel_id = data.split("|")
     server = servers[server_id]
     channel = server.get_channel(channel_id)
+
+    if rc != 0:
+        server.print("An error occurred while hydrating channel users status")
+        return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
 
@@ -358,7 +358,7 @@ def create_channel_from_channel_data(channel_data, server):
         elif channel_data["type"] == "O":
             channel = PublicChannel(team, **channel_data)
         else:
-            weechat.prnt("", "Unknown channel type " + channel_data["type"])
+            server.print("Unknown channel type " + channel_data["type"])
             channel = PublicChannel(team, **channel_data)
 
         team.channels[channel.id] = channel

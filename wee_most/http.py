@@ -23,9 +23,11 @@ from wee_most.server import (connect_server_cb, connect_server_teams_cb,
 def build_file_url(file_id, server):
     return server.url + "/api/v4/files/" + file_id
 
-def singularity_cb(data, command, rc, out, err):
+def singularity_cb(buffer, command, rc, out, err):
+    server = wee_most.server.get_server_from_buffer(buffer)
+
     if rc != 0:
-        weechat.prnt("", "An error occurred while performing a request")
+        server.print("An error occurred while performing a request")
         return weechat.WEECHAT_RC_ERROR
 
     return weechat.WEECHAT_RC_OK
@@ -33,9 +35,6 @@ def singularity_cb(data, command, rc, out, err):
 response_buffers = {}
 def buffered_response_cb(data, command, rc, out, err):
     arg_search = re.search("([^\|]*)\|([^\|]*)\|(.*)", data)
-    if not arg_search:
-        weechat.prnt("", 'Bad usage of buffered response cb "{}"'.format(data))
-        return weechat.WEECHAT_RC_ERROR
     response_buffer_name = arg_search.group(1)
     real_cb = arg_search.group(2)
     real_data = arg_search.group(3)
@@ -128,10 +127,10 @@ def logout_user(server):
     try:
         urllib.request.urlopen(req, b'', 10 * 1000)
     except:
-        weechat.prnt("", "An error occurred while disconnecting")
+        server.print("An error occurred while disconnecting")
         return weechat.WEECHAT_RC_ERROR
 
-    weechat.prnt("", "Disconnected")
+    server.print("Disconnected")
     return weechat.WEECHAT_RC_OK
 
 def run_user_login(server, cb, cb_data):

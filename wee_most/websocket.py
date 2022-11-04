@@ -41,7 +41,7 @@ def rehydrate_server_buffer(server, buffer):
     )
 
 def rehydrate_server_buffers(server):
-    weechat.prnt("", "Syncing...")
+    server.print("Syncing...")
     for channel in server.channels.values():
         rehydrate_server_buffer(server, channel.buffer)
     for team in server.teams.values():
@@ -53,16 +53,16 @@ def reconnection_loop_cb(server_id, remaining_calls):
     if server != None and server.is_connected():
         return weechat.WEECHAT_RC_OK
 
-    weechat.prnt("", "Reconnecting...")
+    server.print("Reconnecting...")
 
     try:
         new_worker = Worker(server)
     except:
-        weechat.prnt("", "Reconnection issue. Trying again in a few seconds...")
+        server.print("Reconnection issue. Trying again in a few seconds...")
         return weechat.WEECHAT_RC_ERROR
 
     server.worker = new_worker
-    weechat.prnt("", "Reconnected.")
+    server.print("Reconnected.")
     rehydrate_server_buffers(server)
     return weechat.WEECHAT_RC_OK
 
@@ -72,7 +72,7 @@ def close_worker(worker):
     worker.ws.close()
 
 def handle_lost_connection(server):
-    weechat.prnt("", "Connection lost.")
+    server.print("Connection lost.")
     close_worker(server.worker)
     server.worker = None
 
