@@ -126,7 +126,7 @@ class ChannelBase:
     def _format_buffer_name(self):
         parent_buffer_name = weechat.buffer_get_string(self.server.buffer, "name")
         # use "!" character so that the buffer gets sorted just after the server buffer and before all teams buffers
-        return "{}.!.{}".format(parent_buffer_name, self.name)
+        return "{}.!.{}".format(parent_buffer_name[:-1], self.name)
 
     def _format_name(self, display_name, name):
         final_name = display_name
@@ -167,7 +167,7 @@ class PrivateChannel(ChannelBase):
 
     def _format_buffer_name(self):
         parent_buffer_name = weechat.buffer_get_string(self.team.buffer, "name")
-        return "{}.{}".format(parent_buffer_name, self.name)
+        return "{}.{}".format(parent_buffer_name[:-1], self.name)
 
 class PublicChannel(ChannelBase):
     def __init__(self, team, **kwargs):
@@ -176,7 +176,7 @@ class PublicChannel(ChannelBase):
 
     def _format_buffer_name(self):
         parent_buffer_name = weechat.buffer_get_string(self.team.buffer, "name")
-        return "{}.{}".format(parent_buffer_name, self.name)
+        return "{}.{}".format(parent_buffer_name[:-1], self.name)
 
 def is_buffer_hydratating(channel_id):
     return channel_id in hydrating_buffers

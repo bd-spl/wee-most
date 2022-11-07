@@ -54,7 +54,8 @@ class Server:
         self._create_buffer()
 
     def _create_buffer(self):
-        buffer_name = "wee-most.{}".format(self.id)
+        # use "*" character so that the buffer is unique and gets sorted before all server buffers
+        buffer_name = "wee-most.{}*".format(self.id)
         self.buffer = weechat.buffer_new(buffer_name, "", "", "", "")
         weechat.buffer_set(self.buffer, "short_name", self.id)
         weechat.buffer_set(self.buffer, "localvar_set_server_id", self.id)
@@ -156,8 +157,9 @@ class Team:
         self._create_buffer()
 
     def _create_buffer(self):
-        parent_buffer_name = weechat.buffer_get_string(self.server.buffer, "name")
-        buffer_name = "{}.{}".format(parent_buffer_name, self.name)
+        parent_buffer_name = weechat.buffer_get_string(self.server.buffer, "name")[:-1]
+        # use "*" character so that the buffer is unique and gets sorted before all team buffers
+        buffer_name = "{}.{}*".format(parent_buffer_name, self.name)
         self.buffer = weechat.buffer_new(buffer_name, "", "", "", "")
 
         weechat.buffer_set(self.buffer, "short_name", self.name)
