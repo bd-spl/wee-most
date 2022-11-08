@@ -17,7 +17,7 @@ def prepare_download_location(server):
         try:
             os.makedirs(location)
         except:
-            server.print("ERROR: Failed to create directory at files_download_location: {}".format(location))
+            server.print_error("Failed to create directory at files_download_location: {}".format(location))
 
     return location
 
@@ -35,7 +35,7 @@ def file_get_cb(data, command, rc, out, err):
     server = servers[server_id]
 
     if rc != 0:
-        server.print("An error occurred while downloading file")
+        server.print_error("An error occurred while downloading file")
         return weechat.WEECHAT_RC_ERROR
 
     open_file(file_path)

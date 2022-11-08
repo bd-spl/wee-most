@@ -215,7 +215,7 @@ def hydrate_channel_posts_cb(buffer, command, rc, out, err):
     server = wee_most.server.get_server_from_buffer(buffer)
 
     if rc != 0:
-        server.print("An error occurred while hydrating channel")
+        server.print_error("An error occurred while hydrating channel")
         return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
@@ -240,7 +240,7 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
     server = wee_most.server.get_server_from_buffer(buffer)
 
     if rc != 0:
-        server.print("An error occurred while hydrating channel")
+        server.print_error("An error occurred while hydrating channel")
         return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
@@ -275,7 +275,7 @@ def hydrate_channel_users_cb(data, command, rc, out, err):
     channel = server.get_channel(channel_id)
 
     if rc != 0:
-        server.print("An error occurred while hydrating channel users")
+        server.print_error("An error occurred while hydrating channel users")
         return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
@@ -297,7 +297,7 @@ def hydrate_channel_users_status_cb(data, command, rc, out, err):
     channel = server.get_channel(channel_id)
 
     if rc != 0:
-        server.print("An error occurred while hydrating channel users status")
+        server.print_error("An error occurred while hydrating channel users status")
         return weechat.WEECHAT_RC_ERROR
 
     response = json.loads(out)
@@ -358,7 +358,7 @@ def create_channel_from_channel_data(channel_data, server):
         elif channel_data["type"] == "O":
             channel = PublicChannel(team, **channel_data)
         else:
-            server.print("Unknown channel type " + channel_data["type"])
+            server.print_error("Unknown channel type " + channel_data["type"])
             channel = PublicChannel(team, **channel_data)
 
         team.channels[channel.id] = channel

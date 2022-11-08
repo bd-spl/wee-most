@@ -27,7 +27,7 @@ def singularity_cb(buffer, command, rc, out, err):
     server = wee_most.server.get_server_from_buffer(buffer)
 
     if rc != 0:
-        server.print("An error occurred while performing a request")
+        server.print_error("An error occurred while performing a request")
         return weechat.WEECHAT_RC_ERROR
 
     return weechat.WEECHAT_RC_OK
@@ -127,7 +127,7 @@ def logout_user(server):
     try:
         urllib.request.urlopen(req, b'', 10 * 1000)
     except:
-        server.print("An error occurred while disconnecting")
+        server.print_error("An error occurred while disconnecting")
         return weechat.WEECHAT_RC_ERROR
 
     server.print("Disconnected")

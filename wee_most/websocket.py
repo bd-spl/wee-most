@@ -58,7 +58,7 @@ def reconnection_loop_cb(server_id, remaining_calls):
     try:
         new_worker = Worker(server)
     except:
-        server.print("Reconnection issue. Trying again in a few seconds...")
+        server.print_error("Reconnection issue. Trying again in a few seconds...")
         return weechat.WEECHAT_RC_ERROR
 
     server.worker = new_worker

@@ -117,7 +117,7 @@ def post_post_cb(buffer, command, rc, out, err):
     server = wee_most.server.get_server_from_buffer(buffer)
 
     if rc != 0:
-        server.print("Cannot send post")
+        server.print_error("Cannot send post")
         return weechat.WEECHAT_RC_ERROR
 
     return weechat.WEECHAT_RC_OK

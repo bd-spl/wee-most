@@ -65,7 +65,7 @@ def mattermost_channel_buffer_required(f):
         buffer_type = weechat.buffer_get_string(buffer, "localvar_type")
         if not buffer_name.startswith("wee-most.") or buffer_type == "server":
             command_name = f.__name__.replace("command_", "", 1)
-            weechat.prnt("", 'wee-most: command "{}" must be executed on a Mattermost channel buffer'.format(command_name))
+            weechat.prnt("", '{}wee-most: command "{}" must be executed on a Mattermost channel buffer'.format(weechat.prefix("error"), command_name))
             return weechat.WEECHAT_RC_ERROR
 
         return f(args, buffer)
@@ -149,7 +149,7 @@ def command_reply(args, buffer):
 
     line_data = wee_most.post.find_buffer_last_post_line_data(buffer, short_post_id)
     if not line_data:
-        server.print('Cannot find post id for "%s"' % short_post_id)
+        server.print_error('Cannot find post id for "%s"' % short_post_id)
         return weechat.WEECHAT_RC_ERROR
 
     tags = wee_most.post.get_line_data_tags(line_data)
@@ -180,7 +180,7 @@ def command_react(args, buffer):
 
     post_id = wee_most.post.find_full_post_id(buffer, short_post_id)
     if not post_id:
-        server.print('Cannot find post id for "%s"' % short_post_id)
+        server.print_error('Cannot find post id for "%s"' % short_post_id)
         return weechat.WEECHAT_RC_ERROR
 
     wee_most.http.run_post_reaction(emoji_name, post_id, server, "singularity_cb", buffer)
@@ -199,7 +199,7 @@ def command_unreact(args, buffer):
 
     post_id = find_full_post_id(buffer, short_post_id)
     if not post_id:
-        server.print('Cannot find post id for "%s"' % short_post_id)
+        server.print_error('Cannot find post id for "%s"' % short_post_id)
         return weechat.WEECHAT_RC_ERROR
 
     wee_most.http.run_delete_reaction(emoji_name, post_id, server, "singularity_cb", buffer)
@@ -216,7 +216,7 @@ def command_delete(args, buffer):
 
     post_id = wee_most.post.find_full_post_id(buffer, args)
     if not post_id:
-        server.print('Cannot find post id for "%s"' % args)
+        server.print_error('Cannot find post id for "%s"' % args)
         return weechat.WEECHAT_RC_ERROR
 
     wee_most.http.run_delete_post(post_id, server, "singularity_cb", buffer)
@@ -224,7 +224,7 @@ def command_delete(args, buffer):
     return weechat.WEECHAT_RC_OK
 
 def write_command_error(args, message):
-    weechat.prnt("", message + ' "/mattermost ' + args + '" (help on command: /help mattermost)')
+    weechat.prnt("", weechat.prefix("error") + message + ' "/mattermost ' + args + '" (help on command: /help mattermost)')
 
 def setup_commands():
     weechat.hook_command(
