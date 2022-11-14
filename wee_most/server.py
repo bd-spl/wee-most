@@ -191,6 +191,10 @@ def config_server_buffer_cb(data, key, value):
 
 def get_server_from_buffer(buffer):
     server_id = weechat.buffer_get_string(buffer, "localvar_server_id")
+
+    if not server_id:
+        return None
+
     return servers[server_id]
 
 def get_buffer_user_status_cb(data, remaining_calls):

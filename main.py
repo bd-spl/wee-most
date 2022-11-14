@@ -9,7 +9,8 @@ from wee_most.server import (config_server_buffer_cb, get_buffer_user_status_cb)
 from wee_most.commands import (mattermost_command_cb)
 
 from wee_most.completions import (channel_completion_cb, private_completion_cb,
-                                  server_completion_cb, slash_command_completion_cb)
+                                  server_completion_cb, slash_command_completion_cb,
+                                  nick_completion_cb)
 
 from wee_most.websocket import (receive_ws_callback, ws_ping_cb,
                                   reconnection_loop_cb)

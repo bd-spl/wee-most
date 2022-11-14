@@ -34,8 +34,25 @@ def slash_command_completion_cb(data, completion_item, current_buffer, completio
         weechat.hook_completion_list_add(completion, slash_command, 0, weechat.WEECHAT_LIST_POS_SORT)
     return weechat.WEECHAT_RC_OK
 
+def nick_completion_cb(data, completion_item, current_buffer, completion):
+    server = wee_most.server.get_server_from_buffer(current_buffer)
+    if not server:
+        return weechat.WEECHAT_RC_OK
+
+    channel = server.get_channel_from_buffer(current_buffer)
+    if not channel:
+        return weechat.WEECHAT_RC_OK
+
+    for user in channel.users.values():
+        weechat.completion_list_add(completion, user.username, 1, weechat.WEECHAT_LIST_POS_SORT)
+        weechat.completion_list_add(completion, "@" + user.username, 1, weechat.WEECHAT_LIST_POS_SORT)
+
+    return weechat.WEECHAT_RC_OK
+
 def setup_completions():
     weechat.hook_completion("irc_channels", "complete channels for Mattermost", "channel_completion_cb", "")
     weechat.hook_completion("irc_privates", "complete dms/mpdms for Mattermost", "private_completion_cb", "")
     weechat.hook_completion("mattermost_server_commands", "complete server names for Mattermost", "server_completion_cb", "")
     weechat.hook_completion("mattermost_slash_commands", "complete Mattermost slash commands", "slash_command_completion_cb", "")
+    weechat.hook_completion("nicks", "complete @-nicks for Mattermost", "nick_completion_cb", "")
+
