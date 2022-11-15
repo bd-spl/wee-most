@@ -24,6 +24,12 @@ class PluginConfig:
             type = "string",
         ),
         Setting(
+            name = "buflist_color_away_nick",
+            default = "true",
+            description = "Use nicklist_away color for direct messages channels name in buflist if user is not online",
+            type = "boolean",
+        ),
+        Setting(
             name = "channel_loading_indicator",
             default = "…",
             description = "Indicator for channels being loaded with content",

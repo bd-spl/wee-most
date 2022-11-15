@@ -148,10 +148,13 @@ class DirectMessagesChannel(ChannelBase):
         self.user = self._get_user(kwargs["name"])
 
     def update_buffer_name(self, status):
+        prefix = " "
+
         if status == "online":
             prefix = "+"
-        else:
-            prefix = " "
+        elif config.buflist_color_away_nick:
+            color = weechat.config_string(weechat.config_get("weechat.color.nicklist_away"))
+            prefix = weechat.color(color) + " "
 
         weechat.buffer_set(self.buffer, "short_name", prefix + self.name)
 
