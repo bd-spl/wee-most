@@ -145,15 +145,27 @@ class DirectMessagesChannel(ChannelBase):
     def __init__(self, server, **kwargs):
         super(DirectMessagesChannel, self).__init__(server, **kwargs)
         weechat.buffer_set(self.buffer, "localvar_set_type", "private")
+        self.user = self._get_user(kwargs["name"])
+
+    def update_buffer_name(self, status):
+        if status == "online":
+            prefix = "+"
+        else:
+            prefix = " "
+
+        weechat.buffer_set(self.buffer, "short_name", prefix + self.name)
 
     def _format_name(self, display_name, name):
+        return self._get_user(name).nick
+
+    def _get_user(self, name):
         match = re.match("(\w+)__(\w+)", name)
 
         user = self.server.users[match.group(1)]
         if user.username == self.server.me.username:
             user = self.server.users[match.group(2)]
 
-        return user.nick
+        return user
 
 class GroupChannel(ChannelBase):
     def __init__(self, server, **kwargs):
@@ -310,6 +322,22 @@ def hydrate_channel_users_status_cb(data, command, rc, out, err):
         user.status = user_data["status"]
 
     channel.update_nicklist()
+
+    return weechat.WEECHAT_RC_OK
+
+def update_direct_message_channels_name(server_id, command, rc, out, err):
+    server = servers[server_id]
+
+    if rc != 0:
+        server.print_error("An error occurred while updating direct message channels name")
+        return weechat.WEECHAT_RC_ERROR
+
+    response = json.loads(out)
+
+    for user_data in response:
+        channel = server.get_direct_messages_channel(user_data["user_id"])
+        if channel:
+            channel.update_buffer_name(user_data["status"])
 
     return weechat.WEECHAT_RC_OK
 

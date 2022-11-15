@@ -104,6 +104,20 @@ class Server:
 
         return None
 
+    def get_direct_messages_channels(self):
+        channels = []
+
+        for channel in self.channels.values():
+            if isinstance(channel, wee_most.channel.DirectMessagesChannel):
+                channels.append(channel)
+
+        return channels
+
+    def get_direct_messages_channel(self, user_id):
+        for channel in self.channels.values():
+            if isinstance(channel, wee_most.channel.DirectMessagesChannel) and channel.user.id == user_id:
+                return channel
+
     def get_post(self, post_id):
         for channel in self.channels.values():
             if post_id in channel.posts:
@@ -208,6 +222,20 @@ def get_buffer_user_status_cb(data, remaining_calls):
                     list(channel.users.keys()), server, "hydrate_channel_users_status_cb", "{}|{}".format(server.id, channel.id)
                     )
             break
+
+    return weechat.WEECHAT_RC_OK
+
+def get_direct_message_channels_user_status_cb(data, remaining_calls):
+    for server in servers.values():
+        user_ids = []
+
+        for channel in server.get_direct_messages_channels():
+            user_ids.append(channel.user.id)
+
+        wee_most.http.enqueue_request(
+                "run_post_users_status_ids",
+                user_ids, server, "update_direct_message_channels_name", server.id
+                )
 
     return weechat.WEECHAT_RC_OK
 

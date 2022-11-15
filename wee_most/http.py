@@ -7,7 +7,8 @@ import re
 import urllib.request
 
 from wee_most.channel import (hydrate_channel_read_posts_cb, hydrate_channel_posts_cb,
-                             hydrate_channel_users_cb, hydrate_channel_users_status_cb)
+                              hydrate_channel_users_cb, hydrate_channel_users_status_cb,
+                              update_direct_message_channels_name)
 
 from wee_most.post import post_post_cb
 
