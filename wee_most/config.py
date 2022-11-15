@@ -36,9 +36,27 @@ class PluginConfig:
             type = "string",
         ),
         Setting(
-            name = "channel_prefix_direct",
-            default = "",
-            description = "The prefix of buffer names for direct messages channels",
+            name = "channel_prefix_direct_away",
+            default = "-",
+            description = "The prefix of buffer names for direct messages channels if user status is \"away\"",
+            type = "string",
+        ),
+        Setting(
+            name = "channel_prefix_direct_dnd",
+            default = "@",
+            description = "The prefix of buffer names for direct messages channels if user status is \"do not disturb\"",
+            type = "string",
+        ),
+        Setting(
+            name = "channel_prefix_direct_offline",
+            default = " ",
+            description = "The prefix of buffer names for direct messages channels if user status is \"offline\"",
+            type = "string",
+        ),
+        Setting(
+            name = "channel_prefix_direct_online",
+            default = "+",
+            description = "The prefix of buffer names for direct messages channels if user status is \"online\"",
             type = "string",
         ),
         Setting(
