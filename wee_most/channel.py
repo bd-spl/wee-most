@@ -51,6 +51,20 @@ class ChannelBase:
         weechat.buffer_set(self.buffer, "highlight_words", ",".join(self.server.highlight_words))
         weechat.buffer_set(self.buffer, "localvar_set_nick", self.server.me.nick)
 
+    def load(self, muted):
+        if muted:
+            weechat.buffer_set(self.buffer, "notify", "1") # highlight only
+        else:
+            # using "/buffer notify reset" doesn't seem to do the trick
+            buffer_full_name = weechat.buffer_get_string(self.buffer, "full_name")
+            weechat.command(self.buffer, "/mute /unset weechat.notify.{}".format(buffer_full_name))
+
+        register_buffer_hydratating(self.server, self.id)
+        wee_most.http.enqueue_request(
+            "run_get_read_channel_posts",
+            self.id, self.server, "hydrate_channel_read_posts_cb", self.buffer
+        )
+
     def mark_as_read(self):
         last_post_id = weechat.buffer_get_string(self.buffer, "localvar_last_post_id")
         last_read_post_id = weechat.buffer_get_string(self.buffer, "localvar_last_read_post_id")
@@ -111,14 +125,6 @@ class ChannelBase:
                 weechat.nicklist_remove_group(self.buffer, g)
 
             group = weechat.hdata_pointer(weechat.hdata_get("nick_group"), group, "next_group")
-
-    def mute(self):
-        weechat.buffer_set(self.buffer, "notify", "1") # highlight only
-
-    def unmute(self):
-        # using "/buffer notify reset" doesn't seem to do the trick
-        buffer_full_name = weechat.buffer_get_string(self.buffer, "full_name")
-        weechat.command(self.buffer, "/mute /unset weechat.notify.{}".format(buffer_full_name))
 
     def _get_nick_group(self, status):
         name = NICK_GROUPS.get(status)
@@ -335,10 +341,8 @@ def update_channel_mute_status_cb(data, command, rc, out, err):
     for member_data in response:
         channel = server.get_channel(member_data["channel_id"])
         if channel:
-            if member_data["notify_props"]["mark_unread"] == "all":
-                channel.unmute()
-            else:
-                channel.mute()
+            muted = member_data["notify_props"]["mark_unread"] != "all"
+            channel.load(muted)
 
     return weechat.WEECHAT_RC_OK
 
@@ -430,11 +434,6 @@ def create_channel_from_channel_data(channel_data, server):
 
         team.channels[channel.id] = channel
 
-    register_buffer_hydratating(server, channel_data["id"])
-    wee_most.http.enqueue_request(
-        "run_get_read_channel_posts",
-        channel_data["id"], server, "hydrate_channel_read_posts_cb", channel.buffer
-    )
     wee_most.http.enqueue_request(
         "run_get_channel_members",
         channel.id, server, 0, "hydrate_channel_users_cb", "{}|{}|0".format(server.id, channel.id)
