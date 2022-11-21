@@ -8,7 +8,7 @@ import urllib.request
 
 from wee_most.channel import (hydrate_channel_read_posts_cb, hydrate_channel_posts_cb,
                               hydrate_channel_users_cb, hydrate_channel_users_status_cb,
-                              update_direct_message_channels_name)
+                              update_direct_message_channels_name, update_channel_mute_status_cb)
 
 from wee_most.post import post_post_cb
 
@@ -254,6 +254,19 @@ def run_get_channel_posts_after(post_id, channel_id, server, cb, cb_data):
 
 def run_get_channel_members(channel_id, server, page, cb, cb_data):
     url = server.url + "/api/v4/channels/" + channel_id + "/members?page=" + str(page)
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "failonerror": "1",
+            "httpheader": "Authorization: Bearer " + server.token,
+        },
+        30 * 1000,
+        "buffered_response_cb",
+        build_buffer_cb_data(url, cb, cb_data)
+    )
+
+def run_get_user_channel_members(server, page, cb, cb_data):
+    url = server.url + "/api/v4/users/me/channel_members?page=" + str(page)
     weechat.hook_process_hashtable(
         "url:" + url,
         {

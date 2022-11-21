@@ -271,6 +271,11 @@ def connect_server_team_channels_cb(server_id, command, rc, out, err):
             continue
         wee_most.channel.create_channel_from_channel_data(channel_data, server)
 
+    wee_most.http.enqueue_request(
+        "run_get_user_channel_members",
+        server, 0, "update_channel_mute_status_cb", "{}|0".format(server.id)
+    )
+
     return weechat.WEECHAT_RC_OK
 
 def connect_server_users_cb(data, command, rc, out, err):

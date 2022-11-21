@@ -112,6 +112,14 @@ class ChannelBase:
 
             group = weechat.hdata_pointer(weechat.hdata_get("nick_group"), group, "next_group")
 
+    def mute(self):
+        weechat.buffer_set(self.buffer, "notify", "1") # highlight only
+
+    def unmute(self):
+        # using "/buffer notify reset" doesn't seem to do the trick
+        buffer_full_name = weechat.buffer_get_string(self.buffer, "full_name")
+        weechat.command(self.buffer, "/mute /unset weechat.notify.{}".format(buffer_full_name))
+
     def _get_nick_group(self, status):
         name = NICK_GROUPS.get(status)
         if not name:
@@ -304,6 +312,33 @@ def hydrate_channel_users_cb(data, command, rc, out, err):
 
     for user_data in response:
         channel.add_user(user_data["user_id"])
+
+    return weechat.WEECHAT_RC_OK
+
+def update_channel_mute_status_cb(data, command, rc, out, err):
+    server_id, page = data.split("|")
+    page = int(page)
+    server = servers[server_id]
+
+    if rc != 0:
+        server.print_error("An error occurred while updating channel mute status")
+        return weechat.WEECHAT_RC_ERROR
+
+    response = json.loads(out)
+
+    if len(response) == DEFAULT_PAGE_COUNT:
+        wee_most.http.enqueue_request(
+            "run_get_user_channel_members",
+            server, page+1, "update_channel_mute_status_cb", "{}|{}".format(server_id, page+1)
+        )
+
+    for member_data in response:
+        channel = server.get_channel(member_data["channel_id"])
+        if channel:
+            if member_data["notify_props"]["mark_unread"] == "all":
+                channel.unmute()
+            else:
+                channel.mute()
 
     return weechat.WEECHAT_RC_OK
 
