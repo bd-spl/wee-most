@@ -171,14 +171,19 @@ class DirectMessagesChannel(ChannelBase):
         super(DirectMessagesChannel, self).__init__(server, **kwargs)
         weechat.buffer_set(self.buffer, "localvar_set_type", "private")
         self.user = self._get_user(kwargs["name"])
+        self._status = None
 
-    def update_buffer_name(self, status):
-        if NICK_GROUPS.get(status):
-            prefix = config.get_value("channel_prefix_direct_" + status)
+    def set_status(self, status):
+        self._status = status
+        self._update_buffer_name()
+
+    def _update_buffer_name(self):
+        if NICK_GROUPS.get(self._status):
+            prefix = config.get_value("channel_prefix_direct_" + self._status)
         else:
             prefix = "?"
 
-        if status != "online" and config.buflist_color_away_nick:
+        if self._status != "online" and config.buflist_color_away_nick:
             color = weechat.config_string(weechat.config_get("weechat.color.nicklist_away"))
             prefix = weechat.color(color) + prefix
 
@@ -391,7 +396,7 @@ def update_direct_message_channels_name(server_id, command, rc, out, err):
     for user_data in response:
         channel = server.get_direct_messages_channel(user_data["user_id"])
         if channel:
-            channel.update_buffer_name(user_data["status"])
+            channel.set_status(user_data["status"])
 
     return weechat.WEECHAT_RC_OK
 

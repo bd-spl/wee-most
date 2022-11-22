@@ -221,7 +221,7 @@ def handle_status_change_message(server, data, broadcast):
 
     user_dm_channel = server.get_direct_messages_channel(user.id)
     if user_dm_channel:
-        user_dm_channel.update_buffer_name(user.status)
+        user_dm_channel.set_status(user.status)
 
 def receive_ws_callback(server_id, data):
     server = servers[server_id]
