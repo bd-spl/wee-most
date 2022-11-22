@@ -53,11 +53,9 @@ class ChannelBase:
 
     def load(self, muted):
         if muted:
-            weechat.buffer_set(self.buffer, "notify", "1") # highlight only
+            self.mute()
         else:
-            # using "/buffer notify reset" doesn't seem to do the trick
-            buffer_full_name = weechat.buffer_get_string(self.buffer, "full_name")
-            weechat.command(self.buffer, "/mute /unset weechat.notify.{}".format(buffer_full_name))
+            self.unmute()
 
         register_buffer_hydratating(self.server, self.id)
         wee_most.http.enqueue_request(
@@ -130,6 +128,14 @@ class ChannelBase:
                 weechat.nicklist_remove_group(self.buffer, g)
 
             group = weechat.hdata_pointer(weechat.hdata_get("nick_group"), group, "next_group")
+
+    def mute(self):
+        weechat.buffer_set(self.buffer, "notify", "1") # highlight only
+
+    def unmute(self):
+        # using "/buffer notify reset" doesn't seem to do the trick
+        buffer_full_name = weechat.buffer_get_string(self.buffer, "full_name")
+        weechat.command(self.buffer, "/mute /unset weechat.notify.{}".format(buffer_full_name))
 
     def _get_nick_group(self, status):
         name = NICK_GROUPS.get(status)

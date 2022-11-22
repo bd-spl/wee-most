@@ -135,6 +135,16 @@ def handle_post_deleted_message(server, data, broadcast):
 def handle_channel_created_message(server, data, broadcast):
     wee_most.server.connect_server_team_channel(data["channel_id"], server)
 
+def handle_channel_member_updated_message(server, data, broadcast):
+    channel_member_data = json.loads(data["channelMember"])
+    if channel_member_data["user_id"] == server.me.id:
+        channel = server.get_channel(channel_member_data["channel_id"])
+        if channel:
+            if channel_member_data["notify_props"]["mark_unread"] == "all":
+                channel.unmute()
+            else:
+                channel.mute()
+
 def handle_channel_updated_message(server, data, broadcast):
     channel_data = json.loads(data["channel"])
     wee_most.channel.set_channel_properties_from_channel_data(channel_data, server)
