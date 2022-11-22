@@ -65,6 +65,11 @@ class ChannelBase:
             self.id, self.server, "hydrate_channel_read_posts_cb", self.buffer
         )
 
+        wee_most.http.enqueue_request(
+            "run_get_channel_members",
+            self.id, self.server, 0, "hydrate_channel_users_cb", "{}|{}|0".format(self.server.id, self.id)
+        )
+
     def mark_as_read(self):
         last_post_id = weechat.buffer_get_string(self.buffer, "localvar_last_post_id")
         last_read_post_id = weechat.buffer_get_string(self.buffer, "localvar_last_read_post_id")
@@ -433,11 +438,6 @@ def create_channel_from_channel_data(channel_data, server):
             channel = PublicChannel(team, **channel_data)
 
         team.channels[channel.id] = channel
-
-    wee_most.http.enqueue_request(
-        "run_get_channel_members",
-        channel.id, server, 0, "hydrate_channel_users_cb", "{}|{}|0".format(server.id, channel.id)
-    )
 
 def set_channel_properties_from_channel_data(channel_data, server):
     buffer = server.get_channel(channel_data["id"]).buffer
