@@ -5,8 +5,6 @@ import wee_most
 import re
 from wee_most.globals import (config, servers, DEFAULT_PAGE_COUNT)
 
-hydrating_buffers = []
-
 CHANNEL_TYPES = {
     "D": "direct",
     "G": "group",
@@ -32,6 +30,7 @@ class ChannelBase:
         self.buffer = None
         self.posts = {}
         self.users = {}
+        self.is_hydratating = False
         self._is_muted = None
 
         self._create_buffer()
@@ -240,26 +239,27 @@ class PublicChannel(ChannelBase):
         parent_buffer_name = weechat.buffer_get_string(self.team.buffer, "name")
         return "{}.{}".format(parent_buffer_name[:-1], self.name)
 
-def is_buffer_hydratating(channel_id):
-    return channel_id in hydrating_buffers
-
 def register_buffer_hydratating(server, channel_id):
-    if is_buffer_hydratating(channel_id):
+    channel = server.get_channel(channel_id)
+    if not channel or channel.is_hydratating:
         return
-    hydrating_buffers.append(channel_id)
 
-    buffer = server.get_channel(channel_id).buffer
-    old_name = weechat.buffer_get_string(buffer, "short_name")
+    channel.is_hydratating = True
+
+    old_name = weechat.buffer_get_string(channel.buffer, "short_name")
     loading_indicator = config.channel_loading_indicator
-    weechat.buffer_set(buffer, "short_name", "{}{}".format(loading_indicator, old_name))
+    weechat.buffer_set(channel.buffer, "short_name", "{}{}".format(loading_indicator, old_name))
 
 def remove_buffer_hydratating(server, channel_id):
-    buffer = server.get_channel(channel_id).buffer
-    old_name = weechat.buffer_get_string(buffer, "short_name")
-    loading_indicator = config.channel_loading_indicator
-    weechat.buffer_set(buffer, "short_name", re.sub("^{}".format(loading_indicator), "", old_name))
+    channel = server.get_channel(channel_id)
+    if not channel:
+        return
 
-    hydrating_buffers.remove(channel_id)
+    old_name = weechat.buffer_get_string(channel.buffer, "short_name")
+    loading_indicator = config.channel_loading_indicator
+    weechat.buffer_set(channel.buffer, "short_name", re.sub("^{}".format(loading_indicator), "", old_name))
+
+    channel.is_hydratating = False
 
 def channel_input_cb(data, buffer, input_data):
     server = wee_most.server.get_server_from_buffer(buffer)

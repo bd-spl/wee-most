@@ -99,7 +99,8 @@ def handle_posted_message(server, data, broadcast):
     if data["team_id"] and data["team_id"] not in server.teams:
         return
 
-    if wee_most.channel.is_buffer_hydratating(broadcast["channel_id"]):
+    channel = server.get_channel(broadcast["channel_id"])
+    if not channel or channel.is_hydratating:
         return
 
     post = wee_most.post.Post(server, **post)
