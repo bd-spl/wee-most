@@ -102,6 +102,12 @@ class PluginConfig:
             type = "string",
         ),
         Setting(
+            name = "color_channel_muted",
+            default = "darkgray",
+            description = "Color for the muted channels in the buflist",
+            type = "string",
+        ),
+        Setting(
             name = "color_deleted",
             default = "red",
             description = "Color for deleted messages",

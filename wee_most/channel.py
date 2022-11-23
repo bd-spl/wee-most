@@ -32,6 +32,7 @@ class ChannelBase:
         self.buffer = None
         self.posts = {}
         self.users = {}
+        self._is_muted = None
 
         self._create_buffer()
 
@@ -50,6 +51,13 @@ class ChannelBase:
 
         weechat.buffer_set(self.buffer, "highlight_words", ",".join(self.server.highlight_words))
         weechat.buffer_set(self.buffer, "localvar_set_nick", self.server.me.nick)
+
+    def _update_buffer_name(self):
+        color = ""
+        if self._is_muted:
+            color = weechat.color(config.color_channel_muted)
+
+        weechat.buffer_set(self.buffer, "short_name", color + self.name)
 
     def load(self, muted):
         if muted:
@@ -130,9 +138,15 @@ class ChannelBase:
             group = weechat.hdata_pointer(weechat.hdata_get("nick_group"), group, "next_group")
 
     def mute(self):
+        self._is_muted = True
+        self._update_buffer_name()
+
         weechat.buffer_set(self.buffer, "notify", "1") # highlight only
 
     def unmute(self):
+        self._is_muted = False
+        self._update_buffer_name()
+
         # using "/buffer notify reset" doesn't seem to do the trick
         buffer_full_name = weechat.buffer_get_string(self.buffer, "full_name")
         weechat.command(self.buffer, "/mute /unset weechat.notify.{}".format(buffer_full_name))
@@ -183,11 +197,13 @@ class DirectMessagesChannel(ChannelBase):
         else:
             prefix = "?"
 
+        color = ""
+        if self._is_muted:
+            color = weechat.color(config.color_channel_muted)
         if self._status != "online" and config.buflist_color_away_nick:
-            color = weechat.config_string(weechat.config_get("weechat.color.nicklist_away"))
-            prefix = weechat.color(color) + prefix
+            color += weechat.color("|" + weechat.config_string(weechat.config_get("weechat.color.nicklist_away")))
 
-        weechat.buffer_set(self.buffer, "short_name", prefix + self.name)
+        weechat.buffer_set(self.buffer, "short_name", color + prefix + self.name)
 
     def _format_name(self, display_name, name):
         return self._get_user(name).nick
