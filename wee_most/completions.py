@@ -28,7 +28,10 @@ def server_completion_cb(data, completion_item, current_buffer, completion):
     return weechat.WEECHAT_RC_OK
 
 def slash_command_completion_cb(data, completion_item, current_buffer, completion):
-    slash_commands = ["away", "code", "collapse", "dnd", "echo", "expand", "groupmsg", "header", "help", "invite", "invite_people", "join", "kick", "leave", "logout", "me", "msg", "mute", "offline", "online", "purpose", "rename", "search", "settings", "shortcuts", "shrug", "status"]
+    slash_commands = [ "away", "code", "collapse", "dnd", "echo", "expand", "groupmsg", "header",
+                       "help", "invite", "invite_people", "join", "kick", "leave", "logout", "me",
+                       "msg", "mute", "offline", "online", "purpose", "rename", "search", "settings",
+                       "shortcuts", "shrug", "status" ]
 
     for slash_command in slash_commands:
         weechat.hook_completion_list_add(completion, slash_command, 0, weechat.WEECHAT_LIST_POS_SORT)
