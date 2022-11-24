@@ -30,7 +30,7 @@ class ChannelBase:
         self.buffer = None
         self.posts = {}
         self.users = {}
-        self.is_loading = False
+        self._is_loading = False
         self._is_muted = None
 
         self._create_buffer()
@@ -52,11 +52,15 @@ class ChannelBase:
         weechat.buffer_set(self.buffer, "localvar_set_nick", self.server.me.nick)
 
     def _update_buffer_name(self):
+        prefix = ""
+        if self._is_loading:
+            prefix += config.channel_loading_indicator
+
         color = ""
         if self._is_muted:
             color = weechat.color(config.color_channel_muted)
 
-        weechat.buffer_set(self.buffer, "short_name", color + self.name)
+        weechat.buffer_set(self.buffer, "short_name", color + prefix + self.name)
 
     def load(self, muted):
         if muted:
@@ -136,6 +140,13 @@ class ChannelBase:
 
             group = weechat.hdata_pointer(weechat.hdata_get("nick_group"), group, "next_group")
 
+    def set_loading(self, loading):
+        self._is_loading = loading
+        self._update_buffer_name()
+
+    def is_loading(self):
+        return self._is_loading
+
     def mute(self):
         self._is_muted = True
         self._update_buffer_name()
@@ -191,10 +202,14 @@ class DirectMessagesChannel(ChannelBase):
         self._update_buffer_name()
 
     def _update_buffer_name(self):
+        prefix = ""
+        if self._is_loading:
+            prefix += config.channel_loading_indicator
+
         if NICK_GROUPS.get(self._status):
-            prefix = config.get_value("channel_prefix_direct_" + self._status)
+            prefix += config.get_value("channel_prefix_direct_" + self._status)
         else:
-            prefix = "?"
+            prefix += "?"
 
         color = ""
         if self._is_muted:
@@ -241,25 +256,17 @@ class PublicChannel(ChannelBase):
 
 def register_buffer_loading(server, channel_id):
     channel = server.get_channel(channel_id)
-    if not channel or channel.is_loading:
+    if not channel or channel.is_loading():
         return
 
-    channel.is_loading = True
-
-    old_name = weechat.buffer_get_string(channel.buffer, "short_name")
-    loading_indicator = config.channel_loading_indicator
-    weechat.buffer_set(channel.buffer, "short_name", "{}{}".format(loading_indicator, old_name))
+    channel.set_loading(True)
 
 def remove_buffer_loading(server, channel_id):
     channel = server.get_channel(channel_id)
     if not channel:
         return
 
-    old_name = weechat.buffer_get_string(channel.buffer, "short_name")
-    loading_indicator = config.channel_loading_indicator
-    weechat.buffer_set(channel.buffer, "short_name", re.sub("^{}".format(loading_indicator), "", old_name))
-
-    channel.is_loading = False
+    channel.set_loading(False)
 
 def channel_input_cb(data, buffer, input_data):
     server = wee_most.server.get_server_from_buffer(buffer)

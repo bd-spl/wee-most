@@ -100,7 +100,7 @@ def handle_posted_message(server, data, broadcast):
         return
 
     channel = server.get_channel(broadcast["channel_id"])
-    if not channel or channel.is_loading:
+    if not channel or channel.is_loading():
         return
 
     post = wee_most.post.Post(server, **post)
