@@ -68,7 +68,8 @@ class ChannelBase:
         else:
             self.unmute()
 
-        register_buffer_loading(self.server, self.id)
+        self.set_loading(True)
+
         wee_most.http.enqueue_request(
             "run_get_read_channel_posts",
             self.id, self.server, "hydrate_channel_read_posts_cb", self.buffer
@@ -254,20 +255,6 @@ class PublicChannel(ChannelBase):
         parent_buffer_name = weechat.buffer_get_string(self.team.buffer, "name")
         return "{}.{}".format(parent_buffer_name[:-1], self.name)
 
-def register_buffer_loading(server, channel_id):
-    channel = server.get_channel(channel_id)
-    if not channel or channel.is_loading():
-        return
-
-    channel.set_loading(True)
-
-def remove_buffer_loading(server, channel_id):
-    channel = server.get_channel(channel_id)
-    if not channel:
-        return
-
-    channel.set_loading(False)
-
 def channel_input_cb(data, buffer, input_data):
     server = wee_most.server.get_server_from_buffer(buffer)
 
@@ -300,8 +287,8 @@ def hydrate_channel_posts_cb(buffer, command, rc, out, err):
             builded_post.id, builded_post.channel.id, server, "hydrate_channel_posts_cb", buffer
         )
     else:
-        channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
-        remove_buffer_loading(server, channel_id)
+        channel = server.get_channel_from_buffer(buffer)
+        channel.set_loading(False)
 
     return weechat.WEECHAT_RC_OK
 
@@ -333,7 +320,7 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
             post.id, post.channel.id, server, "hydrate_channel_posts_cb", buffer
         )
     else:
-        remove_buffer_loading(server, post.channel.id)
+        post.channel.set_loading(False)
 
     return weechat.WEECHAT_RC_OK
 
