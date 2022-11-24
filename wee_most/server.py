@@ -240,7 +240,7 @@ def get_direct_message_channels_user_status_cb(data, remaining_calls):
     return weechat.WEECHAT_RC_OK
 
 def connect_server_team_channel(channel_id, server):
-    wee_most.channel.register_buffer_hydratating(server, channel_id)
+    wee_most.channel.register_buffer_loading(server, channel_id)
     wee_most.http.enqueue_request(
         "run_get_channel",
         channel_id, server, "connect_server_team_channel_cb", server.id

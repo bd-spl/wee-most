@@ -30,7 +30,7 @@ class ChannelBase:
         self.buffer = None
         self.posts = {}
         self.users = {}
-        self.is_hydratating = False
+        self.is_loading = False
         self._is_muted = None
 
         self._create_buffer()
@@ -64,7 +64,7 @@ class ChannelBase:
         else:
             self.unmute()
 
-        register_buffer_hydratating(self.server, self.id)
+        register_buffer_loading(self.server, self.id)
         wee_most.http.enqueue_request(
             "run_get_read_channel_posts",
             self.id, self.server, "hydrate_channel_read_posts_cb", self.buffer
@@ -239,18 +239,18 @@ class PublicChannel(ChannelBase):
         parent_buffer_name = weechat.buffer_get_string(self.team.buffer, "name")
         return "{}.{}".format(parent_buffer_name[:-1], self.name)
 
-def register_buffer_hydratating(server, channel_id):
+def register_buffer_loading(server, channel_id):
     channel = server.get_channel(channel_id)
-    if not channel or channel.is_hydratating:
+    if not channel or channel.is_loading:
         return
 
-    channel.is_hydratating = True
+    channel.is_loading = True
 
     old_name = weechat.buffer_get_string(channel.buffer, "short_name")
     loading_indicator = config.channel_loading_indicator
     weechat.buffer_set(channel.buffer, "short_name", "{}{}".format(loading_indicator, old_name))
 
-def remove_buffer_hydratating(server, channel_id):
+def remove_buffer_loading(server, channel_id):
     channel = server.get_channel(channel_id)
     if not channel:
         return
@@ -259,7 +259,7 @@ def remove_buffer_hydratating(server, channel_id):
     loading_indicator = config.channel_loading_indicator
     weechat.buffer_set(channel.buffer, "short_name", re.sub("^{}".format(loading_indicator), "", old_name))
 
-    channel.is_hydratating = False
+    channel.is_loading = False
 
 def channel_input_cb(data, buffer, input_data):
     server = wee_most.server.get_server_from_buffer(buffer)
@@ -294,7 +294,7 @@ def hydrate_channel_posts_cb(buffer, command, rc, out, err):
         )
     else:
         channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
-        remove_buffer_hydratating(server, channel_id)
+        remove_buffer_loading(server, channel_id)
 
     return weechat.WEECHAT_RC_OK
 
@@ -326,7 +326,7 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
             post.id, post.channel.id, server, "hydrate_channel_posts_cb", buffer
         )
     else:
-        remove_buffer_hydratating(server, post.channel.id)
+        remove_buffer_loading(server, post.channel.id)
 
     return weechat.WEECHAT_RC_OK
 
