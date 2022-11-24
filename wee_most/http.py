@@ -207,10 +207,11 @@ def run_post_post(post, server, cb, cb_data):
         build_buffer_cb_data(url, cb, cb_data)
     )
 
-def run_post_command(channel_id, command, server, cb, cb_data):
+def run_post_command(team_id, channel_id, command, server, cb, cb_data):
     url = server.url + "/api/v4/commands/execute"
     params = {
         "channel_id": channel_id,
+        "team_id": team_id,
         "command": command,
     }
 

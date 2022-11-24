@@ -118,8 +118,14 @@ def command_slash(args, buffer):
 
     server = wee_most.server.get_server_from_buffer(buffer)
     channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
+    channel = server.get_channel(channel_id)
 
-    wee_most.http.run_post_command(channel_id, "/{}".format(args), server, "singularity_cb", buffer)
+    if hasattr(channel, 'team'):
+        team_id = channel.team.id
+    else:
+        team_id = list(server.teams.keys())[0]
+
+    wee_most.http.run_post_command(team_id, channel_id, "/{}".format(args), server, "singularity_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
