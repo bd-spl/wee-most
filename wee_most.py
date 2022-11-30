@@ -269,6 +269,15 @@ class PluginConfig:
 
 ## completion
 
+def load_emojis():
+    emojis_file_path = weechat.info_get("weechat_data_dir", "") + "/wee_most_emojis"
+    try:
+        with open(emojis_file_path, "r") as emojis_file:
+            for emoji in emojis_file:
+                emojis.append(emoji.rstrip())
+    except:
+        pass
+
 def channel_completion_cb(data, completion_item, current_buffer, completion):
     for server in servers.values():
         weechat.hook_completion_list_add(completion, server.id, 0, weechat.WEECHAT_LIST_POS_SORT)
@@ -317,12 +326,23 @@ def nick_completion_cb(data, completion_item, current_buffer, completion):
 
     return weechat.WEECHAT_RC_OK
 
+def emoji_completion_cb(data, completion_item, current_buffer, completion):
+    server = get_server_from_buffer(current_buffer)
+    if not server:
+        return weechat.WEECHAT_RC_OK
+
+    for emoji in emojis:
+        weechat.completion_list_add(completion, ":" + emoji + ":", 0, weechat.WEECHAT_LIST_POS_SORT)
+
+    return weechat.WEECHAT_RC_OK
+
 def setup_completions():
     weechat.hook_completion("irc_channels", "complete channels for Mattermost", "channel_completion_cb", "")
     weechat.hook_completion("irc_privates", "complete dms/mpdms for Mattermost", "private_completion_cb", "")
     weechat.hook_completion("mattermost_server_commands", "complete server names for Mattermost", "server_completion_cb", "")
     weechat.hook_completion("mattermost_slash_commands", "complete Mattermost slash commands", "slash_command_completion_cb", "")
     weechat.hook_completion("nicks", "complete @-nicks for Mattermost", "nick_completion_cb", "")
+    weechat.hook_completion("emojis", "complete :emojis: for Mattermost", "emoji_completion_cb", "")
 
 ## commands
 
@@ -2806,6 +2826,8 @@ config = PluginConfig()
 
 servers = {}
 
+emojis = []
+
 DEFAULT_PAGE_COUNT = 60
 
 ## main
@@ -2827,6 +2849,7 @@ weechat.register(
 )
 
 setup_commands()
+load_emojis()
 setup_completions()
 config.setup()
 
