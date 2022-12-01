@@ -336,6 +336,16 @@ def emoji_completion_cb(data, completion_item, current_buffer, completion):
 
     return weechat.WEECHAT_RC_OK
 
+def mention_completion_cb(data, completion_item, current_buffer, completion):
+    server = get_server_from_buffer(current_buffer)
+    if not server:
+        return weechat.WEECHAT_RC_OK
+
+    for mention in mentions:
+        weechat.completion_list_add(completion, mention, 0, weechat.WEECHAT_LIST_POS_SORT)
+
+    return weechat.WEECHAT_RC_OK
+
 def setup_completions():
     weechat.hook_completion("irc_channels", "complete channels for Mattermost", "channel_completion_cb", "")
     weechat.hook_completion("irc_privates", "complete dms/mpdms for Mattermost", "private_completion_cb", "")
@@ -343,6 +353,7 @@ def setup_completions():
     weechat.hook_completion("mattermost_slash_commands", "complete Mattermost slash commands", "slash_command_completion_cb", "")
     weechat.hook_completion("nicks", "complete @-nicks for Mattermost", "nick_completion_cb", "")
     weechat.hook_completion("emojis", "complete :emojis: for Mattermost", "emoji_completion_cb", "")
+    weechat.hook_completion("mentions", "complete @-mentions for Mattermost", "mention_completion_cb", "")
 
 ## commands
 
@@ -1805,7 +1816,7 @@ class Server:
             self.highlight_words.append(kwargs["first_name"])
 
         if kwargs["notify_props"]["channel"] == "true":
-            self.highlight_words.extend(["@here", "@channel", "@all"])
+            self.highlight_words.extend(mentions)
 
         if kwargs["notify_props"]["mention_keys"]:
             self.highlight_words.extend(kwargs["notify_props"]["mention_keys"].split(","))
@@ -2829,6 +2840,8 @@ servers = {}
 emojis = []
 
 DEFAULT_PAGE_COUNT = 60
+
+mentions = ["@here", "@channel", "@all"]
 
 ## main
 
