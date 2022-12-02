@@ -269,12 +269,12 @@ class PluginConfig:
 
 ## completion
 
-def load_emojis():
+def load_default_emojis():
     emojis_file_path = weechat.info_get("weechat_data_dir", "") + "/wee_most_emojis"
     try:
         with open(emojis_file_path, "r") as emojis_file:
             for emoji in emojis_file:
-                emojis.append(emoji.rstrip())
+                default_emojis.append(emoji.rstrip())
     except:
         pass
 
@@ -331,7 +331,7 @@ def emoji_completion_cb(data, completion_item, current_buffer, completion):
     if not server:
         return weechat.WEECHAT_RC_OK
 
-    for emoji in emojis:
+    for emoji in default_emojis:
         weechat.completion_list_add(completion, ":" + emoji + ":", 0, weechat.WEECHAT_LIST_POS_SORT)
 
     return weechat.WEECHAT_RC_OK
@@ -2837,7 +2837,7 @@ config = PluginConfig()
 
 servers = {}
 
-emojis = []
+default_emojis = []
 
 DEFAULT_PAGE_COUNT = 60
 
@@ -2862,7 +2862,7 @@ weechat.register(
 )
 
 setup_commands()
-load_emojis()
+load_default_emojis()
 setup_completions()
 config.setup()
 
