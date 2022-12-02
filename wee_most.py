@@ -334,6 +334,9 @@ def emoji_completion_cb(data, completion_item, current_buffer, completion):
     for emoji in default_emojis:
         weechat.completion_list_add(completion, ":" + emoji + ":", 0, weechat.WEECHAT_LIST_POS_SORT)
 
+    for emoji in server.custom_emojis:
+        weechat.completion_list_add(completion, ":" + emoji + ":", 0, weechat.WEECHAT_LIST_POS_SORT)
+
     return weechat.WEECHAT_RC_OK
 
 def mention_completion_cb(data, completion_item, current_buffer, completion):
@@ -1657,6 +1660,28 @@ def update_direct_message_channels_name(server_id, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
+def update_custom_emojis(data, command, rc, out, err):
+    server_id, page = data.split("|")
+    page = int(page)
+    server = servers[server_id]
+
+    if rc != 0:
+        server.print_error("An error occurred while updating custom emojis")
+        return weechat.WEECHAT_RC_ERROR
+
+    response = json.loads(out)
+
+    for emoji in response:
+        server.custom_emojis.append(emoji["name"])
+
+    if len(response) == DEFAULT_PAGE_COUNT:
+        enqueue_request(
+            "run_get_custom_emojis",
+            server, page+1, "update_custom_emojis", "{}|{}".format(server.id, page+1)
+        )
+
+    return weechat.WEECHAT_RC_OK
+
 def remove_channel_user(buffer, user):
     nick = weechat.nicklist_search_nick(buffer, "", user.nick)
     weechat.nicklist_remove_nick(buffer, nick)
@@ -1795,6 +1820,7 @@ class Server:
         self.worker = None
         self.reconnection_loop_hook = ""
         self.closed_channels = []
+        self.custom_emojis = []
 
         self._create_buffer()
 
@@ -2149,6 +2175,11 @@ def connect_server_cb(server_id, command, rc, out, err):
     server.print("Connected to " + server_id)
 
     enqueue_request(
+        "run_get_custom_emojis",
+        server, 0, "update_custom_emojis", "{}|0".format(server.id)
+    )
+
+    enqueue_request(
         "run_get_users",
         server, 0, "connect_server_users_cb", "{}|0".format(server.id)
     )
@@ -2299,6 +2330,19 @@ def run_get_users(server, page, cb, cb_data):
 
 def run_get_user(server, user_id, cb, cb_data):
     url = server.url + "/api/v4/users/" + user_id
+    weechat.hook_process_hashtable(
+        "url:" + url,
+        {
+            "failonerror": "1",
+            "httpheader": "Authorization: Bearer " + server.token,
+        },
+        30 * 1000,
+        "buffered_response_cb",
+        build_buffer_cb_data(url, cb, cb_data)
+    )
+
+def run_get_custom_emojis(server, page, cb, cb_data):
+    url = server.url + "/api/v4/emoji?page=" + str(page)
     weechat.hook_process_hashtable(
         "url:" + url,
         {
