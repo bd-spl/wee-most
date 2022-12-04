@@ -16,10 +16,6 @@ from websocket import (create_connection, WebSocketConnectionClosedException,
 
 ## config
 
-download_dir = os.environ.get("XDG_DOWNLOAD_DIR")
-if not download_dir:
-    download_dir = "~/Downloads"
-
 class PluginConfig:
     Setting = namedtuple("Setting", ["name", "default", "description", "type"])
 
@@ -152,7 +148,7 @@ class PluginConfig:
         ),
         Setting(
             name = "download_location",
-            default = download_dir + "/wee-most",
+            default = os.environ.get("XDG_DOWNLOAD_DIR", "~/Downloads") + "/wee-most",
             description = "Location for storing downloaded files",
             type = "string",
         ),
