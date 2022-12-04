@@ -1211,9 +1211,6 @@ def remove_reaction_from_post(reaction):
         }
     )
 
-def short_post_id(post_id):
-    return post_id[:4]
-
 def find_full_post_id(buffer, short_post_id):
     line_data = find_buffer_last_post_line_data(buffer, short_post_id)
 
@@ -1243,7 +1240,7 @@ def handle_post_click(data, info):
     before_position_message = old_input[:old_position]
     after_position_message = old_input[old_position:]
 
-    post_id = short_post_id(post_id)
+    post_id = post_id[:4]
     if len(old_input) == old_position: # add whitespace smartly
         post_id += " "
     new_input = before_position_message + post_id + after_position_message
