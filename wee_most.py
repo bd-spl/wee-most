@@ -604,7 +604,7 @@ class File:
     def __init__(self, server, **kwargs):
         self.id = kwargs["id"]
         self.name = kwargs["name"]
-        self.url = build_file_url(kwargs["id"], server)
+        self.url = server.url + "/api/v4/files/" + kwargs["id"]
 
 def prepare_download_location(server):
     location = os.path.expanduser(config.download_location)
@@ -2239,9 +2239,6 @@ def disconnect_all():
         disconnect_server(server_id)
 
 ## http
-
-def build_file_url(file_id, server):
-    return server.url + "/api/v4/files/" + file_id
 
 def singularity_cb(buffer, command, rc, out, err):
     server = get_server_from_buffer(buffer)
