@@ -6,9 +6,9 @@ Tested only on latest Mattermost and WeeChat stable versions
 
 ## Installation
 
-Python dependencies from PyPi:
+Python dependencies:
 
-* [websocket_client](https://pypi.org/project/websocket_client/)
+* [websocket_client](https://github.com/websocket-client/websocket-client)
 
 ```bash
 $ make install
