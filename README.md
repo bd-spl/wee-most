@@ -94,5 +94,5 @@ You would still have issues with multiline pasted text. Add this :
 
 ## Acknowledgements
 
-Wee-most is originally a fork of [wee-matter](https://sr.ht/~reedwade/wee-matter/)
+Wee-most is originally a fork of [wee-matter](https://sr.ht/~stacyharper/wee-matter/)
 and draws a lot of inspiration from [wee-slack](https://github.com/wee-slack/wee-slack)
