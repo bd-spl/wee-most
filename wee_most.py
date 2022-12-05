@@ -946,6 +946,8 @@ def write_edited_message_lines(post):
     tags = "post_id_%s" % post.id
 
     first_initial_line_data = find_buffer_first_post_line_data(post.buffer, post.id)
+    if not first_initial_line_data:
+        return
 
     initial_tags = get_line_data_tags(first_initial_line_data)
     initial_post_id = find_post_id_in_tags(initial_tags)
@@ -985,7 +987,7 @@ def write_reply_message_lines(post):
 
     parent_line_data = find_buffer_first_post_line_data(post.buffer, post.root_id)
     if not parent_line_data:
-        return # probably replying a out of range message
+        return
 
     parent_tags = get_line_data_tags(parent_line_data)
     parent_post_id = find_post_id_in_tags(parent_tags)
@@ -1148,7 +1150,7 @@ def find_buffer_last_post_line_data(buffer, post_id):
             return line_data
         line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "prev_line")
         if "" == line:
-            break
+            return None
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
 
 def find_buffer_first_post_line_data(buffer, post_id):
@@ -1161,7 +1163,7 @@ def find_buffer_first_post_line_data(buffer, post_id):
             return line_data
         line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "next_line")
         if "" == line:
-            break
+            return None
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
 
 def add_reaction_to_post(reaction):
@@ -1175,6 +1177,8 @@ def add_reaction_to_post(reaction):
     new_message = message_last_line + post.get_reactions_line()
 
     line_data = find_buffer_last_post_line_data(reaction.buffer, post.id)
+    if not line_data:
+        return
 
     weechat.hdata_update(
         weechat.hdata_get("line_data"),
@@ -1193,6 +1197,8 @@ def remove_reaction_from_post(reaction):
     message_last_line = post.message.split("\n")[-1]
 
     line_data = find_buffer_last_post_line_data(reaction.buffer, post.id)
+    if not line_data:
+        return
 
     if not post.reactions:
         new_message = message_last_line
@@ -1209,6 +1215,8 @@ def remove_reaction_from_post(reaction):
 
 def find_full_post_id(buffer, short_post_id):
     line_data = find_buffer_last_post_line_data(buffer, short_post_id)
+    if not line_data:
+        return None
 
     tags = get_line_data_tags(line_data)
     return find_post_id_in_tags(tags)
