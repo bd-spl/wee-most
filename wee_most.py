@@ -1321,12 +1321,12 @@ class ChannelBase:
 
         self.set_loading(True)
 
-        enqueue_request(
+        EVENTROUTER.enqueue_request(
             "run_get_read_channel_posts",
             self.id, self.server, "hydrate_channel_read_posts_cb", self.buffer
         )
 
-        enqueue_request(
+        EVENTROUTER.enqueue_request(
             "run_get_channel_members",
             self.id, self.server, 0, "hydrate_channel_users_cb", "{}|{}|0".format(self.server.id, self.id)
         )
@@ -1533,7 +1533,7 @@ def hydrate_channel_posts_cb(buffer, command, rc, out, err):
         write_post(builded_post)
 
     if "" != response["next_post_id"]:
-        enqueue_request(
+        EVENTROUTER.enqueue_request(
             "run_get_channel_posts_after",
             builded_post.id, builded_post.channel.id, server, "hydrate_channel_posts_cb", buffer
         )
@@ -1566,7 +1566,7 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
     weechat.buffer_set(buffer, "hotlist", "-1")
 
     if "" != response["next_post_id"]:
-        enqueue_request(
+        EVENTROUTER.enqueue_request(
             "run_get_channel_posts_after",
             post.id, post.channel.id, server, "hydrate_channel_posts_cb", buffer
         )
@@ -1588,7 +1588,7 @@ def hydrate_channel_users_cb(data, command, rc, out, err):
     response = json.loads(out)
 
     if len(response) == DEFAULT_PAGE_COUNT:
-        enqueue_request(
+        EVENTROUTER.enqueue_request(
             "run_get_channel_members",
             channel.id, server, page+1, "hydrate_channel_users_cb", "{}|{}|{}".format(server_id, channel_id, page+1)
         )
@@ -1610,7 +1610,7 @@ def update_channel_mute_status_cb(data, command, rc, out, err):
     response = json.loads(out)
 
     if len(response) == DEFAULT_PAGE_COUNT:
-        enqueue_request(
+        EVENTROUTER.enqueue_request(
             "run_get_user_channel_members",
             server, page+1, "update_channel_mute_status_cb", "{}|{}".format(server_id, page+1)
         )
@@ -1676,7 +1676,7 @@ def update_custom_emojis(data, command, rc, out, err):
         server.custom_emojis.append(emoji["name"])
 
     if len(response) == DEFAULT_PAGE_COUNT:
-        enqueue_request(
+        EVENTROUTER.enqueue_request(
             "run_get_custom_emojis",
             server, page+1, "update_custom_emojis", "{}|{}".format(server.id, page+1)
         )
@@ -1745,7 +1745,7 @@ def buffer_switch_cb(data, signal, buffer):
         channel = server.get_channel_from_buffer(buffer)
         if channel:
             channel.mark_as_read()
-            enqueue_request(
+            EVENTROUTER.enqueue_request(
                     "run_post_users_status_ids",
                     list(channel.users.keys()), server, "hydrate_channel_users_status_cb", "{}|{}".format(server.id, channel.id)
                     )
@@ -1896,7 +1896,7 @@ class Server:
         for channel in self.get_direct_messages_channels():
             user_ids.append(channel.user.id)
 
-        enqueue_request(
+        EVENTROUTER.enqueue_request(
             "run_post_users_status_ids",
             user_ids, self, "update_direct_message_channels_name", self.id
         )
@@ -2000,7 +2000,7 @@ def get_buffer_user_status_cb(data, remaining_calls):
     for server in servers.values():
         channel = server.get_channel_from_buffer(buffer)
         if channel:
-            enqueue_request(
+            EVENTROUTER.enqueue_request(
                     "run_post_users_status_ids",
                     list(channel.users.keys()), server, "hydrate_channel_users_status_cb", "{}|{}".format(server.id, channel.id)
                     )
@@ -2015,7 +2015,7 @@ def get_direct_message_channels_user_status_cb(data, remaining_calls):
     return weechat.WEECHAT_RC_OK
 
 def connect_server_team_channel(channel_id, server):
-    enqueue_request(
+    EVENTROUTER.enqueue_request(
         "run_get_channel",
         channel_id, server, "connect_server_team_channel_cb", server.id
     )
@@ -2047,7 +2047,7 @@ def connect_server_team_channels_cb(server_id, command, rc, out, err):
 
     server.fetch_direct_message_channels_user_status()
 
-    enqueue_request(
+    EVENTROUTER.enqueue_request(
         "run_get_user_channel_members",
         server, 0, "update_channel_mute_status_cb", "{}|0".format(server.id)
     )
@@ -2071,12 +2071,12 @@ def connect_server_users_cb(data, command, rc, out, err):
             server.users[user["id"]] = User(**user)
 
     if len(response) == DEFAULT_PAGE_COUNT:
-        enqueue_request(
+        EVENTROUTER.enqueue_request(
             "run_get_users",
             server, page+1, "connect_server_users_cb", "{}|{}".format(server.id, page+1)
         )
     else:
-        enqueue_request(
+        EVENTROUTER.enqueue_request(
             "run_get_user_teams",
             server, "connect_server_teams_cb", server.id
         )
@@ -2110,7 +2110,7 @@ def connect_server_teams_cb(server_id, command, rc, out, err):
     for team_data in response:
         server.add_team(**team_data)
 
-        enqueue_request(
+        EVENTROUTER.enqueue_request(
             "run_get_user_team_channels",
             team_data["id"], server, "connect_server_team_channels_cb", server.id
         )
@@ -2128,7 +2128,7 @@ def connect_server_team_cb(server_id, command, rc, out, err):
 
     server.add_team(**team_data)
 
-    enqueue_request(
+    EVENTROUTER.enqueue_request(
         "run_get_user_team_channels",
         team_data["id"], server, "connect_server_team_channels_cb", server.id
     )
@@ -2175,17 +2175,17 @@ def connect_server_cb(server_id, command, rc, out, err):
 
     server.print("Connected to " + server_id)
 
-    enqueue_request(
+    EVENTROUTER.enqueue_request(
         "run_get_custom_emojis",
         server, 0, "update_custom_emojis", "{}|0".format(server.id)
     )
 
-    enqueue_request(
+    EVENTROUTER.enqueue_request(
         "run_get_users",
         server, 0, "connect_server_users_cb", "{}|0".format(server.id)
     )
 
-    enqueue_request(
+    EVENTROUTER.enqueue_request(
         "run_get_preferences",
         server, "connect_server_preferences_cb", server.id
     )
@@ -2213,7 +2213,7 @@ def connect_server(server_id):
 
     servers[server_id] = server
 
-    enqueue_request(
+    EVENTROUTER.enqueue_request(
         "run_user_login",
         server, "connect_server_cb", server.id
     )
@@ -2253,38 +2253,44 @@ def singularity_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-response_buffers = {}
-def buffered_response_cb(data, command, rc, out, err):
-    arg_search = re.search("([^\|]*)\|([^\|]*)\|(.*)", data)
-    response_buffer_name = arg_search.group(1)
-    real_cb = arg_search.group(2)
-    real_data = arg_search.group(3)
-
-    if not response_buffer_name in response_buffers:
-        response_buffers[response_buffer_name] = ""
-
-    if rc == weechat.WEECHAT_HOOK_PROCESS_RUNNING:
-        response_buffers[response_buffer_name] += out
-        return weechat.WEECHAT_RC_OK
-
-    response = response_buffers[response_buffer_name] + out
-    del response_buffers[response_buffer_name]
-
-    return eval(real_cb)(real_data, command, rc, response, err)
-
 def build_buffer_cb_data(url, cb, cb_data):
     return "{}|{}|{}".format(url, cb, cb_data)
 
-enqueued_requests = []
-def enqueue_request(method, *params):
-    enqueued_requests.append([method, params])
+class EventRouter:
+    def __init__(self):
+        self.enqueued_requests = []
+        self.response_buffers = {}
+
+    def enqueue_request(self, method, *params):
+        self.enqueued_requests.append([method, params])
+
+    def handle_next(self):
+        if not self.enqueued_requests:
+            return
+
+        request = self.enqueued_requests.pop(0)
+        eval(request[0])(*request[1])
+
+    def buffered_response_cb(self, data, command, rc, out, err):
+        arg_search = re.search("([^\|]*)\|([^\|]*)\|(.*)", data)
+        response_buffer_name = arg_search.group(1)
+        real_cb = arg_search.group(2)
+        real_data = arg_search.group(3)
+
+        if not response_buffer_name in self.response_buffers:
+            self.response_buffers[response_buffer_name] = ""
+
+        if rc == weechat.WEECHAT_HOOK_PROCESS_RUNNING:
+            self.response_buffers[response_buffer_name] += out
+            return weechat.WEECHAT_RC_OK
+
+        response = self.response_buffers[response_buffer_name] + out
+        del self.response_buffers[response_buffer_name]
+
+        return eval(real_cb)(real_data, command, rc, response, err)
 
 def handle_queued_request_cb(data, remaining_calls):
-    if not enqueued_requests:
-        return weechat.WEECHAT_RC_OK
-
-    request = enqueued_requests.pop(0)
-    eval(request[0])(*request[1])
+    EVENTROUTER.handle_next()
     return weechat.WEECHAT_RC_OK
 
 def run_get_user_teams(server, cb, cb_data):
@@ -2657,7 +2663,7 @@ def rehydrate_server_buffer(server, buffer):
         return
     channel.set_loading(True)
 
-    enqueue_request(
+    EVENTROUTER.enqueue_request(
         "run_get_channel_posts_after",
         last_post_id, channel_id, server, "hydrate_channel_posts_cb", buffer
     )
@@ -2800,7 +2806,7 @@ def handle_group_added_message(server, data, broadcast):
 
 def handle_new_user_message(server, data, broadcast):
     user_id = data["user_id"]
-    enqueue_request(
+    EVENTROUTER.enqueue_request(
         "run_get_user",
         server, user_id, "new_user_cb", server.id
     )
@@ -2816,7 +2822,7 @@ def handle_added_to_team_message(server, data, broadcast):
 
     server.teams[data["team_id"]] = None
 
-    enqueue_request(
+    EVENTROUTER.enqueue_request(
         "run_get_team",
         data["team_id"], server, "connect_server_team_cb", server.id
     )
@@ -2874,6 +2880,10 @@ def receive_ws_callback(server_id, data):
     return weechat.WEECHAT_RC_OK
 
 ## globals
+
+EVENTROUTER = EventRouter()
+
+buffered_response_cb = EVENTROUTER.buffered_response_cb
 
 config = PluginConfig()
 
