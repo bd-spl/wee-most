@@ -2301,7 +2301,7 @@ def run_get_user_teams(server, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2314,7 +2314,7 @@ def run_get_team(team_id, server, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2327,7 +2327,7 @@ def run_get_users(server, page, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2340,7 +2340,7 @@ def run_get_user(server, user_id, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2353,7 +2353,7 @@ def run_get_custom_emojis(server, page, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2393,7 +2393,7 @@ def run_user_login(server, cb, cb_data):
             "postfields": json.dumps(params),
             "header": "1",
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2406,7 +2406,7 @@ def run_get_channel(channel_id, server, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2419,7 +2419,7 @@ def run_get_user_team_channels(team_id, server, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2441,7 +2441,7 @@ def run_post_post(post, server, cb, cb_data):
             "httpheader": "Authorization: Bearer " + server.token,
             "postfields": json.dumps(params),
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2461,7 +2461,7 @@ def run_post_command(team_id, channel_id, command, server, cb, cb_data):
             "httpheader": "Authorization: Bearer " + server.token,
             "postfields": json.dumps(params),
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2474,7 +2474,7 @@ def run_get_read_channel_posts(channel_id, server, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2487,7 +2487,7 @@ def run_get_channel_posts_after(post_id, channel_id, server, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2500,7 +2500,7 @@ def run_get_channel_members(channel_id, server, page, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2513,7 +2513,7 @@ def run_get_user_channel_members(server, page, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2527,7 +2527,7 @@ def run_post_users_status_ids(user_ids, server, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2545,7 +2545,7 @@ def run_post_channel_view(channel_id, server, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2566,7 +2566,7 @@ def run_post_reaction(emoji_name, post_id, server, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2581,7 +2581,7 @@ def run_delete_reaction(emoji_name, post_id, server, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2596,7 +2596,7 @@ def run_delete_post(post_id, server, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2611,7 +2611,7 @@ def run_get_file(file_id, file_out_path, server, cb, cb_data):
             "file_out": file_out_path,
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2625,7 +2625,7 @@ def run_get_preferences(server, cb, cb_data):
             "failonerror": "1",
             "httpheader": "Authorization: Bearer " + server.token,
         },
-        30 * 1000,
+        REQUEST_TIMEOUT_MS,
         "buffered_response_cb",
         build_buffer_cb_data(url, cb, cb_data)
     )
@@ -2892,6 +2892,7 @@ servers = {}
 default_emojis = []
 
 DEFAULT_PAGE_COUNT = 60
+REQUEST_TIMEOUT_MS = 30 * 1000
 
 mentions = ["@here", "@channel", "@all"]
 
