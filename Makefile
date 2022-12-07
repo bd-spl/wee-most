@@ -20,7 +20,7 @@ emojis:
 		> wee_most_emojis
 
 $(SCRIPT_DIR)/wee_most.py: wee_most.py
-	install -m644 wee_most.py $(SCRIPT_DIR)/wee_most.py
+	install -D -m644 wee_most.py $(SCRIPT_DIR)/wee_most.py
 
 $(WEECHAT_DATA_DIR)/wee_most_emojis: wee_most_emojis
-	install -m644 wee_most_emojis $(WEECHAT_DATA_DIR)/wee_most_emojis
+	install -D -m644 wee_most_emojis $(WEECHAT_DATA_DIR)/wee_most_emojis
