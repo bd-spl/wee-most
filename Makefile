@@ -7,7 +7,7 @@ SCRIPT_DIR = $(DESTDIR)$(WEECHAT_DATA_DIR)/python
 install: $(SCRIPT_DIR)/wee_most.py $(WEECHAT_DATA_DIR)/wee_most_emojis
 
 uninstall:
-	rm $(SCRIPT_DIR)/wee_most.py
+	rm $(SCRIPT_DIR)/wee_most.py $(WEECHAT_DATA_DIR)/wee_most_emojis
 
 autoload:
 	mkdir -p $(SCRIPT_DIR)/autoload
