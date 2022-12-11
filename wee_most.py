@@ -1,3 +1,7 @@
+# Copyright (c) 2022 Damien Tardy-Panis <damien.dev@tardypad.me>
+# Released under the GNU GPLv3 license.
+# Forked from wee_matter, inspired by wee_slack
+
 import json
 import os
 import platform
