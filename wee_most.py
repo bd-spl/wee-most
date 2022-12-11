@@ -152,7 +152,7 @@ class PluginConfig:
         ),
         Setting(
             name = "download_location",
-            default = os.environ.get("XDG_DOWNLOAD_DIR", "~/Downloads") + "/wee-most",
+            default = os.environ.get("XDG_DOWNLOAD_DIR", "~/Downloads") + "/wee_most",
             description = "Location for storing downloaded files",
             type = "string",
         ),
@@ -418,9 +418,9 @@ def mattermost_channel_buffer_required(f):
     def wrapper(args, buffer):
         buffer_name = weechat.buffer_get_string(buffer, "name")
         buffer_type = weechat.buffer_get_string(buffer, "localvar_type")
-        if not buffer_name.startswith("wee-most.") or buffer_type == "server":
+        if not buffer_name.startswith("wee_most.") or buffer_type == "server":
             command_name = f.__name__.replace("command_", "", 1)
-            weechat.prnt("", '{}wee-most: command "{}" must be executed on a Mattermost channel buffer'.format(weechat.prefix("error"), command_name))
+            weechat.prnt("", '{}wee_most: command "{}" must be executed on a Mattermost channel buffer'.format(weechat.prefix("error"), command_name))
             return weechat.WEECHAT_RC_ERROR
 
         return f(args, buffer)
@@ -436,7 +436,7 @@ def command_server_add(args, buffer):
     config.add_server_options(args)
 
     weechat.prnt("", 'Server "%s" added. You should now configure it.' % args)
-    weechat.prnt("", "/set plugins.var.python.wee-most.server.%s.*" % args)
+    weechat.prnt("", "/set plugins.var.python.wee_most.server.%s.*" % args)
 
     return weechat.WEECHAT_RC_OK
 
@@ -1758,7 +1758,7 @@ def buffer_switch_cb(data, signal, buffer):
     return weechat.WEECHAT_RC_OK
 
 def channel_click_cb(data, info):
-    if "wee-most" != info.get("_buffer_localvar_script_name"):
+    if "wee_most" != info.get("_buffer_localvar_script_name"):
         return info
 
     if info["_key"] != "button1":
@@ -1831,7 +1831,7 @@ class Server:
 
     def _create_buffer(self):
         # use "*" character so that the buffer is unique and gets sorted before all server buffers
-        buffer_name = "wee-most.{}*".format(self.id)
+        buffer_name = "wee_most.{}*".format(self.id)
         self.buffer = weechat.buffer_new(buffer_name, "", "", "", "")
         weechat.buffer_set(self.buffer, "short_name", self.id)
         weechat.buffer_set(self.buffer, "localvar_set_server_id", self.id)
@@ -2902,7 +2902,7 @@ mentions = ["@here", "@channel", "@all"]
 
 ## main
 
-WEECHAT_SCRIPT_NAME = "wee-most"
+WEECHAT_SCRIPT_NAME = "wee_most"
 WEECHAT_SCRIPT_DESCRIPTION = "Mattermost integration"
 WEECHAT_SCRIPT_AUTHOR = "Damien Tardy-Panis <damien.dev@tardypad.me>"
 WEECHAT_SCRIPT_VERSION = "0.1.0"
