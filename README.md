@@ -65,8 +65,8 @@ Some command uses this id to interact with posts.
 
 ```
 /mattermost reply abc Yeah you right !
-/mattermost react abc rofl
-/mattermost react abc 100
+/mattermost react abc :rofl:
+/mattermost react abc :100:
 /mattermost delete abc
 ```
 

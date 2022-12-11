@@ -536,6 +536,7 @@ def command_react(args, buffer):
         return weechat.WEECHAT_RC_ERROR
 
     short_post_id, _, emoji_name = args.partition(" ")
+    emoji_name = emoji_name.strip(":")
 
     server = get_server_from_buffer(buffer)
 
@@ -555,6 +556,7 @@ def command_unreact(args, buffer):
         return weechat.WEECHAT_RC_ERROR
 
     short_post_id, _, emoji_name = args.partition(" ")
+    emoji_name = emoji_name.strip(":")
 
     server = get_server_from_buffer(buffer)
 
