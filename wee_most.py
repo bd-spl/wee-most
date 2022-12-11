@@ -2905,7 +2905,7 @@ mentions = ["@here", "@channel", "@all"]
 WEECHAT_SCRIPT_NAME = "wee_most"
 WEECHAT_SCRIPT_DESCRIPTION = "Mattermost integration"
 WEECHAT_SCRIPT_AUTHOR = "Damien Tardy-Panis <damien.dev@tardypad.me>"
-WEECHAT_SCRIPT_VERSION = "0.1.0"
+WEECHAT_SCRIPT_VERSION = "0.2.0"
 WEECHAT_SCRIPT_LICENSE = "GPL3"
 
 weechat.register(
