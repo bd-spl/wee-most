@@ -4,6 +4,17 @@ WeeChat plugin for Mattermost
 
 Tested only on latest Mattermost and WeeChat stable versions
 
+## History
+
+This project was originally a fork of [wee-matter](https://sr.ht/~stacyharper/wee-matter/).
+While fixing bugs and adding new features there, I had to refactor large parts of the code.
+Those changes were not welcome in that project so I continued working on my own fork.
+By now the projects have diverged considerably.
+
+My wish would be to have a plugin for Mattermost as good as [wee-slack](https://github.com/wee-slack/wee-slack) is for Slack.
+I was a very happy user of it in a previous job.
+As such I have been drawing a lot of inspiration from its code and features.
+
 ## Installation
 
 Python dependencies:
@@ -87,8 +98,3 @@ You would still have issues with multiline pasted text. Add this :
 /set plugins.var.perl.multiline.weechat_paste_fix "off"
 /key bind ctrl-J /input insert \n
 ```
-
-## Acknowledgements
-
-Wee-most is originally a fork of [wee-matter](https://sr.ht/~stacyharper/wee-matter/)
-and draws a lot of inspiration from [wee-slack](https://github.com/wee-slack/wee-slack)
