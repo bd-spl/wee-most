@@ -2210,7 +2210,7 @@ def connect_server(server_id):
     try:
         server = Server(server_id)
     except ValueError as ve:
-        server.print_error(str(ve))
+        weechat.prnt("", weechat.prefix("error") + str(ve))
         return weechat.WEECHAT_RC_ERROR
 
     server.print("Connecting to " + server_id)
