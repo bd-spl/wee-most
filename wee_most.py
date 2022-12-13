@@ -1232,6 +1232,8 @@ def find_post_id_in_tags(tags):
         if tag.startswith("post_id_"):
             return tag[8:]
 
+    return None
+
 def find_reply_to_in_tags(tags):
     for tag in tags:
         if tag.startswith("reply_to_"):
@@ -1770,6 +1772,28 @@ def channel_click_cb(data, info):
         handle_post_click(data, info)
     elif "file_id_" in info["_chat_line_tags"]:
         handle_file_click(data, info)
+
+def chat_line_event_cb(data, signal, hashtable):
+    tags = hashtable["_chat_line_tags"].split(",")
+    post_id = find_post_id_in_tags(tags)
+
+    if not post_id:
+        return weechat.WEECHAT_RC_OK
+
+    buffer = hashtable["_buffer"]
+
+    weechat.command(buffer, "/cursor stop")
+
+    if data == "delete":
+        weechat.command(buffer, "/input insert /mattermost delete {}".format(post_id))
+    elif data == "reply":
+        weechat.command(buffer, "/input insert /mattermost reply {}\\x20".format(post_id))
+    elif data == "react":
+        weechat.command(buffer, "/input insert /mattermost react {} :".format(post_id))
+    elif data == "unreact":
+        weechat.command(buffer, "/input insert /mattermost unreact {} :".format(post_id))
+
+    return weechat.WEECHAT_RC_OK
 
 def handle_multiline_message_cb(data, modifier, buffer, string):
     for server in servers.values():
@@ -2935,6 +2959,11 @@ weechat.hook_timer(60 * 1000, 0, 0, "get_buffer_user_status_cb", "")
 weechat.hook_timer(60 * 1000, 0, 0, "get_direct_message_channels_user_status_cb", "")
 weechat.hook_config("irc.look.server_buffer", "config_server_buffer_cb", "")
 weechat.hook_focus("chat", "channel_click_cb", "")
+
+weechat.hook_hsignal("mattermost_cursor_delete", "chat_line_event_cb", "delete")
+weechat.hook_hsignal("mattermost_cursor_reply", "chat_line_event_cb", "reply")
+weechat.hook_hsignal("mattermost_cursor_react", "chat_line_event_cb", "react")
+weechat.hook_hsignal("mattermost_cursor_unreact", "chat_line_event_cb", "unreact")
 
 def shutdown_cb():
     disconnect_all()
