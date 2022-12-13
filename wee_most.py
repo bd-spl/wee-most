@@ -1239,29 +1239,6 @@ def find_reply_to_in_tags(tags):
         if tag.startswith("reply_to_"):
             return tag[9:]
 
-def handle_post_click(data, info):
-    tags = info["_chat_line_tags"].split(",")
-
-    post_id = find_post_id_in_tags(tags)
-
-    buffer = info["_buffer"]
-
-    old_input = weechat.buffer_get_string(buffer, "input")
-    old_position = weechat.buffer_get_integer(buffer, "input_pos")
-
-    before_position_message = old_input[:old_position]
-    after_position_message = old_input[old_position:]
-
-    post_id = post_id[:4]
-    if len(old_input) == old_position: # add whitespace smartly
-        post_id += " "
-    new_input = before_position_message + post_id + after_position_message
-
-    weechat.buffer_set(buffer, "input", new_input)
-
-    new_position = old_position + len(post_id)
-    weechat.buffer_set(buffer, "input_pos", str(new_position))
-
 ## channel
 
 CHANNEL_TYPES = {
@@ -1768,9 +1745,7 @@ def channel_click_cb(data, info):
     if info["_key"] != "button1":
         return
 
-    if "post_id_" in info["_chat_line_tags"]:
-        handle_post_click(data, info)
-    elif "file_id_" in info["_chat_line_tags"]:
+    if "file_id_" in info["_chat_line_tags"]:
         handle_file_click(data, info)
 
 def chat_line_event_cb(data, signal, hashtable):
