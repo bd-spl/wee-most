@@ -647,15 +647,6 @@ def find_file_id_in_tags(tags):
 
     return None
 
-def get_files_from_post_data(post_data, server):
-    if "metadata" in post_data and "files" in post_data["metadata"]:
-        files = []
-        for file_data in post_data["metadata"]["files"]:
-            files.append(File(server, **file_data))
-        return files
-
-    return []
-
 ## post
 
 class Post:
@@ -671,7 +662,11 @@ class Post:
         self.channel.posts[kwargs["id"]] = self
 
         self.user = server.users[kwargs["user_id"]]
-        self.files = get_files_from_post_data(kwargs, server)
+
+        self.files = []
+        if "metadata" in kwargs and "files" in kwargs["metadata"]:
+            for file_data in kwargs["metadata"]["files"]:
+                self.files.append(File(server, **file_data))
 
         self.reactions = []
         if "metadata" in kwargs and "reactions" in kwargs["metadata"]:
