@@ -1735,15 +1735,16 @@ def chat_line_event_cb(data, signal, hashtable):
 
     buffer = hashtable["_buffer"]
 
-    weechat.command(buffer, "/cursor stop")
-
     if data == "delete":
-        weechat.command(buffer, "/input insert /mattermost delete {}".format(post_id))
+        weechat.command(buffer, "/input send /mattermost delete {}".format(post_id))
     elif data == "reply":
+        weechat.command(buffer, "/cursor stop")
         weechat.command(buffer, "/input insert /mattermost reply {}\\x20".format(post_id))
     elif data == "react":
+        weechat.command(buffer, "/cursor stop")
         weechat.command(buffer, "/input insert /mattermost react {} :".format(post_id))
     elif data == "unreact":
+        weechat.command(buffer, "/cursor stop")
         weechat.command(buffer, "/input insert /mattermost unreact {} :".format(post_id))
     elif data == "download":
         server = get_server_from_buffer(buffer)
