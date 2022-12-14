@@ -659,6 +659,8 @@ def find_file_id_in_tags(tags):
         if tag.startswith("file_id_"):
             return tag[8:]
 
+    return None
+
 def get_files_from_post_data(post_data, server):
     if "metadata" in post_data and "files" in post_data["metadata"]:
         files = []
@@ -1750,10 +1752,15 @@ def channel_click_cb(data, info):
 
 def chat_line_event_cb(data, signal, hashtable):
     tags = hashtable["_chat_line_tags"].split(",")
-    post_id = find_post_id_in_tags(tags)
 
-    if not post_id:
-        return weechat.WEECHAT_RC_OK
+    if data == "download":
+        file_id = find_file_id_in_tags(tags)
+        if not file_id:
+            return weechat.WEECHAT_RC_OK
+    else:
+        post_id = find_post_id_in_tags(tags)
+        if not post_id:
+            return weechat.WEECHAT_RC_OK
 
     buffer = hashtable["_buffer"]
 
@@ -1767,6 +1774,13 @@ def chat_line_event_cb(data, signal, hashtable):
         weechat.command(buffer, "/input insert /mattermost react {} :".format(post_id))
     elif data == "unreact":
         weechat.command(buffer, "/input insert /mattermost unreact {} :".format(post_id))
+    elif data == "download":
+        server = get_server_from_buffer(buffer)
+        file_path = prepare_download_location(server) + "/" + file_id
+        if os.path.isfile(file_path):
+            open_file(file_path)
+        else:
+            run_get_file(file_id, file_path, server, "file_get_cb", "{}|{}".format(server.id, file_path))
 
     return weechat.WEECHAT_RC_OK
 
@@ -2939,6 +2953,7 @@ weechat.hook_hsignal("mattermost_cursor_delete", "chat_line_event_cb", "delete")
 weechat.hook_hsignal("mattermost_cursor_reply", "chat_line_event_cb", "reply")
 weechat.hook_hsignal("mattermost_cursor_react", "chat_line_event_cb", "react")
 weechat.hook_hsignal("mattermost_cursor_unreact", "chat_line_event_cb", "unreact")
+weechat.hook_hsignal("mattermost_cursor_download", "chat_line_event_cb", "download")
 
 def shutdown_cb():
     disconnect_all()
