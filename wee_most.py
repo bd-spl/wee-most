@@ -640,20 +640,6 @@ def file_get_cb(data, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def handle_file_click(data, info):
-    tags = info["_chat_line_tags"].split(",")
-
-    file_id = find_file_id_in_tags(tags)
-
-    server = get_server_from_buffer(info["_buffer"])
-
-    file_path = prepare_download_location(server) + "/" + file_id
-
-    if os.path.isfile(file_path):
-        open_file(file_path)
-    else:
-        run_get_file(file_id, file_path, server, "file_get_cb", "{}|{}".format(server.id, file_path))
-
 def find_file_id_in_tags(tags):
     for tag in tags:
         if tag.startswith("file_id_"):
@@ -1739,16 +1725,6 @@ def buffer_switch_cb(data, signal, buffer):
             break
 
     return weechat.WEECHAT_RC_OK
-
-def channel_click_cb(data, info):
-    if "wee_most" != info.get("_buffer_localvar_script_name"):
-        return info
-
-    if info["_key"] != "button1":
-        return
-
-    if "file_id_" in info["_chat_line_tags"]:
-        handle_file_click(data, info)
 
 def chat_line_event_cb(data, signal, hashtable):
     tags = hashtable["_chat_line_tags"].split(",")
@@ -2947,7 +2923,6 @@ weechat.hook_timer(int(0.2 * 1000), 0, 0, "handle_queued_request_cb", "")
 weechat.hook_timer(60 * 1000, 0, 0, "get_buffer_user_status_cb", "")
 weechat.hook_timer(60 * 1000, 0, 0, "get_direct_message_channels_user_status_cb", "")
 weechat.hook_config("irc.look.server_buffer", "config_server_buffer_cb", "")
-weechat.hook_focus("chat", "channel_click_cb", "")
 
 weechat.hook_hsignal("mattermost_cursor_delete", "chat_line_event_cb", "delete")
 weechat.hook_hsignal("mattermost_cursor_reply", "chat_line_event_cb", "reply")
