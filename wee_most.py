@@ -504,13 +504,13 @@ def command_reply(args, buffer):
         write_command_error("reply " + args, "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
-    short_post_id, _, message = args.partition(" ")
+    post_id, _, message = args.partition(" ")
 
     server = get_server_from_buffer(buffer)
 
-    line_data = find_buffer_last_post_line_data(buffer, short_post_id)
+    line_data = find_buffer_last_post_line_data(buffer, post_id)
     if not line_data:
-        server.print_error('Cannot find post id for "%s"' % short_post_id)
+        server.print_error('Cannot find post id for "%s"' % post_id)
         return weechat.WEECHAT_RC_ERROR
 
     tags = get_line_data_tags(line_data)
@@ -535,15 +535,10 @@ def command_react(args, buffer):
         write_command_error("react " + args, "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
-    short_post_id, _, emoji_name = args.partition(" ")
+    post_id, _, emoji_name = args.partition(" ")
     emoji_name = emoji_name.strip(":")
 
     server = get_server_from_buffer(buffer)
-
-    post_id = find_full_post_id(buffer, short_post_id)
-    if not post_id:
-        server.print_error('Cannot find post id for "%s"' % short_post_id)
-        return weechat.WEECHAT_RC_ERROR
 
     run_post_reaction(emoji_name, post_id, server, "singularity_cb", buffer)
 
@@ -555,15 +550,10 @@ def command_unreact(args, buffer):
         write_command_error("unreact " + args, "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
-    short_post_id, _, emoji_name = args.partition(" ")
+    post_id, _, emoji_name = args.partition(" ")
     emoji_name = emoji_name.strip(":")
 
     server = get_server_from_buffer(buffer)
-
-    post_id = find_full_post_id(buffer, short_post_id)
-    if not post_id:
-        server.print_error('Cannot find post id for "%s"' % short_post_id)
-        return weechat.WEECHAT_RC_ERROR
 
     run_delete_reaction(emoji_name, post_id, server, "singularity_cb", buffer)
 
@@ -577,12 +567,7 @@ def command_delete(args, buffer):
 
     server = get_server_from_buffer(buffer)
 
-    post_id = find_full_post_id(buffer, args)
-    if not post_id:
-        server.print_error('Cannot find post id for "%s"' % args)
-        return weechat.WEECHAT_RC_ERROR
-
-    run_delete_post(post_id, server, "singularity_cb", buffer)
+    run_delete_post(args, server, "singularity_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -1201,14 +1186,6 @@ def remove_reaction_from_post(reaction):
             "message": new_message,
         }
     )
-
-def find_full_post_id(buffer, short_post_id):
-    line_data = find_buffer_last_post_line_data(buffer, short_post_id)
-    if not line_data:
-        return None
-
-    tags = get_line_data_tags(line_data)
-    return find_post_id_in_tags(tags)
 
 def find_post_id_in_tags(tags):
     for tag in tags:
