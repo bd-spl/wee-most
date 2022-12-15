@@ -1091,7 +1091,7 @@ def write_file_lines(post):
         weechat.prnt_date_tags(
             post.buffer,
             post.date,
-            "file_id_" + file.id,
+            "post_id_" + post.id + ",file_id_" + file.id,
             "	[{}]({})".format(file.name, file.url)
         )
 
