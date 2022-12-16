@@ -644,8 +644,6 @@ class Post:
         self.date = int(kwargs["create_at"]/1000)
         self.read = False
 
-        self.channel.posts[kwargs["id"]] = self
-
         self.user = server.users[kwargs["user_id"]]
 
         self.files = []
@@ -1135,6 +1133,12 @@ class ChannelBase:
             self.id, self.server, 0, "hydrate_channel_users_cb", "{}|{}|0".format(self.server.id, self.id)
         )
 
+    def add_post(self, post):
+        self.posts[post.id] = post
+
+    def remove_post(self, post_id):
+        del self.posts[post_id]
+
     def write_post(self, post):
         if post.root_id:
             self._write_reply_message_lines(post)
@@ -1472,6 +1476,7 @@ def hydrate_channel_posts_cb(buffer, command, rc, out, err):
     response["order"].reverse()
     for post_id in response["order"]:
         builded_post = Post(server, **response["posts"][post_id])
+        channel.add_post(builded_post)
         channel.write_post(builded_post)
 
     if "" != response["next_post_id"]:
@@ -1502,6 +1507,7 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
     for post_id in response["order"]:
         post = Post(server, **response["posts"][post_id])
         post.read = True
+        channel.add_post(post)
         channel.write_post(post)
 
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", post.id)
@@ -2698,6 +2704,7 @@ def handle_posted_message(server, data, broadcast):
         return
 
     post = Post(server, **post)
+    channel.add_post(post)
     channel.write_post(post)
 
     if post.buffer == weechat.current_buffer():
@@ -2721,6 +2728,7 @@ def handle_post_edited_message(server, data, broadcast):
     post_data = json.loads(data["post"])
     post = Post(server, **post_data)
     if server.get_post(post.id) is not None:
+        post.channel.add_post(post)
         write_edited_message_lines(post)
 
 def handle_post_deleted_message(server, data, broadcast):
@@ -2728,6 +2736,7 @@ def handle_post_deleted_message(server, data, broadcast):
     post = Post(server, **post_data)
     if server.get_post(post.id) is not None:
         delete_message(post)
+        post.channel.remove_post(post.id)
 
 def handle_channel_created_message(server, data, broadcast):
     connect_server_team_channel(data["channel_id"], server)
