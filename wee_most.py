@@ -1888,8 +1888,7 @@ class Server:
     def is_connected(self):
         return self.worker
 
-    def add_team(self, **kwargs):
-        team = Team(self, **kwargs)
+    def add_team(self, team):
         self.teams[team.id] = team
 
     def retrieve_2fa_token(self):
@@ -2080,11 +2079,12 @@ def connect_server_teams_cb(server_id, command, rc, out, err):
     response = json.loads(out)
 
     for team_data in response:
-        server.add_team(**team_data)
+        team = Team(server, **team_data)
+        server.add_team(team)
 
         EVENTROUTER.enqueue_request(
             "run_get_user_team_channels",
-            team_data["id"], server, "connect_server_team_channels_cb", server.id
+            team.id, server, "connect_server_team_channels_cb", server.id
         )
 
     return weechat.WEECHAT_RC_OK
@@ -2098,11 +2098,12 @@ def connect_server_team_cb(server_id, command, rc, out, err):
 
     team_data = json.loads(out)
 
-    server.add_team(**team_data)
+    team = Team(server, **team_data)
+    server.add_team(team)
 
     EVENTROUTER.enqueue_request(
         "run_get_user_team_channels",
-        team_data["id"], server, "connect_server_team_channels_cb", server.id
+        team.id, server, "connect_server_team_channels_cb", server.id
     )
 
     return weechat.WEECHAT_RC_OK
