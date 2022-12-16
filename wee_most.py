@@ -915,7 +915,6 @@ def delete_message(post):
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": line})
 
-
 def write_edited_message_lines(post):
     tags = "post_id_%s" % post.id
 
@@ -955,142 +954,6 @@ def write_edited_message_lines(post):
             + new_message
         )
     )
-
-def write_reply_message_lines(post):
-    tags = "post_id_%s" % post.id
-
-    parent_line_data = find_buffer_first_post_line_data(post.buffer, post.root_id)
-    if not parent_line_data:
-        return
-
-    parent_tags = get_line_data_tags(parent_line_data)
-    parent_post_id = find_post_id_in_tags(parent_tags)
-
-    parent_message = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "message")
-    parent_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), parent_line_data, "date")
-    parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
-
-    weechat.prnt_date_tags(
-        post.buffer,
-        parent_message_date,
-        "quote,notify_none",
-        parent_message_prefix + "	" + colorize_sentence(build_quote_message(format_style(parent_message)), config.color_parent_reply)
-    )
-
-    parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
-    own_prefix = weechat.buffer_get_string(post.buffer, "localvar_nick")
-
-    parent_post_id = find_post_id_in_tags(parent_tags)
-    tags += ",reply_to_{}".format(parent_post_id)
-
-    channel_type = weechat.buffer_get_string(post.buffer, "localvar_type")
-    if channel_type == "channel":
-        tags += ",notify_message"
-    else:
-        tags += ",notify_private"
-
-    if post.read:
-        tags += ",notify_none"
-
-    # if somebody (not us) reply to our post
-    if parent_message_prefix == own_prefix and parent_message_prefix != post.user.nick:
-        tags += ",notify_highlight"
-
-    if post.message:
-        if post.reactions:
-            weechat.prnt_date_tags(
-                post.buffer,
-                post.date,
-                tags,
-                (
-                    build_nick(post.user, post.from_bot, post.username_override)
-                    + "	"
-                    + format_style(post.message)
-                    + post.get_reactions_line()
-                )
-            )
-        else:
-            weechat.prnt_date_tags(
-                post.buffer,
-                post.date,
-                tags,
-                (
-                    build_nick(post.user, post.from_bot, post.username_override)
-                    + "	"
-                    + format_style(post.message)
-                )
-            )
-
-    write_file_lines(post)
-
-    weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
-
-def write_message_lines(post):
-    tags = "post_id_%s" % post.id
-
-    # remove tabs to prevent display issue on multiline messages
-    # where the part before the tab would be interpreted as the prefix
-    tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
-    message = post.message.replace("\t", " " * tab_width)
-
-    channel_type = weechat.buffer_get_string(post.buffer, "localvar_type")
-    if channel_type == "channel":
-        tags += ",notify_message"
-    else:
-        tags += ",notify_private"
-
-    if post.read:
-        tags += ",notify_none"
-
-    if post.attachments:
-        message = build_message_with_attachments(message, post.attachments)
-
-    if post.type in [ "system_join_channel", "system_join_team" ]:
-        prefix = weechat.config_string(weechat.config_get("weechat.look.prefix_join"))
-        message = "{}{}".format(prefix, message)
-    elif post.type in [ "system_leave_channel", "system_leave_team" ]:
-        prefix = weechat.config_string(weechat.config_get("weechat.look.prefix_quit"))
-        message = "{}{}".format(prefix, message)
-
-    if message:
-        if post.reactions:
-            weechat.prnt_date_tags(
-                post.buffer,
-                post.date,
-                tags,
-                (
-                    build_nick(post.user, post.from_bot, post.username_override)
-                    + "	"
-                    + format_style(message)
-                    + post.get_reactions_line()
-                )
-            )
-        else:
-            weechat.prnt_date_tags(
-                post.buffer,
-                post.date,
-                tags,
-                build_nick(post.user, post.from_bot, post.username_override) + "	" + format_style(message)
-            )
-
-    write_file_lines(post)
-
-    weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
-
-def write_file_lines(post):
-    for file in post.files:
-        weechat.prnt_date_tags(
-            post.buffer,
-            post.date,
-            "post_id_" + post.id + ",file_id_" + file.id,
-            "	[{}]({})".format(file.name, file.url)
-        )
-
-def write_post(post):
-    if post.root_id:
-        write_reply_message_lines(post)
-    else:
-        write_message_lines(post)
 
 def get_line_data_tags(line_data):
     tags = []
@@ -1271,6 +1134,142 @@ class ChannelBase:
             "run_get_channel_members",
             self.id, self.server, 0, "hydrate_channel_users_cb", "{}|{}|0".format(self.server.id, self.id)
         )
+
+    def write_post(self, post):
+        if post.root_id:
+            self._write_reply_message_lines(post)
+        else:
+            self._write_message_lines(post)
+
+    def _write_reply_message_lines(self, post):
+        tags = "post_id_%s" % post.id
+
+        parent_line_data = find_buffer_first_post_line_data(post.buffer, post.root_id)
+        if not parent_line_data:
+            return
+
+        parent_tags = get_line_data_tags(parent_line_data)
+        parent_post_id = find_post_id_in_tags(parent_tags)
+
+        parent_message = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "message")
+        parent_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), parent_line_data, "date")
+        parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
+
+        weechat.prnt_date_tags(
+            post.buffer,
+            parent_message_date,
+            "quote,notify_none",
+            parent_message_prefix + "	" + colorize_sentence(build_quote_message(format_style(parent_message)), config.color_parent_reply)
+        )
+
+        parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
+        own_prefix = weechat.buffer_get_string(post.buffer, "localvar_nick")
+
+        parent_post_id = find_post_id_in_tags(parent_tags)
+        tags += ",reply_to_{}".format(parent_post_id)
+
+        channel_type = weechat.buffer_get_string(post.buffer, "localvar_type")
+        if channel_type == "channel":
+            tags += ",notify_message"
+        else:
+            tags += ",notify_private"
+
+        if post.read:
+            tags += ",notify_none"
+
+        # if somebody (not us) reply to our post
+        if parent_message_prefix == own_prefix and parent_message_prefix != post.user.nick:
+            tags += ",notify_highlight"
+
+        if post.message:
+            if post.reactions:
+                weechat.prnt_date_tags(
+                    post.buffer,
+                    post.date,
+                    tags,
+                    (
+                        build_nick(post.user, post.from_bot, post.username_override)
+                        + "	"
+                        + format_style(post.message)
+                        + post.get_reactions_line()
+                    )
+                )
+            else:
+                weechat.prnt_date_tags(
+                    post.buffer,
+                    post.date,
+                    tags,
+                    (
+                        build_nick(post.user, post.from_bot, post.username_override)
+                        + "	"
+                        + format_style(post.message)
+                    )
+                )
+
+        self._write_file_lines(post)
+
+        weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
+
+    def _write_message_lines(self, post):
+        tags = "post_id_%s" % post.id
+
+        # remove tabs to prevent display issue on multiline messages
+        # where the part before the tab would be interpreted as the prefix
+        tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
+        message = post.message.replace("\t", " " * tab_width)
+
+        channel_type = weechat.buffer_get_string(post.buffer, "localvar_type")
+        if channel_type == "channel":
+            tags += ",notify_message"
+        else:
+            tags += ",notify_private"
+
+        if post.read:
+            tags += ",notify_none"
+
+        if post.attachments:
+            message = build_message_with_attachments(message, post.attachments)
+
+        if post.type in [ "system_join_channel", "system_join_team" ]:
+            prefix = weechat.config_string(weechat.config_get("weechat.look.prefix_join"))
+            message = "{}{}".format(prefix, message)
+        elif post.type in [ "system_leave_channel", "system_leave_team" ]:
+            prefix = weechat.config_string(weechat.config_get("weechat.look.prefix_quit"))
+            message = "{}{}".format(prefix, message)
+
+        if message:
+            if post.reactions:
+                weechat.prnt_date_tags(
+                    post.buffer,
+                    post.date,
+                    tags,
+                    (
+                        build_nick(post.user, post.from_bot, post.username_override)
+                        + "	"
+                        + format_style(message)
+                        + post.get_reactions_line()
+                    )
+                )
+            else:
+                weechat.prnt_date_tags(
+                    post.buffer,
+                    post.date,
+                    tags,
+                    build_nick(post.user, post.from_bot, post.username_override) + "	" + format_style(message)
+                )
+
+        self._write_file_lines(post)
+
+        weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
+
+    def _write_file_lines(self, post):
+        for file in post.files:
+            weechat.prnt_date_tags(
+                post.buffer,
+                post.date,
+                "post_id_" + post.id + ",file_id_" + file.id,
+                "	[{}]({})".format(file.name, file.url)
+            )
 
     def mark_as_read(self):
         last_post_id = weechat.buffer_get_string(self.buffer, "localvar_last_post_id")
@@ -1466,12 +1465,14 @@ def hydrate_channel_posts_cb(buffer, command, rc, out, err):
         server.print_error("An error occurred while hydrating channel")
         return weechat.WEECHAT_RC_ERROR
 
+    channel = server.get_channel_from_buffer(buffer)
+
     response = json.loads(out)
 
     response["order"].reverse()
     for post_id in response["order"]:
         builded_post = Post(server, **response["posts"][post_id])
-        write_post(builded_post)
+        channel.write_post(builded_post)
 
     if "" != response["next_post_id"]:
         EVENTROUTER.enqueue_request(
@@ -1479,7 +1480,6 @@ def hydrate_channel_posts_cb(buffer, command, rc, out, err):
             builded_post.id, builded_post.channel.id, server, "hydrate_channel_posts_cb", buffer
         )
     else:
-        channel = server.get_channel_from_buffer(buffer)
         channel.set_loading(False)
 
     return weechat.WEECHAT_RC_OK
@@ -1491,6 +1491,8 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
         server.print_error("An error occurred while hydrating channel")
         return weechat.WEECHAT_RC_ERROR
 
+    channel = server.get_channel_from_buffer(buffer)
+
     response = json.loads(out)
 
     if not response["order"]:
@@ -1500,7 +1502,7 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
     for post_id in response["order"]:
         post = Post(server, **response["posts"][post_id])
         post.read = True
-        write_post(post)
+        channel.write_post(post)
 
     weechat.buffer_set(buffer, "localvar_set_last_read_post_id", post.id)
     weechat.buffer_set(buffer, "unread", "-")
@@ -2696,7 +2698,7 @@ def handle_posted_message(server, data, broadcast):
         return
 
     post = Post(server, **post)
-    write_post(post)
+    channel.write_post(post)
 
     if post.buffer == weechat.current_buffer():
         post.channel.mark_as_read()
