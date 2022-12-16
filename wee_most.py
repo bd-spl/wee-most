@@ -1172,8 +1172,7 @@ class ChannelBase:
         parent_post_id = find_post_id_in_tags(parent_tags)
         tags += ",reply_to_{}".format(parent_post_id)
 
-        channel_type = weechat.buffer_get_string(post.buffer, "localvar_type")
-        if channel_type == "channel":
+        if self.type in ['public', 'private']:
             tags += ",notify_message"
         else:
             tags += ",notify_private"
@@ -1222,8 +1221,7 @@ class ChannelBase:
         tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
         message = post.message.replace("\t", " " * tab_width)
 
-        channel_type = weechat.buffer_get_string(post.buffer, "localvar_type")
-        if channel_type == "channel":
+        if self.type in ['public', 'private']:
             tags += ",notify_message"
         else:
             tags += ",notify_private"
@@ -1389,7 +1387,6 @@ class ChannelBase:
 class DirectMessagesChannel(ChannelBase):
     def __init__(self, server, **kwargs):
         super(DirectMessagesChannel, self).__init__(server, **kwargs)
-        weechat.buffer_set(self.buffer, "localvar_set_type", "private")
         self.user = self._get_user(kwargs["name"])
         self._status = None
 
@@ -1430,7 +1427,6 @@ class DirectMessagesChannel(ChannelBase):
 class GroupChannel(ChannelBase):
     def __init__(self, server, **kwargs):
         super(GroupChannel, self).__init__(server, **kwargs)
-        weechat.buffer_set(self.buffer, "localvar_set_type", "private")
 
 class PrivateChannel(ChannelBase):
     def __init__(self, team, **kwargs):
