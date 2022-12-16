@@ -1086,14 +1086,6 @@ def write_file_lines(post):
             "	[{}]({})".format(file.name, file.url)
         )
 
-def write_post_edited(post):
-    if post.server.get_post(post.id) is not None:
-        write_edited_message_lines(post)
-
-def write_post_deleted(post):
-    if post.server.get_post(post.id) is not None:
-        delete_message(post)
-
 def write_post(post):
     if post.root_id:
         write_reply_message_lines(post)
@@ -2726,12 +2718,14 @@ def handle_reaction_removed_message(server, data, broadcast):
 def handle_post_edited_message(server, data, broadcast):
     post_data = json.loads(data["post"])
     post = Post(server, **post_data)
-    write_post_edited(post)
+    if server.get_post(post.id) is not None:
+        write_edited_message_lines(post)
 
 def handle_post_deleted_message(server, data, broadcast):
     post_data = json.loads(data["post"])
     post = Post(server, **post_data)
-    write_post_deleted(post)
+    if server.get_post(post.id) is not None:
+        delete_message(post)
 
 def handle_channel_created_message(server, data, broadcast):
     connect_server_team_channel(data["channel_id"], server)
