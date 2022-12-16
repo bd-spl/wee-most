@@ -996,29 +996,32 @@ def write_reply_message_lines(post):
     if parent_message_prefix == own_prefix and parent_message_prefix != post.user.nick:
         tags += ",notify_highlight"
 
-    if post.reactions:
-        weechat.prnt_date_tags(
-            post.buffer,
-            post.date,
-            tags,
-            (
-                build_nick(post.user, post.from_bot, post.username_override)
-                + "	"
-                + format_style(post.message)
-                + post.get_reactions_line()
+    if post.message:
+        if post.reactions:
+            weechat.prnt_date_tags(
+                post.buffer,
+                post.date,
+                tags,
+                (
+                    build_nick(post.user, post.from_bot, post.username_override)
+                    + "	"
+                    + format_style(post.message)
+                    + post.get_reactions_line()
+                )
             )
-        )
-    else:
-        weechat.prnt_date_tags(
-            post.buffer,
-            post.date,
-            tags,
-            (
-                build_nick(post.user, post.from_bot, post.username_override)
-                + "	"
-                + format_style(post.message)
+        else:
+            weechat.prnt_date_tags(
+                post.buffer,
+                post.date,
+                tags,
+                (
+                    build_nick(post.user, post.from_bot, post.username_override)
+                    + "	"
+                    + format_style(post.message)
+                )
             )
-        )
+
+    write_file_lines(post)
 
     weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
 
@@ -1049,25 +1052,28 @@ def write_message_lines(post):
         prefix = weechat.config_string(weechat.config_get("weechat.look.prefix_quit"))
         message = "{}{}".format(prefix, message)
 
-    if post.reactions:
-        weechat.prnt_date_tags(
-            post.buffer,
-            post.date,
-            tags,
-            (
-                build_nick(post.user, post.from_bot, post.username_override)
-                + "	"
-                + format_style(message)
-                + post.get_reactions_line()
+    if message:
+        if post.reactions:
+            weechat.prnt_date_tags(
+                post.buffer,
+                post.date,
+                tags,
+                (
+                    build_nick(post.user, post.from_bot, post.username_override)
+                    + "	"
+                    + format_style(message)
+                    + post.get_reactions_line()
+                )
             )
-        )
-    else:
-        weechat.prnt_date_tags(
-            post.buffer,
-            post.date,
-            tags,
-            build_nick(post.user, post.from_bot, post.username_override) + "	" + format_style(message)
-        )
+        else:
+            weechat.prnt_date_tags(
+                post.buffer,
+                post.date,
+                tags,
+                build_nick(post.user, post.from_bot, post.username_override) + "	" + format_style(message)
+            )
+
+    write_file_lines(post)
 
     weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
 
@@ -1093,8 +1099,6 @@ def write_post(post):
         write_reply_message_lines(post)
     else:
         write_message_lines(post)
-
-    write_file_lines(post)
 
 def get_line_data_tags(line_data):
     tags = []
