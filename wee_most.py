@@ -1172,17 +1172,15 @@ class ChannelBase:
         parent_post_id = find_post_id_in_tags(parent_tags)
         tags += ",reply_to_{}".format(parent_post_id)
 
-        if self.type in ['public', 'private']:
-            tags += ",notify_message"
-        else:
-            tags += ",notify_private"
-
         if post.read:
             tags += ",notify_none"
-
-        # if somebody (not us) reply to our post
-        if parent_message_prefix == own_prefix and parent_message_prefix != post.user.nick:
+        elif parent_message_prefix == own_prefix and parent_message_prefix != post.user.nick:
+            # if somebody (not us) reply to our post
             tags += ",notify_highlight"
+        elif self.type in ['direct', 'group']:
+            tags += ",notify_private"
+        else:
+            tags += ",notify_message"
 
         if post.message:
             if post.reactions:
@@ -1221,13 +1219,12 @@ class ChannelBase:
         tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
         message = post.message.replace("\t", " " * tab_width)
 
-        if self.type in ['public', 'private']:
-            tags += ",notify_message"
-        else:
-            tags += ",notify_private"
-
         if post.read:
             tags += ",notify_none"
+        elif self.type in ['direct', 'group']:
+            tags += ",notify_private"
+        else:
+            tags += ",notify_message"
 
         if post.attachments:
             message = build_message_with_attachments(message, post.attachments)
