@@ -1183,29 +1183,10 @@ class ChannelBase:
             tags += ",notify_message"
 
         if post.message:
+            full_message = build_nick(post.user, post.from_bot, post.username_override) + "	" + format_style(post.message)
             if post.reactions:
-                weechat.prnt_date_tags(
-                    post.buffer,
-                    post.date,
-                    tags,
-                    (
-                        build_nick(post.user, post.from_bot, post.username_override)
-                        + "	"
-                        + format_style(post.message)
-                        + post.get_reactions_line()
-                    )
-                )
-            else:
-                weechat.prnt_date_tags(
-                    post.buffer,
-                    post.date,
-                    tags,
-                    (
-                        build_nick(post.user, post.from_bot, post.username_override)
-                        + "	"
-                        + format_style(post.message)
-                    )
-                )
+                full_message += post.get_reactions_line()
+            weechat.prnt_date_tags(post.buffer, post.date, tags, full_message)
 
         self._write_file_lines(post)
 
@@ -1237,25 +1218,10 @@ class ChannelBase:
             message = "{}{}".format(prefix, message)
 
         if message:
+            full_message = build_nick(post.user, post.from_bot, post.username_override) + "	" + format_style(message)
             if post.reactions:
-                weechat.prnt_date_tags(
-                    post.buffer,
-                    post.date,
-                    tags,
-                    (
-                        build_nick(post.user, post.from_bot, post.username_override)
-                        + "	"
-                        + format_style(message)
-                        + post.get_reactions_line()
-                    )
-                )
-            else:
-                weechat.prnt_date_tags(
-                    post.buffer,
-                    post.date,
-                    tags,
-                    build_nick(post.user, post.from_bot, post.username_override) + "	" + format_style(message)
-                )
+                full_message += post.get_reactions_line()
+            weechat.prnt_date_tags(post.buffer, post.date, tags, full_message)
 
         self._write_file_lines(post)
 
