@@ -931,7 +931,7 @@ def write_edited_message_lines(post):
         post.buffer,
         initial_message_date,
         "notify_none",
-        initial_message_prefix + "	" + colorize_sentence(build_quote_message(format_style(initial_message)), config.color_quote)
+        initial_message_prefix + "\t" + colorize_sentence(build_quote_message(format_style(initial_message)), config.color_quote)
     )
 
     if post.reactions:
@@ -948,7 +948,7 @@ def write_edited_message_lines(post):
         tags,
         (
             build_nick(post.user, post.from_bot, post.username_override)
-            + "	"
+            + "\t"
             + new_message
         )
     )
@@ -1163,7 +1163,7 @@ class ChannelBase:
             post.buffer,
             parent_message_date,
             "quote,notify_none",
-            parent_message_prefix + "	" + colorize_sentence(build_quote_message(format_style(parent_message)), config.color_parent_reply)
+            parent_message_prefix + "\t" + colorize_sentence(build_quote_message(format_style(parent_message)), config.color_parent_reply)
         )
 
         parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
@@ -1183,7 +1183,7 @@ class ChannelBase:
             tags += ",notify_message"
 
         if post.message:
-            full_message = build_nick(post.user, post.from_bot, post.username_override) + "	" + format_style(post.message)
+            full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t" + format_style(post.message)
             if post.reactions:
                 full_message += post.get_reactions_line()
             weechat.prnt_date_tags(post.buffer, post.date, tags, full_message)
@@ -1218,7 +1218,7 @@ class ChannelBase:
             message = "{}{}".format(prefix, message)
 
         if message:
-            full_message = build_nick(post.user, post.from_bot, post.username_override) + "	" + format_style(message)
+            full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t" + format_style(message)
             if post.reactions:
                 full_message += post.get_reactions_line()
             weechat.prnt_date_tags(post.buffer, post.date, tags, full_message)
@@ -1233,7 +1233,7 @@ class ChannelBase:
                 post.buffer,
                 post.date,
                 "post_id_" + post.id + ",file_id_" + file.id,
-                "	[{}]({})".format(file.name, file.url)
+                "\t[{}]({})".format(file.name, file.url)
             )
 
     def mark_as_read(self):
