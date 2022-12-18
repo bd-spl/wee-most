@@ -668,6 +668,13 @@ class Post:
     def server(self):
         return self.channel.server
 
+    def get_last_line_text(self):
+        if self.files:
+            last_file = self.files[-1]
+            return "[{}]({})".format(last_file.name, last_file.url)
+
+        return self.message.split("\n")[-1]
+
     def add_reaction(self, reaction):
         self.reactions.append(reaction)
 
@@ -1003,13 +1010,12 @@ def add_reaction_to_post(reaction):
         return
 
     post.add_reaction(reaction)
-    message_last_line = post.message.split("\n")[-1]
-
-    new_message = format_style(message_last_line) + post.get_reactions_line()
 
     line_data = find_buffer_last_post_line_data(reaction.buffer, post.id)
     if not line_data:
         return
+
+    new_message = format_style(post.get_last_line_text()) + post.get_reactions_line()
 
     weechat.hdata_update(
         weechat.hdata_get("line_data"),
@@ -1025,16 +1031,14 @@ def remove_reaction_from_post(reaction):
         return
 
     post.remove_reaction(reaction)
-    message_last_line = post.message.split("\n")[-1]
 
     line_data = find_buffer_last_post_line_data(reaction.buffer, post.id)
     if not line_data:
         return
 
-    if not post.reactions:
-        new_message = format_style(message_last_line)
-    else:
-        new_message = format_style(message_last_line) + post.get_reactions_line()
+    new_message = format_style(post.get_last_line_text())
+    if post.reactions:
+        new_message += post.get_reactions_line()
 
     weechat.hdata_update(
         weechat.hdata_get("line_data"),
