@@ -934,12 +934,8 @@ def write_edited_message_lines(post):
     initial_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), first_initial_line_data, "date")
     initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
 
-    weechat.prnt_date_tags(
-        post.buffer,
-        initial_message_date,
-        "notify_none",
-        initial_message_prefix + "\t" + colorize_sentence(build_quote_message(format_style(initial_message)), config.color_quote)
-    )
+    full_initial_message = initial_message_prefix + "\t" + colorize_sentence(build_quote_message(format_style(initial_message)), config.color_quote)
+    weechat.prnt_date_tags(post.buffer, initial_message_date, "notify_none", full_initial_message)
 
     if post.reactions:
         new_message = format_style(post.message) + post.get_reactions_line()
@@ -949,16 +945,8 @@ def write_edited_message_lines(post):
     if post.read:
         tags += ",notify_none"
 
-    weechat.prnt_date_tags(
-        post.buffer,
-        post.date,
-        tags,
-        (
-            build_nick(post.user, post.from_bot, post.username_override)
-            + "\t"
-            + new_message
-        )
-    )
+    full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t" + new_message
+    weechat.prnt_date_tags(post.buffer, post.date, tags, full_message)
 
 def get_line_data_tags(line_data):
     tags = []
@@ -1016,14 +1004,7 @@ def add_reaction_to_post(reaction):
         return
 
     new_message = format_style(post.get_last_line_text()) + post.get_reactions_line()
-
-    weechat.hdata_update(
-        weechat.hdata_get("line_data"),
-        line_data,
-        {
-            "message": new_message,
-        }
-    )
+    weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
 def remove_reaction_from_post(reaction):
     post = reaction.post
@@ -1039,14 +1020,7 @@ def remove_reaction_from_post(reaction):
     new_message = format_style(post.get_last_line_text())
     if post.reactions:
         new_message += post.get_reactions_line()
-
-    weechat.hdata_update(
-        weechat.hdata_get("line_data"),
-        line_data,
-        {
-            "message": new_message,
-        }
-    )
+    weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
 def find_post_id_in_tags(tags):
     for tag in tags:
@@ -1163,12 +1137,8 @@ class ChannelBase:
         parent_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), parent_line_data, "date")
         parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
 
-        weechat.prnt_date_tags(
-            post.buffer,
-            parent_message_date,
-            "quote,notify_none",
-            parent_message_prefix + "\t" + colorize_sentence(build_quote_message(format_style(parent_message)), config.color_parent_reply)
-        )
+        full_parent_message = parent_message_prefix + "\t" + colorize_sentence(build_quote_message(format_style(parent_message)), config.color_parent_reply)
+        weechat.prnt_date_tags(post.buffer, parent_message_date, "quote,notify_none", full_parent_message)
 
         parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
         own_prefix = weechat.buffer_get_string(post.buffer, "localvar_nick")
@@ -1658,9 +1628,9 @@ def buffer_switch_cb(data, signal, buffer):
         if channel:
             channel.mark_as_read()
             EVENTROUTER.enqueue_request(
-                    "run_post_users_status_ids",
-                    list(channel.users.keys()), server, "hydrate_channel_users_status_cb", "{}|{}".format(server.id, channel.id)
-                    )
+                "run_post_users_status_ids",
+                list(channel.users.keys()), server, "hydrate_channel_users_status_cb", "{}|{}".format(server.id, channel.id)
+            )
             break
 
     return weechat.WEECHAT_RC_OK
@@ -1935,9 +1905,9 @@ def get_buffer_user_status_cb(data, remaining_calls):
         channel = server.get_channel_from_buffer(buffer)
         if channel:
             EVENTROUTER.enqueue_request(
-                    "run_post_users_status_ids",
-                    list(channel.users.keys()), server, "hydrate_channel_users_status_cb", "{}|{}".format(server.id, channel.id)
-                    )
+                "run_post_users_status_ids",
+                list(channel.users.keys()), server, "hydrate_channel_users_status_cb", "{}|{}".format(server.id, channel.id)
+            )
             break
 
     return weechat.WEECHAT_RC_OK
