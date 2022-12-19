@@ -1158,7 +1158,7 @@ class ChannelBase:
 
         if post.message:
             full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t" + format_style(post.message)
-            if post.reactions:
+            if post.reactions and not post.files:
                 full_message += post.get_reactions_line()
             weechat.prnt_date_tags(post.buffer, post.date, tags, full_message)
 
@@ -1193,7 +1193,7 @@ class ChannelBase:
 
         if message:
             full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t" + format_style(message)
-            if post.reactions:
+            if post.reactions and not post.files:
                 full_message += post.get_reactions_line()
             weechat.prnt_date_tags(post.buffer, post.date, tags, full_message)
 
@@ -1202,13 +1202,28 @@ class ChannelBase:
         weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
 
     def _write_file_lines(self, post):
-        for file in post.files:
+        if not post.files:
+            return
+
+        for file in post.files[:-1]:
             weechat.prnt_date_tags(
                 post.buffer,
                 post.date,
                 "post_id_" + post.id + ",file_id_" + file.id,
                 "\t[{}]({})".format(file.name, file.url)
             )
+
+        last_file = post.files[-1]
+        message = "\t[{}]({})".format(last_file.name, last_file.url)
+        if post.reactions:
+            message += post.get_reactions_line()
+
+        weechat.prnt_date_tags(
+            post.buffer,
+            post.date,
+            "post_id_" + post.id + ",file_id_" + last_file.id,
+            message
+        )
 
     def mark_as_read(self):
         last_post_id = weechat.buffer_get_string(self.buffer, "localvar_last_post_id")
