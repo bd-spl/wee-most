@@ -937,10 +937,7 @@ def write_edited_message_lines(post):
     full_initial_message = initial_message_prefix + "\t" + colorize_sentence(build_quote_message(format_style(initial_message)), config.color_quote)
     weechat.prnt_date_tags(post.buffer, initial_message_date, "notify_none", full_initial_message)
 
-    if post.reactions:
-        new_message = format_style(post.message) + post.get_reactions_line()
-    else:
-        new_message = format_style(post.message)
+    new_message = format_style(post.message) + post.get_reactions_line()
 
     if post.read:
         tags += ",notify_none"
@@ -1017,9 +1014,7 @@ def remove_reaction_from_post(reaction):
     if not line_data:
         return
 
-    new_message = format_style(post.get_last_line_text())
-    if post.reactions:
-        new_message += post.get_reactions_line()
+    new_message = format_style(post.get_last_line_text()) + post.get_reactions_line()
     weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
 def find_post_id_in_tags(tags):
@@ -1158,7 +1153,7 @@ class ChannelBase:
 
         if post.message:
             full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t" + format_style(post.message)
-            if post.reactions and not post.files:
+            if not post.files:
                 full_message += post.get_reactions_line()
             weechat.prnt_date_tags(post.buffer, post.date, tags, full_message)
 
@@ -1193,7 +1188,7 @@ class ChannelBase:
 
         if message:
             full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t" + format_style(message)
-            if post.reactions and not post.files:
+            if not post.files:
                 full_message += post.get_reactions_line()
             weechat.prnt_date_tags(post.buffer, post.date, tags, full_message)
 
@@ -1214,9 +1209,7 @@ class ChannelBase:
             )
 
         last_file = post.files[-1]
-        message = "\t[{}]({})".format(last_file.name, last_file.url)
-        if post.reactions:
-            message += post.get_reactions_line()
+        message = "\t[{}]({})".format(last_file.name, last_file.url) + post.get_reactions_line()
 
         weechat.prnt_date_tags(
             post.buffer,
