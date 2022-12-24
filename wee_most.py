@@ -892,34 +892,6 @@ def format_markdown_links(text):
 
     return new_text
 
-def delete_message(post):
-    lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), post.buffer, "lines")
-    line = weechat.hdata_pointer(weechat.hdata_get("lines"), lines, "last_line")
-    line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
-
-    # find last line of this post
-    while line and not is_post_line_data(line_data, post.id):
-        line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "prev_line")
-        line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
-
-    # find all lines of this post
-    pointers = []
-    while line and is_post_line_data(line_data, post.id):
-        pointers.append(line)
-        line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "prev_line")
-        line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
-    pointers.reverse()
-
-    if not pointers:
-        return
-
-    lines = [""] * len(pointers)
-    lines[0] = colorize_sentence("(deleted)", config.color_deleted)
-
-    for pointer, line in zip(pointers, lines):
-        line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
-        weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": line})
-
 def write_edited_message_lines(post):
     tags = "post_id_%s" % post.id
 
@@ -1108,6 +1080,33 @@ class ChannelBase:
 
     def remove_post(self, post_id):
         del self.posts[post_id]
+
+        lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), self.buffer, "lines")
+        line = weechat.hdata_pointer(weechat.hdata_get("lines"), lines, "last_line")
+        line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
+
+        # find last line of this post
+        while line and not is_post_line_data(line_data, post_id):
+            line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "prev_line")
+            line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
+
+        # find all lines of this post
+        pointers = []
+        while line and is_post_line_data(line_data, post_id):
+            pointers.append(line)
+            line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "prev_line")
+            line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
+        pointers.reverse()
+
+        if not pointers:
+            return
+
+        lines = [""] * len(pointers)
+        lines[0] = colorize_sentence("(deleted)", config.color_deleted)
+
+        for pointer, line in zip(pointers, lines):
+            line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
+            weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": line})
 
     def write_post(self, post):
         self.posts[post.id] = post
@@ -2672,7 +2671,6 @@ def handle_post_deleted_message(server, data, broadcast):
     post_data = json.loads(data["post"])
     post = Post(server, **post_data)
     if server.get_post(post.id) is not None:
-        delete_message(post)
         post.channel.remove_post(post.id)
 
 def handle_channel_created_message(server, data, broadcast):
