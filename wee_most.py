@@ -892,31 +892,6 @@ def format_markdown_links(text):
 
     return new_text
 
-def write_edited_message_lines(post):
-    tags = "post_id_%s" % post.id
-
-    first_initial_line_data = find_buffer_first_post_line_data(post.buffer, post.id)
-    if not first_initial_line_data:
-        return
-
-    initial_tags = get_line_data_tags(first_initial_line_data)
-    initial_post_id = find_post_id_in_tags(initial_tags)
-
-    initial_message = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "message")
-    initial_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), first_initial_line_data, "date")
-    initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
-
-    full_initial_message = initial_message_prefix + "\t" + colorize_sentence(build_quote_message(format_style(initial_message)), config.color_quote)
-    weechat.prnt_date_tags(post.buffer, initial_message_date, "notify_none", full_initial_message)
-
-    new_message = format_style(post.message) + post.get_reactions_line()
-
-    if post.read:
-        tags += ",notify_none"
-
-    full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t" + new_message
-    weechat.prnt_date_tags(post.buffer, post.date, tags, full_message)
-
 def get_line_data_tags(line_data):
     tags = []
 
@@ -1107,6 +1082,31 @@ class ChannelBase:
         for pointer, line in zip(pointers, lines):
             line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
             weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": line})
+
+    def edit_post(self, post):
+        tags = "post_id_%s" % post.id
+
+        first_initial_line_data = find_buffer_first_post_line_data(self.buffer, post.id)
+        if not first_initial_line_data:
+            return
+
+        initial_tags = get_line_data_tags(first_initial_line_data)
+        initial_post_id = find_post_id_in_tags(initial_tags)
+
+        initial_message = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "message")
+        initial_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), first_initial_line_data, "date")
+        initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
+
+        full_initial_message = initial_message_prefix + "\t" + colorize_sentence(build_quote_message(format_style(initial_message)), config.color_quote)
+        weechat.prnt_date_tags(self.buffer, initial_message_date, "notify_none", full_initial_message)
+
+        new_message = format_style(post.message) + post.get_reactions_line()
+
+        if post.read:
+            tags += ",notify_none"
+
+        full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t" + new_message
+        weechat.prnt_date_tags(self.buffer, post.date, tags, full_message)
 
     def write_post(self, post):
         self.posts[post.id] = post
@@ -2665,7 +2665,7 @@ def handle_post_edited_message(server, data, broadcast):
     post_data = json.loads(data["post"])
     post = Post(server, **post_data)
     if server.get_post(post.id) is not None:
-        write_edited_message_lines(post)
+        post.channel.edit_post(post)
 
 def handle_post_deleted_message(server, data, broadcast):
     post_data = json.loads(data["post"])
