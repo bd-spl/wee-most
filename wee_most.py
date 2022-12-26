@@ -936,34 +936,6 @@ def find_buffer_first_post_line_data(buffer, post_id):
             return None
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
 
-def add_reaction_to_post(reaction):
-    post = reaction.post
-    if post is None:
-        return
-
-    post.add_reaction(reaction)
-
-    line_data = find_buffer_last_post_line_data(reaction.buffer, post.id)
-    if not line_data:
-        return
-
-    new_message = format_style(post.get_last_line_text()) + post.get_reactions_line()
-    weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
-
-def remove_reaction_from_post(reaction):
-    post = reaction.post
-    if post is None:
-        return
-
-    post.remove_reaction(reaction)
-
-    line_data = find_buffer_last_post_line_data(reaction.buffer, post.id)
-    if not line_data:
-        return
-
-    new_message = format_style(post.get_last_line_text()) + post.get_reactions_line()
-    weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
-
 def find_post_id_in_tags(tags):
     for tag in tags:
         if tag.startswith("post_id_"):
@@ -1052,6 +1024,19 @@ class ChannelBase:
             "run_get_channel_members",
             self.id, self.server, 0, "hydrate_channel_users_cb", "{}|{}|0".format(self.server.id, self.id)
         )
+
+    def update_post_reactions(self, post_id):
+        if post_id not in self.posts:
+            return
+
+        line_data = find_buffer_last_post_line_data(self.buffer, post_id)
+        if not line_data:
+            return
+
+        post = self.posts[post_id]
+
+        new_message = format_style(post.get_last_line_text()) + post.get_reactions_line()
+        weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
     def remove_post(self, post_id):
         del self.posts[post_id]
@@ -2649,17 +2634,25 @@ def handle_posted_message(server, data, broadcast):
 
 def handle_reaction_added_message(server, data, broadcast):
     reaction_data = json.loads(data["reaction"])
-
     reaction = Reaction(server, **reaction_data)
 
-    add_reaction_to_post(reaction)
+    post = reaction.post
+    if post is None:
+        return
+
+    post.add_reaction(reaction)
+    post.channel.update_post_reactions(post.id)
 
 def handle_reaction_removed_message(server, data, broadcast):
     reaction_data = json.loads(data["reaction"])
-
     reaction = Reaction(server, **reaction_data)
 
-    remove_reaction_from_post(reaction)
+    post = reaction.post
+    if post is None:
+        return
+
+    post.remove_reaction(reaction)
+    post.channel.update_post_reactions(post.id)
 
 def handle_post_edited_message(server, data, broadcast):
     post_data = json.loads(data["post"])
