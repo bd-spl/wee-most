@@ -1445,7 +1445,7 @@ def hydrate_channel_users_cb(data, command, rc, out, err):
 
     response = json.loads(out)
 
-    if len(response) == DEFAULT_PAGE_COUNT:
+    if len(response) == 200:
         EVENTROUTER.enqueue_request(
             "run_get_channel_members",
             channel.id, server, page+1, "hydrate_channel_users_cb", "{}|{}|{}".format(server_id, channel_id, page+1)
@@ -1467,7 +1467,7 @@ def update_channel_mute_status_cb(data, command, rc, out, err):
 
     response = json.loads(out)
 
-    if len(response) == DEFAULT_PAGE_COUNT:
+    if len(response) == 100:
         EVENTROUTER.enqueue_request(
             "run_get_user_channel_members",
             server, page+1, "update_channel_mute_status_cb", "{}|{}".format(server_id, page+1)
@@ -1533,7 +1533,7 @@ def update_custom_emojis(data, command, rc, out, err):
     for emoji in response:
         server.custom_emojis.append(emoji["name"])
 
-    if len(response) == DEFAULT_PAGE_COUNT:
+    if len(response) == 150:
         EVENTROUTER.enqueue_request(
             "run_get_custom_emojis",
             server, page+1, "update_custom_emojis", "{}|{}".format(server.id, page+1)
@@ -1950,7 +1950,7 @@ def connect_server_users_cb(data, command, rc, out, err):
         else:
             server.users[user["id"]] = User(**user)
 
-    if len(response) == DEFAULT_PAGE_COUNT:
+    if len(response) == 200:
         EVENTROUTER.enqueue_request(
             "run_get_users",
             server, page+1, "connect_server_users_cb", "{}|{}".format(server.id, page+1)
@@ -2202,7 +2202,7 @@ def run_get_team(team_id, server, cb, cb_data):
     )
 
 def run_get_users(server, page, cb, cb_data):
-    url = server.url + "/api/v4/users?page=" + str(page)
+    url = server.url + "/api/v4/users?per_page=200&page=" + str(page)
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2228,7 +2228,7 @@ def run_get_user(server, user_id, cb, cb_data):
     )
 
 def run_get_custom_emojis(server, page, cb, cb_data):
-    url = server.url + "/api/v4/emoji?page=" + str(page)
+    url = server.url + "/api/v4/emoji?per_page=150&page=" + str(page)
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2375,7 +2375,7 @@ def run_get_channel_posts_after(post_id, channel_id, server, cb, cb_data):
     )
 
 def run_get_channel_members(channel_id, server, page, cb, cb_data):
-    url = server.url + "/api/v4/channels/" + channel_id + "/members?page=" + str(page)
+    url = server.url + "/api/v4/channels/" + channel_id + "/members?per_page=200&page=" + str(page)
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2388,7 +2388,7 @@ def run_get_channel_members(channel_id, server, page, cb, cb_data):
     )
 
 def run_get_user_channel_members(server, page, cb, cb_data):
-    url = server.url + "/api/v4/users/me/channel_members?page=" + str(page)
+    url = server.url + "/api/v4/users/me/channel_members?pageSize=100&page=" + str(page)
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2783,7 +2783,6 @@ servers = {}
 
 default_emojis = []
 
-DEFAULT_PAGE_COUNT = 60
 REQUEST_TIMEOUT_MS = 30 * 1000
 
 mentions = ["@here", "@channel", "@all"]
