@@ -1104,7 +1104,7 @@ class ChannelBase:
     def _write_reply_message_lines(self, post):
         tags = "post_id_%s" % post.id
 
-        parent_line_data = find_buffer_first_post_line_data(post.buffer, post.root_id)
+        parent_line_data = find_buffer_first_post_line_data(self.buffer, post.root_id)
         if not parent_line_data:
             return
 
@@ -1116,10 +1116,10 @@ class ChannelBase:
         parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
 
         full_parent_message = parent_message_prefix + "\t" + colorize_sentence(build_quote_message(format_style(parent_message)), config.color_parent_reply)
-        weechat.prnt_date_tags(post.buffer, parent_message_date, "quote,notify_none", full_parent_message)
+        weechat.prnt_date_tags(self.buffer, parent_message_date, "quote,notify_none", full_parent_message)
 
         parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
-        own_prefix = weechat.buffer_get_string(post.buffer, "localvar_nick")
+        own_prefix = weechat.buffer_get_string(self.buffer, "localvar_nick")
 
         parent_post_id = find_post_id_in_tags(parent_tags)
         tags += ",reply_to_{}".format(parent_post_id)
@@ -1138,11 +1138,11 @@ class ChannelBase:
             full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t" + format_style(post.message)
             if not post.files:
                 full_message += post.get_reactions_line()
-            weechat.prnt_date_tags(post.buffer, post.date, tags, full_message)
+            weechat.prnt_date_tags(self.buffer, post.date, tags, full_message)
 
         self._write_file_lines(post)
 
-        weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
+        weechat.buffer_set(self.buffer, "localvar_set_last_post_id", post.id)
 
     def _write_message_lines(self, post):
         tags = "post_id_%s" % post.id
@@ -1173,11 +1173,11 @@ class ChannelBase:
             full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t" + format_style(message)
             if not post.files:
                 full_message += post.get_reactions_line()
-            weechat.prnt_date_tags(post.buffer, post.date, tags, full_message)
+            weechat.prnt_date_tags(self.buffer, post.date, tags, full_message)
 
         self._write_file_lines(post)
 
-        weechat.buffer_set(post.buffer, "localvar_set_last_post_id", post.id)
+        weechat.buffer_set(self.buffer, "localvar_set_last_post_id", post.id)
 
     def _write_file_lines(self, post):
         if not post.files:
@@ -1185,7 +1185,7 @@ class ChannelBase:
 
         for file in post.files[:-1]:
             weechat.prnt_date_tags(
-                post.buffer,
+                self.buffer,
                 post.date,
                 "post_id_" + post.id + ",file_id_" + file.id,
                 "\t[{}]({})".format(file.name, file.url)
@@ -1195,7 +1195,7 @@ class ChannelBase:
         message = "\t[{}]({})".format(last_file.name, last_file.url) + post.get_reactions_line()
 
         weechat.prnt_date_tags(
-            post.buffer,
+            self.buffer,
             post.date,
             "post_id_" + post.id + ",file_id_" + last_file.id,
             message
