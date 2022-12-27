@@ -661,10 +661,6 @@ class Post:
         self.username_override = kwargs["props"].get("override_username")
 
     @property
-    def buffer(self):
-        return self.channel.buffer
-
-    @property
     def server(self):
         return self.channel.server
 
@@ -2624,7 +2620,7 @@ def handle_posted_message(server, data, broadcast):
     post = Post(server, **post)
     channel.write_post(post)
 
-    if post.buffer == weechat.current_buffer():
+    if channel.buffer == weechat.current_buffer():
         post.channel.mark_as_read()
 
 def handle_reaction_added_message(server, data, broadcast):
