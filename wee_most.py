@@ -746,10 +746,6 @@ class Reaction:
         self.post = server.get_post(kwargs["post_id"])
         self.emoji_name = kwargs["emoji_name"]
 
-    @property
-    def buffer(self):
-        return self.post.buffer
-
 def post_post_cb(buffer, command, rc, out, err):
     server = get_server_from_buffer(buffer)
 
