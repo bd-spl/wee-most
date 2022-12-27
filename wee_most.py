@@ -660,10 +660,6 @@ class Post:
         self.from_bot = kwargs["props"].get("from_bot", False) or kwargs["props"].get("from_webhook", False)
         self.username_override = kwargs["props"].get("override_username")
 
-    @property
-    def server(self):
-        return self.channel.server
-
     def get_last_line_text(self):
         if self.files:
             last_file = self.files[-1]
