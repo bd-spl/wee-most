@@ -743,7 +743,6 @@ class Post:
 class Reaction:
     def __init__(self, server, **kwargs):
         self.user = server.users[kwargs["user_id"]]
-        self.post = server.get_post(kwargs["post_id"])
         self.emoji_name = kwargs["emoji_name"]
 
 def post_post_cb(buffer, command, rc, out, err):
@@ -2630,25 +2629,25 @@ def handle_posted_message(server, data, broadcast):
 
 def handle_reaction_added_message(server, data, broadcast):
     reaction_data = json.loads(data["reaction"])
-    reaction = Reaction(server, **reaction_data)
 
-    post = reaction.post
-    if post is None:
+    channel = server.get_channel(broadcast["channel_id"])
+    if not channel or reaction_data["post_id"] not in channel.posts:
         return
 
-    post.add_reaction(reaction)
-    post.channel.update_post_reactions(post.id)
+    post = channel.posts[reaction_data["post_id"]]
+    post.add_reaction(Reaction(server, **reaction_data))
+    channel.update_post_reactions(post.id)
 
 def handle_reaction_removed_message(server, data, broadcast):
     reaction_data = json.loads(data["reaction"])
-    reaction = Reaction(server, **reaction_data)
 
-    post = reaction.post
-    if post is None:
+    channel = server.get_channel(broadcast["channel_id"])
+    if not channel or reaction_data["post_id"] not in channel.posts:
         return
 
-    post.remove_reaction(reaction)
-    post.channel.update_post_reactions(post.id)
+    post = channel.posts[reaction_data["post_id"]]
+    post.remove_reaction(Reaction(server, **reaction_data))
+    channel.update_post_reactions(post.id)
 
 def handle_post_edited_message(server, data, broadcast):
     post_data = json.loads(data["post"])
