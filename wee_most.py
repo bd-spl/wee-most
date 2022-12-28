@@ -515,17 +515,16 @@ def command_reply(args, buffer):
 
     tags = get_line_data_tags(line_data)
 
-    post_id = find_reply_to_in_tags(tags)
-    if not post_id:
-        post_id = find_post_id_in_tags(tags)
+    channel = server.get_channel_from_buffer(buffer)
+    post = channel.posts[post_id]
 
-    post = {
-        "channel_id": weechat.buffer_get_string(buffer, "localvar_channel_id"),
+    new_post = {
+        "channel_id": channel.id,
         "message": message,
-        "root_id": post_id,
+        "root_id": post.root_id or post.id,
     }
 
-    run_post_post(post, server, "post_post_cb", buffer)
+    run_post_post(new_post, server, "post_post_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -930,11 +929,6 @@ def find_post_id_in_tags(tags):
 
     return None
 
-def find_reply_to_in_tags(tags):
-    for tag in tags:
-        if tag.startswith("reply_to_"):
-            return tag[9:]
-
 ## channel
 
 CHANNEL_TYPES = {
@@ -1095,9 +1089,6 @@ class ChannelBase:
         if not parent_line_data:
             return
 
-        parent_tags = get_line_data_tags(parent_line_data)
-        parent_post_id = find_post_id_in_tags(parent_tags)
-
         parent_message = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "message")
         parent_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), parent_line_data, "date")
         parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
@@ -1107,9 +1098,6 @@ class ChannelBase:
 
         parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
         own_prefix = weechat.buffer_get_string(self.buffer, "localvar_nick")
-
-        parent_post_id = find_post_id_in_tags(parent_tags)
-        tags += ",reply_to_{}".format(parent_post_id)
 
         if post.read:
             tags += ",notify_none"
