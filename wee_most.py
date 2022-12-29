@@ -957,6 +957,8 @@ class ChannelBase:
         self.users = {}
         self._is_loading = False
         self._is_muted = None
+        self.last_post_id = None
+        self.last_read_post_id = None
 
         self._create_buffer()
 
@@ -1116,7 +1118,7 @@ class ChannelBase:
 
         self._write_file_lines(post)
 
-        weechat.buffer_set(self.buffer, "localvar_set_last_post_id", post.id)
+        self.last_post_id = post.id
 
     def _write_message_lines(self, post):
         tags = "post_id_%s" % post.id
@@ -1151,7 +1153,7 @@ class ChannelBase:
 
         self._write_file_lines(post)
 
-        weechat.buffer_set(self.buffer, "localvar_set_last_post_id", post.id)
+        self.last_post_id = post.id
 
     def _write_file_lines(self, post):
         if not post.files:
@@ -1176,14 +1178,12 @@ class ChannelBase:
         )
 
     def mark_as_read(self):
-        last_post_id = weechat.buffer_get_string(self.buffer, "localvar_last_post_id")
-        last_read_post_id = weechat.buffer_get_string(self.buffer, "localvar_last_read_post_id")
-        if last_post_id and last_post_id == last_read_post_id: # prevent spamming on buffer switch
+        if self.last_post_id and self.last_post_id == self.last_read_post_id: # prevent spamming on buffer switch
             return
 
         run_post_channel_view(self.id, self.server, "singularity_cb", self.buffer)
 
-        weechat.buffer_set(self.buffer, "localvar_set_last_read_post_id", last_post_id)
+        self.last_read_post_id = self.last_post_id
 
     def add_user(self, user_id):
         if user_id not in self.server.users:
@@ -1406,7 +1406,8 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
         post.read = True
         channel.write_post(post)
 
-    weechat.buffer_set(buffer, "localvar_set_last_read_post_id", post.id)
+    channel.last_read_post_id = post.id
+
     weechat.buffer_set(buffer, "unread", "-")
     weechat.buffer_set(buffer, "hotlist", "-1")
 
@@ -2527,12 +2528,12 @@ class Worker:
         self.hook_ping = weechat.hook_timer(5 * 1000, 0, 0, "ws_ping_cb", server.id)
 
 def rehydrate_server_buffer(server, buffer):
-    last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
-
     channel = server.get_channel_from_buffer(buffer)
     if not channel:
         return
     channel.set_loading(True)
+
+    last_post_id = channel.last_post_id
 
     EVENTROUTER.enqueue_request(
         "run_get_channel_posts_after",
@@ -2666,8 +2667,7 @@ def handle_channel_viewed_message(server, data, broadcast):
         weechat.buffer_set(channel.buffer, "unread", "-")
         weechat.buffer_set(channel.buffer, "hotlist", "-1")
 
-        last_post_id = weechat.buffer_get_string(channel.buffer, "localvar_last_post_id")
-        weechat.buffer_set(channel.buffer, "localvar_set_last_read_post_id", last_post_id)
+        channel.last_read_post_id = channel.last_post_id
 
 def handle_user_added_message(server, data, broadcast):
     if data["user_id"] == server.me.id: # we are geing invited
