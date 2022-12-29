@@ -472,15 +472,14 @@ def command_slash(args, buffer):
         return weechat.WEECHAT_RC_ERROR
 
     server = get_server_from_buffer(buffer)
-    channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
-    channel = server.get_channel(channel_id)
+    channel = server.get_channel_from_buffer(buffer)
 
     if hasattr(channel, 'team'):
         team_id = channel.team.id
     else:
         team_id = list(server.teams.keys())[0]
 
-    run_post_command(team_id, channel_id, "/{}".format(args), server, "singularity_cb", buffer)
+    run_post_command(team_id, channel.id, "/{}".format(args), server, "singularity_cb", buffer)
 
     return weechat.WEECHAT_RC_OK
 
@@ -1734,14 +1733,17 @@ class Server:
         return None
 
     def get_channel_from_buffer(self, buffer):
-        for channel in self.channels.values():
-            if channel.buffer == buffer:
-                return channel
+        channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
+
+        if not channel_id:
+            return None
+
+        if channel_id in self.channels:
+            return self.channels[channel_id]
 
         for team in self.teams.values():
-            for channel in team.channels.values():
-                if channel.buffer == buffer:
-                    return channel
+            if channel_id in team.channels:
+                return team.channels[channel_id]
 
         return None
 
@@ -2526,16 +2528,15 @@ class Worker:
 
 def rehydrate_server_buffer(server, buffer):
     last_post_id = weechat.buffer_get_string(buffer, "localvar_last_post_id")
-    channel_id = weechat.buffer_get_string(buffer, "localvar_channel_id")
 
-    channel = server.get_channel(channel_id)
+    channel = server.get_channel_from_buffer(buffer)
     if not channel:
         return
     channel.set_loading(True)
 
     EVENTROUTER.enqueue_request(
         "run_get_channel_posts_after",
-        last_post_id, channel_id, server, "hydrate_channel_posts_cb", buffer
+        last_post_id, channel.id, server, "hydrate_channel_posts_cb", buffer
     )
 
 def rehydrate_server_buffers(server):
