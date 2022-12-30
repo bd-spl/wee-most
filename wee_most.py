@@ -656,13 +656,23 @@ class Post:
         if self.message:
             return self.message.split("\n")[0]
 
-        first_file = self.files[0]
-        return "[{}]({})".format(first_file.name, first_file.url)
+        if self.attachments:
+            return build_message_with_attachments(self.message, self.attachments).split("\n")[0]
+
+        if self.files:
+            first_file = self.files[0]
+            return "[{}]({})".format(first_file.name, first_file.url)
+
+        # should never happen
+        return ""
 
     def get_last_line_text(self):
         if self.files:
             last_file = self.files[-1]
             return "[{}]({})".format(last_file.name, last_file.url)
+
+        if self.attachments:
+            return build_message_with_attachments(self.message, self.attachments).split("\n")[-1]
 
         return self.message.split("\n")[-1]
 
