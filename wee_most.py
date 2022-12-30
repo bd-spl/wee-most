@@ -127,12 +127,6 @@ class PluginConfig:
             type = "string",
         ),
         Setting(
-            name = "color_parent_reply",
-            default = "lightgreen",
-            description = "Color for parent message of a reply",
-            type = "string",
-        ),
-        Setting(
             name = "color_quote",
             default = "yellow",
             description = "Color for quoted messages",
@@ -658,6 +652,13 @@ class Post:
         self.from_bot = kwargs["props"].get("from_bot", False) or kwargs["props"].get("from_webhook", False)
         self.username_override = kwargs["props"].get("override_username")
 
+    def get_first_line_text(self):
+        if self.message:
+            return self.message.split("\n")[0]
+
+        first_file = self.files[0]
+        return "[{}]({})".format(first_file.name, first_file.url)
+
     def get_last_line_text(self):
         if self.files:
             last_file = self.files[-1]
@@ -1020,6 +1021,19 @@ class ChannelBase:
         new_message = format_style(post.get_last_line_text()) + post.get_reactions_line()
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
+    def update_root_post_thread_prefix(self, post_id):
+        if post_id not in self.posts:
+            return
+
+        line_data = find_buffer_first_post_line_data(self.buffer, post_id)
+        if not line_data:
+            return
+
+        post = self.posts[post_id]
+
+        new_message = '[{}] | '.format(post_id[:3]) + format_style(post.get_first_line_text())
+        weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
+
     def remove_post(self, post_id):
         del self.posts[post_id]
 
@@ -1086,23 +1100,14 @@ class ChannelBase:
     def _write_reply_message_lines(self, post):
         tags = "post_id_%s" % post.id
 
-        parent_line_data = find_buffer_first_post_line_data(self.buffer, post.root_id)
-        if not parent_line_data:
-            return
+        root_post = self.posts.get(post.root_id)
 
-        parent_message = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "message")
-        parent_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), parent_line_data, "date")
-        parent_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), parent_line_data, "prefix")
-
-        full_parent_message = parent_message_prefix + "\t" + colorize_sentence(build_quote_message(format_style(parent_message)), config.color_parent_reply)
-        weechat.prnt_date_tags(self.buffer, parent_message_date, "quote,notify_none", full_parent_message)
-
-        parent_message_prefix = weechat.string_remove_color(parent_message_prefix, "")
-        own_prefix = weechat.buffer_get_string(self.buffer, "localvar_nick")
+        if root_post:
+            self.update_root_post_thread_prefix(root_post.id)
 
         if post.read:
             tags += ",notify_none"
-        elif parent_message_prefix == own_prefix and parent_message_prefix != post.user.nick:
+        elif root_post and root_post.user == self.server.me and root_post.user != post.user:
             # if somebody (not us) reply to our post
             tags += ",notify_highlight"
         elif self.type in ['direct', 'group']:
@@ -1111,7 +1116,7 @@ class ChannelBase:
             tags += ",notify_message"
 
         if post.message:
-            full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t" + format_style(post.message)
+            full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t {}  | ".format(post.root_id[:3]) + format_style(post.message)
             if not post.files:
                 full_message += post.get_reactions_line()
             weechat.prnt_date_tags(self.buffer, post.date, tags, full_message)
