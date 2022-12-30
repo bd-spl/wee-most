@@ -1041,7 +1041,8 @@ class ChannelBase:
 
         post = self.posts[post_id]
 
-        new_message = '[{}] | '.format(post_id[:3]) + format_style(post.get_first_line_text())
+        new_message = colorize_sentence('[{}]'.format(post_id[:3]), post.user.color) + " | "
+        new_message += format_style(post.get_first_line_text())
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
     def remove_post(self, post_id):
@@ -1112,8 +1113,10 @@ class ChannelBase:
 
         root_post = self.posts.get(post.root_id)
 
+        thread_color = "default"
         if root_post:
             self.update_root_post_thread_prefix(root_post.id)
+            thread_color = root_post.user.color
 
         if post.read:
             tags += ",notify_none"
@@ -1126,7 +1129,9 @@ class ChannelBase:
             tags += ",notify_message"
 
         if post.message:
-            full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t {}  | ".format(post.root_id[:3]) + format_style(post.message)
+            full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t"
+            full_message += colorize_sentence(" {} ".format(post.root_id[:3]), thread_color) + " | "
+            full_message += format_style(post.message)
             if not post.files:
                 full_message += post.get_reactions_line()
             weechat.prnt_date_tags(self.buffer, post.date, tags, full_message)
