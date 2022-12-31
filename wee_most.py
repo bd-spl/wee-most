@@ -1166,15 +1166,14 @@ class ChannelBase:
         if post.attachments:
             message = build_message_with_attachments(message, post.attachments)
 
+        prefix = build_nick(post.user, post.from_bot, post.username_override) + "\t"
         if post.type in [ "system_join_channel", "system_join_team" ]:
-            prefix = weechat.config_string(weechat.config_get("weechat.look.prefix_join"))
-            message = "{}{}".format(prefix, message)
+            prefix = weechat.prefix("join")
         elif post.type in [ "system_leave_channel", "system_leave_team" ]:
-            prefix = weechat.config_string(weechat.config_get("weechat.look.prefix_quit"))
-            message = "{}{}".format(prefix, message)
+            prefix = weechat.prefix("quit")
 
         if message:
-            full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t" + format_style(message)
+            full_message = prefix + format_style(message)
             if not post.files:
                 full_message += post.get_reactions_line()
             weechat.prnt_date_tags(self.buffer, post.date, tags, full_message)
