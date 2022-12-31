@@ -1041,7 +1041,11 @@ class ChannelBase:
 
         post = self.posts[post_id]
 
-        new_message = colorize_sentence('[{}]'.format(post_id[:3]), post.user.color) + " | "
+        separator = weechat.config_string(weechat.config_get("weechat.look.prefix_suffix"))
+        separator = colorize_sentence(separator, weechat.config_string(weechat.config_get("weechat.color.chat_prefix_suffix")))
+
+        new_message = colorize_sentence('[{}]'.format(post_id[:3]), post.user.color)
+        new_message += " " + separator + " "
         new_message += format_style(post.get_first_line_text())
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
@@ -1129,8 +1133,12 @@ class ChannelBase:
             tags += ",notify_message"
 
         if post.message:
+            separator = weechat.config_string(weechat.config_get("weechat.look.prefix_suffix"))
+            separator = colorize_sentence(separator, weechat.config_string(weechat.config_get("weechat.color.chat_prefix_suffix")))
+
             full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t"
-            full_message += colorize_sentence(" {} ".format(post.root_id[:3]), thread_color) + " | "
+            full_message += colorize_sentence(" {} ".format(post.root_id[:3]), thread_color)
+            full_message += " " + separator + " "
             full_message += format_style(post.message)
             if not post.files:
                 full_message += post.get_reactions_line()
