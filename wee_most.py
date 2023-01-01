@@ -1175,7 +1175,7 @@ class ChannelBase:
             tags += ",notify_message"
 
         # remove tabs to prevent display issue on multiline messages
-        # where the part before the tab would be interpreted as the prefix
+        # where 2 tabs at the beginning of a line results in no alignment
         tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
         message = post.message.replace("\t", " " * tab_width)
 
