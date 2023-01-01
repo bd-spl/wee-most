@@ -621,6 +621,9 @@ class File:
         self.name = kwargs["name"]
         self.url = server.url + "/api/v4/files/" + kwargs["id"]
 
+    def render(self):
+        return "[{}]({})".format(self.name, self.url)
+
 def prepare_download_location(server):
     location = os.path.expanduser(config.download_location)
 
@@ -799,23 +802,19 @@ class Post:
             return self._build_attachments().split("\n")[0]
 
         if self.files:
-            return Post.render_file(self.files[0])
+            return self.files[0].render()
 
         # should never happen
         return ""
 
     def get_last_line_text(self):
         if self.files:
-            return Post.render_file(self.files[-1])
+            return self.files[-1].render()
 
         if self.attachments:
             return self._build_attachments().split("\n")[-1]
 
         return self.message.split("\n")[-1]
-
-    @staticmethod
-    def render_file(file):
-        return "[{}]({})".format(file.name, file.url)
 
     def add_reaction(self, reaction):
         self.reactions.append(reaction)
@@ -1197,11 +1196,11 @@ class ChannelBase:
                     self.buffer,
                     post.date,
                     "post_id_" + post.id + ",file_id_" + file.id,
-                    "\t" + Post.render_file(file)
+                    "\t" + file.render()
                 )
 
             last_file = post.files[-1]
-            message = "\t" + Post.render_file(last_file) + post.get_reactions_line()
+            message = "\t" + last_file.render() + post.get_reactions_line()
 
             weechat.prnt_date_tags(
                 self.buffer,
