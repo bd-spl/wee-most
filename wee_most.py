@@ -622,7 +622,7 @@ class File:
         self.url = server.url + "/api/v4/files/" + kwargs["id"]
 
     def render(self):
-        return "[{}]({})".format(self.name, self.url)
+        return "[{}] {}".format(self.name, self.url)
 
 def prepare_download_location(server):
     location = os.path.expanduser(config.download_location)
