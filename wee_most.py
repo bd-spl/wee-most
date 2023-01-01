@@ -705,12 +705,60 @@ class Post:
 
         return "{}{}{}".format(prefix, nick, suffix)
 
+    def build_attachments(self):
+        atts = []
+
+        for attachment in self.attachments:
+            atts.append(self._build_attachment(attachment))
+
+        return "\n\n".join(atts)
+
+    def _build_attachment(self, attachment):
+        att = []
+
+        if attachment["pretext"]:
+            att.append(attachment["pretext"])
+
+        if attachment["author_name"]:
+            att.append(attachment["author_name"])
+
+        title = ""
+        # write link as markdown link for later generic formatting
+        if attachment["title"] and attachment["title_link"]:
+            title = attachment["title"] + " [](" + attachment["title_link"] + ")"
+        elif attachment["title"]:
+            title = attachment["title"]
+        elif attachment["title_link"]:
+            title = "[](" + attachment["title_link"] + ")"
+
+        if title:
+            att.append(colorize(format_style(title), config.color_attachment_title))
+
+        if attachment["text"]:
+            att.append(attachment["text"])
+
+        if attachment["fields"]:
+            for field in attachment["fields"]:
+                field_text = ""
+                if field["title"] and field["value"]:
+                    field_text = field["title"] + ": " + field["value"]
+                elif field["value"]:
+                    field_text = field["value"]
+
+                if field_text:
+                    att.append(colorize(format_style(field_text), config.color_attachment_field))
+
+        if attachment["footer"]:
+            att.append(attachment["footer"])
+
+        return format_markdown_links("\n".join(att))
+
     def get_first_line_text(self):
         if self.message:
             return self.message.split("\n")[0]
 
         if self.attachments:
-            return build_message_with_attachments(self.message, self.attachments).split("\n")[0]
+            return self.build_attachments().split("\n")[0]
 
         if self.files:
             return Post.render_file(self.files[0])
@@ -723,7 +771,7 @@ class Post:
             return Post.render_file(self.files[-1])
 
         if self.attachments:
-            return build_message_with_attachments(self.message, self.attachments).split("\n")[-1]
+            return self.build_attachments().split("\n")[-1]
 
         return self.message.split("\n")[-1]
 
@@ -817,57 +865,6 @@ def build_quote_message(message):
 
 def colorize(sentence, color):
     return "{}{}{}".format(weechat.color(color), sentence, weechat.color("reset"))
-
-def build_message_with_attachments(message, attachments):
-    if message:
-        msg_parts = [ message ]
-    else:
-        msg_parts = []
-
-    for attachment in attachments:
-        msg_parts.append(build_attachment(attachment))
-
-    return "\n\n".join(msg_parts)
-
-def build_attachment(attachment):
-    att = []
-
-    if attachment["pretext"]:
-        att.append(attachment["pretext"])
-
-    if attachment["author_name"]:
-        att.append(attachment["author_name"])
-
-    title = ""
-    # write link as markdown link for later generic formatting
-    if attachment["title"] and attachment["title_link"]:
-        title = attachment["title"] + " [](" + attachment["title_link"] + ")"
-    elif attachment["title"]:
-        title = attachment["title"]
-    elif attachment["title_link"]:
-        title = "[](" + attachment["title_link"] + ")"
-
-    if title:
-        att.append(colorize(format_style(title), config.color_attachment_title))
-
-    if attachment["text"]:
-        att.append(attachment["text"])
-
-    if attachment["fields"]:
-        for field in attachment["fields"]:
-            field_text = ""
-            if field["title"] and field["value"]:
-                field_text = field["title"] + ": " + field["value"]
-            elif field["value"]:
-                field_text = field["value"]
-
-            if field_text:
-                att.append(colorize(format_style(field_text), config.color_attachment_field))
-
-    if attachment["footer"]:
-        att.append(attachment["footer"])
-
-    return format_markdown_links("\n".join(att))
 
 def format_style(text):
     text = re.sub(
@@ -1170,7 +1167,9 @@ class ChannelBase:
         message = post.message.replace("\t", " " * tab_width)
 
         if post.attachments:
-            message = build_message_with_attachments(message, post.attachments)
+            if message:
+                message += "\n\n"
+            message += post.build_attachments()
 
         prefix = post.build_nick() + "\t"
         if post.type in [ "system_join_channel", "system_join_team" ]:
