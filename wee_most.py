@@ -157,6 +157,12 @@ class PluginConfig:
             type = "string",
         ),
         Setting(
+            name = "color_thread_prefix_suffix",
+            default = "",
+            description = "Color for the thread prefix suffix, if empty uses value from weechat.color.chat_prefix_suffix",
+            type = "string",
+        ),
+        Setting(
             name = "download_location",
             default = os.environ.get("XDG_DOWNLOAD_DIR", "~/Downloads") + "/wee_most",
             description = "Location for storing downloaded files",
@@ -196,6 +202,12 @@ class PluginConfig:
             name = "thread_prefix_format_root",
             default = "[{}]",
             description = "Format for the thread prefix of a root post, {} is replaced by id",
+            type = "string",
+        ),
+        Setting(
+            name = "thread_prefix_suffix",
+            default = "",
+            description = "String displayed after the thread prefix, if empty uses value from weechat.look.prefix_suffix",
             type = "string",
         ),
     ]
@@ -1072,19 +1084,21 @@ class ChannelBase:
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
     def _get_thread_prefix(self, post_id, root):
-        format = config.thread_prefix_format_root if root else config.thread_prefix_format
-        color = config.color_thread_prefix_root if root else config.color_thread_prefix
+        prefix_format = config.thread_prefix_format_root if root else config.thread_prefix_format
+        prefix_color = config.color_thread_prefix_root if root else config.color_thread_prefix
 
-        if color == "user":
+        if prefix_color == "user":
             if post_id in self.posts:
-                color = self.posts[post_id].user.color
+                prefix_color = self.posts[post_id].user.color
             else:
-                color = "default"
+                prefix_color = "default"
 
-        separator = weechat.config_string(weechat.config_get("weechat.look.prefix_suffix"))
-        separator = colorize_sentence(separator, weechat.config_string(weechat.config_get("weechat.color.chat_prefix_suffix")))
-        prefix = colorize_sentence(format.format(post_id[:3]), color)
-        return prefix + " " + separator + " "
+        suffix_string = config.thread_prefix_suffix or weechat.config_string(weechat.config_get("weechat.look.prefix_suffix"))
+        suffix_color = config.color_thread_prefix_suffix or weechat.config_string(weechat.config_get("weechat.color.chat_prefix_suffix"))
+
+        suffix = colorize_sentence(suffix_string, suffix_color)
+        prefix = colorize_sentence(prefix_format.format(post_id[:3]), prefix_color)
+        return "{} {} ".format(prefix, suffix)
 
     def remove_post(self, post_id):
         del self.posts[post_id]
