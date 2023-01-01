@@ -687,7 +687,11 @@ class Post:
             for reaction_data in kwargs["metadata"]["reactions"]:
                 self.reactions.append(Reaction(server, **reaction_data))
 
-        self.attachments = kwargs["props"].get("attachments", [])
+        self.attachments = []
+        if "attachments" in kwargs["props"]:
+            for attachment_data in kwargs["props"]["attachments"]:
+                self.attachments.append(Attachment(**attachment_data))
+
         self.from_bot = kwargs["props"].get("from_bot", False) or kwargs["props"].get("from_webhook", False)
         self.username_override = kwargs["props"].get("override_username")
 
@@ -730,69 +734,9 @@ class Post:
         atts = []
 
         for attachment in self.attachments:
-            atts.append(self._build_attachment(attachment))
+            atts.append(attachment.render())
 
         return "\n\n".join(atts)
-
-    def _build_attachment(self, attachment):
-        att = []
-
-        if attachment["pretext"]:
-            att.append(attachment["pretext"])
-
-        if attachment["author_name"]:
-            att.append(attachment["author_name"])
-
-        title = ""
-        # write link as markdown link for later generic formatting
-        if attachment["title"] and attachment["title_link"]:
-            title = attachment["title"] + " [](" + attachment["title_link"] + ")"
-        elif attachment["title"]:
-            title = attachment["title"]
-        elif attachment["title_link"]:
-            title = "[](" + attachment["title_link"] + ")"
-
-        if title:
-            att.append(colorize(format_style(title), config.color_attachment_title))
-
-        if attachment["text"]:
-            att.append(attachment["text"])
-
-        if attachment["fields"]:
-            for field in attachment["fields"]:
-                field_text = ""
-                if field["title"] and field["value"]:
-                    field_text = field["title"] + ": " + field["value"]
-                elif field["value"]:
-                    field_text = field["value"]
-
-                if field_text:
-                    att.append(colorize(format_style(field_text), config.color_attachment_field))
-
-        if attachment["footer"]:
-            att.append(attachment["footer"])
-
-        return self._format_markdown_links("\n".join(att))
-
-    def _format_markdown_links(self, text):
-        links = []
-
-        def link_repl(match):
-            nonlocal links
-            text, url = match.groups()
-            counter = len(links) + 1
-            links.append(colorize("[{}] {}".format(counter, url), config.color_attachment_link))
-            if text:
-                return "{} [{}]".format(text, counter)
-            return "[{}]".format(counter)
-
-        p = re.compile('\[([^]]*)\]\(([^\)*]*)\)')
-        new_text = p.sub(link_repl, text)
-
-        if links:
-            return new_text + "\n" + "\n".join(links)
-
-        return new_text
 
     def get_first_line_text(self):
         if self.message:
@@ -885,6 +829,76 @@ class Reaction:
     def __init__(self, server, **kwargs):
         self.user = server.users[kwargs["user_id"]]
         self.emoji_name = kwargs["emoji_name"]
+
+class Attachment:
+    def __init__(self, **kwargs):
+        self.pretext = kwargs.get("pretext")
+        self.author = kwargs.get("author_name")
+        self.title = kwargs.get("title")
+        self.title_link = kwargs.get("title_link")
+        self.text = kwargs.get("text")
+        self.footer = kwargs.get("footer")
+        self.fields = kwargs.get("fields")
+
+    def render(self):
+        att = []
+
+        if self.pretext:
+            att.append(self.pretext)
+
+        if self.author:
+            att.append(self.author)
+
+        title = ""
+        # write link as markdown link for later generic formatting
+        if self.title and self.title_link:
+            title = self.title + " [](" + self.title_link + ")"
+        elif self.title:
+            title = self.title
+        elif self.title_link:
+            title = "[](" + self.title_link + ")"
+
+        if title:
+            att.append(colorize(format_style(title), config.color_attachment_title))
+
+        if self.text:
+            att.append(self.text)
+
+        if self.fields:
+            for field in self.fields:
+                field_text = ""
+                if field["title"] and field["value"]:
+                    field_text = field["title"] + ": " + field["value"]
+                elif field["value"]:
+                    field_text = field["value"]
+
+                if field_text:
+                    att.append(colorize(format_style(field_text), config.color_attachment_field))
+
+        if self.footer:
+            att.append(self.footer)
+
+        return self._format_markdown_links("\n".join(att))
+
+    def _format_markdown_links(self, text):
+        links = []
+
+        def link_repl(match):
+            nonlocal links
+            text, url = match.groups()
+            counter = len(links) + 1
+            links.append(colorize("[{}] {}".format(counter, url), config.color_attachment_link))
+            if text:
+                return "{} [{}]".format(text, counter)
+            return "[{}]".format(counter)
+
+        p = re.compile('\[([^]]*)\]\(([^\)*]*)\)')
+        new_text = p.sub(link_repl, text)
+
+        if links:
+            return new_text + "\n" + "\n".join(links)
+
+        return new_text
 
 def post_post_cb(buffer, command, rc, out, err):
     server = get_server_from_buffer(buffer)
