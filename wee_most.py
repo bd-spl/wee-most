@@ -705,6 +705,24 @@ class Post:
 
         return "{}{}{}".format(prefix, nick, suffix)
 
+    def build_message(self):
+        # remove tabs to prevent display issue on multiline messages
+        # where 2 tabs at the beginning of a line results in no alignment
+        tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
+        message = self.message.replace("\t", " " * tab_width)
+
+        message = format_style(message)
+
+        if self.attachments:
+            if message:
+                message += "\n\n"
+            message += self.build_attachments()
+
+        if message and not self.files:
+            message += self.get_reactions_line()
+
+        return message
+
     def build_attachments(self):
         atts = []
 
@@ -1161,30 +1179,17 @@ class ChannelBase:
         else:
             tags += ",notify_message"
 
-        # remove tabs to prevent display issue on multiline messages
-        # where 2 tabs at the beginning of a line results in no alignment
-        tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
-        message = post.message.replace("\t", " " * tab_width)
-
-        if post.attachments:
-            if message:
-                message += "\n\n"
-            message += post.build_attachments()
-
         prefix = post.build_nick() + "\t"
         if post.type in [ "system_join_channel", "system_join_team" ]:
             prefix = weechat.prefix("join")
         elif post.type in [ "system_leave_channel", "system_leave_team" ]:
             prefix = weechat.prefix("quit")
 
+        message = post.build_message()
         if message:
-            full_message = prefix
             if post.root_id:
-                full_message += self._get_thread_prefix(post.root_id, root=False)
-            full_message += format_style(message)
-            if not post.files:
-                full_message += post.get_reactions_line()
-            weechat.prnt_date_tags(self.buffer, post.date, tags, full_message)
+                message = self._get_thread_prefix(post.root_id, root=False) + message
+            weechat.prnt_date_tags(self.buffer, post.date, tags, prefix + message)
 
         if post.files:
             for file in post.files[:-1]:
