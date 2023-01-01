@@ -751,7 +751,27 @@ class Post:
         if attachment["footer"]:
             att.append(attachment["footer"])
 
-        return format_markdown_links("\n".join(att))
+        return self._format_markdown_links("\n".join(att))
+
+    def _format_markdown_links(self, text):
+        links = []
+
+        def link_repl(match):
+            nonlocal links
+            text, url = match.groups()
+            counter = len(links) + 1
+            links.append(colorize("[{}] {}".format(counter, url), config.color_attachment_link))
+            if text:
+                return "{} [{}]".format(text, counter)
+            return "[{}]".format(counter)
+
+        p = re.compile('\[([^]]*)\]\(([^\)*]*)\)')
+        new_text = p.sub(link_repl, text)
+
+        if links:
+            return new_text + "\n" + "\n".join(links)
+
+        return new_text
 
     def get_first_line_text(self):
         if self.message:
@@ -892,26 +912,6 @@ def format_style(text):
             flags=re.MULTILINE,
             )
     return text
-
-def format_markdown_links(text):
-    links = []
-
-    def link_repl(match):
-        nonlocal links
-        text, url = match.groups()
-        counter = len(links) + 1
-        links.append(colorize("[{}] {}".format(counter, url), config.color_attachment_link))
-        if text:
-            return "{} [{}]".format(text, counter)
-        return "[{}]".format(counter)
-
-    p = re.compile('\[([^]]*)\]\(([^\)*]*)\)')
-    new_text = p.sub(link_repl, text)
-
-    if links:
-        return new_text + "\n" + "\n".join(links)
-
-    return new_text
 
 def get_line_data_tags(line_data):
     tags = []
