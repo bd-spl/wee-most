@@ -1158,16 +1158,9 @@ class ChannelBase:
     def write_post(self, post):
         self.posts[post.id] = post
 
-        if post.root_id:
-            self._write_reply_message_lines(post)
-        else:
-            self._write_message_lines(post)
-
-    def _write_reply_message_lines(self, post):
         tags = "post_id_%s" % post.id
 
         root_post = self.posts.get(post.root_id)
-
         if root_post:
             self.update_root_post_thread_prefix(root_post.id)
 
@@ -1181,32 +1174,10 @@ class ChannelBase:
         else:
             tags += ",notify_message"
 
-        if post.message:
-            full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t"
-            full_message += self._get_thread_prefix(post.root_id, root=False)
-            full_message += format_style(post.message)
-            if not post.files:
-                full_message += post.get_reactions_line()
-            weechat.prnt_date_tags(self.buffer, post.date, tags, full_message)
-
-        self._write_file_lines(post)
-
-        self.last_post_id = post.id
-
-    def _write_message_lines(self, post):
-        tags = "post_id_%s" % post.id
-
         # remove tabs to prevent display issue on multiline messages
         # where the part before the tab would be interpreted as the prefix
         tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
         message = post.message.replace("\t", " " * tab_width)
-
-        if post.read:
-            tags += ",notify_none"
-        elif self.type in ['direct', 'group']:
-            tags += ",notify_private"
-        else:
-            tags += ",notify_message"
 
         if post.attachments:
             message = build_message_with_attachments(message, post.attachments)
@@ -1218,36 +1189,34 @@ class ChannelBase:
             prefix = weechat.prefix("quit")
 
         if message:
-            full_message = prefix + format_style(message)
+            full_message = prefix
+            if post.root_id:
+                full_message += self._get_thread_prefix(post.root_id, root=False)
+            full_message += format_style(message)
             if not post.files:
                 full_message += post.get_reactions_line()
             weechat.prnt_date_tags(self.buffer, post.date, tags, full_message)
 
-        self._write_file_lines(post)
+        if post.files:
+            for file in post.files[:-1]:
+                weechat.prnt_date_tags(
+                    self.buffer,
+                    post.date,
+                    "post_id_" + post.id + ",file_id_" + file.id,
+                    "\t" + Post.render_file(file)
+                )
 
-        self.last_post_id = post.id
+            last_file = post.files[-1]
+            message = "\t" + Post.render_file(last_file) + post.get_reactions_line()
 
-    def _write_file_lines(self, post):
-        if not post.files:
-            return
-
-        for file in post.files[:-1]:
             weechat.prnt_date_tags(
                 self.buffer,
                 post.date,
-                "post_id_" + post.id + ",file_id_" + file.id,
-                "\t" + Post.render_file(file)
+                "post_id_" + post.id + ",file_id_" + last_file.id,
+                message
             )
 
-        last_file = post.files[-1]
-        message = "\t" + Post.render_file(last_file) + post.get_reactions_line()
-
-        weechat.prnt_date_tags(
-            self.buffer,
-            post.date,
-            "post_id_" + post.id + ",file_id_" + last_file.id,
-            message
-        )
+        self.last_post_id = post.id
 
     def mark_as_read(self):
         if self.last_post_id and self.last_post_id == self.last_read_post_id: # prevent spamming on buffer switch
