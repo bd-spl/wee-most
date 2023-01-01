@@ -174,6 +174,18 @@ class PluginConfig:
             description = "Display the nick of the user(s) alongside the reaction",
             type = "boolean",
         ),
+        Setting(
+            name = "thread_prefix_format",
+            default = " {} ",
+            description = "Format for the thread prefix of a post, {} is replaced by id",
+            type = "string",
+        ),
+        Setting(
+            name = "thread_prefix_format_root",
+            default = "[{}]",
+            description = "Format for the thread prefix of a root post, {} is replaced by id",
+            type = "string",
+        ),
     ]
 
     server_settings = [
@@ -1043,11 +1055,12 @@ class ChannelBase:
 
         post = self.posts[post_id]
 
-        new_message = self._get_thread_prefix(post_id, '[{}]', post.user.color)
+        new_message = self._get_thread_prefix(post_id, post.user.color, root=True)
         new_message += format_style(post.get_first_line_text())
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
-    def _get_thread_prefix(self, post_id, format, color):
+    def _get_thread_prefix(self, post_id, color, root):
+        format = config.thread_prefix_format_root if root else config.thread_prefix_format
         separator = weechat.config_string(weechat.config_get("weechat.look.prefix_suffix"))
         separator = colorize_sentence(separator, weechat.config_string(weechat.config_get("weechat.color.chat_prefix_suffix")))
         prefix = colorize_sentence(format.format(post_id[:3]), color)
@@ -1138,7 +1151,7 @@ class ChannelBase:
 
         if post.message:
             full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t"
-            full_message += self._get_thread_prefix(post.root_id, ' {} ', thread_color)
+            full_message += self._get_thread_prefix(post.root_id, thread_color, root=False)
             full_message += format_style(post.message)
             if not post.files:
                 full_message += post.get_reactions_line()
