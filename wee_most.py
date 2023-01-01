@@ -691,17 +691,17 @@ class Post:
     def build_nick(self):
         prefix_string = weechat.config_string(weechat.config_get("weechat.look.nick_prefix"))
         prefix_color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_prefix"))
-        prefix = colorize_sentence(prefix_string, prefix_color)
+        prefix = colorize(prefix_string, prefix_color)
 
         suffix_string = weechat.config_string(weechat.config_get("weechat.look.nick_suffix"))
         suffix_color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_suffix"))
-        suffix = colorize_sentence(suffix_string, suffix_color)
+        suffix = colorize(suffix_string, suffix_color)
 
         nick = self.username_override or self.user.nick
-        nick = colorize_sentence(nick, self.user.color)
+        nick = colorize(nick, self.user.color)
 
         if self.from_bot:
-            nick += colorize_sentence(config.bot_suffix, config.color_bot_suffix)
+            nick += colorize(config.bot_suffix, config.color_bot_suffix)
 
         return "{}{}{}".format(prefix, nick, suffix)
 
@@ -756,10 +756,10 @@ class Post:
                     reactions_groups[r.emoji_name] = [ r.user ]
 
             for name, users in reactions_groups.items():
-                colorized_name = colorize_sentence(name, config.color_reaction)
+                colorized_name = colorize(name, config.color_reaction)
                 for u in users:
                     if u.username == my_username:
-                        colorized_name = colorize_sentence(name, config.color_reaction_own)
+                        colorized_name = colorize(name, config.color_reaction_own)
                         break
 
                 if config.reaction_nick_show:
@@ -767,7 +767,7 @@ class Post:
                     for u in users:
                         user_string = u.nick
                         if config.reaction_nick_colorize:
-                            user_string = colorize_sentence(user_string, u.color)
+                            user_string = colorize(user_string, u.color)
                         users_string.append(user_string)
 
                     reaction_string = ":{}:({})".format(colorized_name, ",".join(users_string))
@@ -779,14 +779,14 @@ class Post:
         else:
             for r in self.reactions:
                 if r.user.username == my_username:
-                    colorized_name = colorize_sentence(r.emoji_name, config.color_reaction_own)
+                    colorized_name = colorize(r.emoji_name, config.color_reaction_own)
                 else:
-                    colorized_name = colorize_sentence(r.emoji_name, config.color_reaction)
+                    colorized_name = colorize(r.emoji_name, config.color_reaction)
 
                 if config.reaction_nick_show:
                     user_string = u.nick
                     if config.reaction_nick_colorize:
-                        user_string = colorize_sentence(user_string, r.user.color)
+                        user_string = colorize(user_string, r.user.color)
 
                     reaction_string = ":{}:({})".format(colorized_name, user_string)
                 else:
@@ -815,7 +815,7 @@ def build_quote_message(message):
         message = "%s…" % message[:69].strip()
     return message
 
-def colorize_sentence(sentence, color):
+def colorize(sentence, color):
     return "{}{}{}".format(weechat.color(color), sentence, weechat.color("reset"))
 
 def build_message_with_attachments(message, attachments):
@@ -848,7 +848,7 @@ def build_attachment(attachment):
         title = "[](" + attachment["title_link"] + ")"
 
     if title:
-        att.append(colorize_sentence(format_style(title), config.color_attachment_title))
+        att.append(colorize(format_style(title), config.color_attachment_title))
 
     if attachment["text"]:
         att.append(attachment["text"])
@@ -862,7 +862,7 @@ def build_attachment(attachment):
                 field_text = field["value"]
 
             if field_text:
-                att.append(colorize_sentence(format_style(field_text), config.color_attachment_field))
+                att.append(colorize(format_style(field_text), config.color_attachment_field))
 
     if attachment["footer"]:
         att.append(attachment["footer"])
@@ -903,7 +903,7 @@ def format_markdown_links(text):
         nonlocal links
         text, url = match.groups()
         counter = len(links) + 1
-        links.append(colorize_sentence("[{}] {}".format(counter, url), config.color_attachment_link))
+        links.append(colorize("[{}] {}".format(counter, url), config.color_attachment_link))
         if text:
             return "{} [{}]".format(text, counter)
         return "[{}]".format(counter)
@@ -1086,8 +1086,8 @@ class ChannelBase:
         suffix_string = config.thread_prefix_suffix or weechat.config_string(weechat.config_get("weechat.look.prefix_suffix"))
         suffix_color = config.color_thread_prefix_suffix or weechat.config_string(weechat.config_get("weechat.color.chat_prefix_suffix"))
 
-        suffix = colorize_sentence(suffix_string, suffix_color)
-        prefix = colorize_sentence(prefix_format.format(post_id[:3]), prefix_color)
+        suffix = colorize(suffix_string, suffix_color)
+        prefix = colorize(prefix_format.format(post_id[:3]), prefix_color)
         return "{} {} ".format(prefix, suffix)
 
     def remove_post(self, post_id):
@@ -1114,7 +1114,7 @@ class ChannelBase:
             return
 
         lines = [""] * len(pointers)
-        lines[0] = colorize_sentence("(deleted)", config.color_deleted)
+        lines[0] = colorize("(deleted)", config.color_deleted)
 
         for pointer, line in zip(pointers, lines):
             line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
@@ -1134,7 +1134,7 @@ class ChannelBase:
         initial_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), first_initial_line_data, "date")
         initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
 
-        full_initial_message = initial_message_prefix + "\t" + colorize_sentence(build_quote_message(format_style(initial_message)), config.color_quote)
+        full_initial_message = initial_message_prefix + "\t" + colorize(build_quote_message(format_style(initial_message)), config.color_quote)
         weechat.prnt_date_tags(self.buffer, initial_message_date, "notify_none", full_initial_message)
 
         new_message = format_style(post.message) + post.get_reactions_line()
