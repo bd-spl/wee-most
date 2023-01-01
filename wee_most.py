@@ -145,6 +145,18 @@ class PluginConfig:
             type = "string",
         ),
         Setting(
+            name = "color_thread_prefix",
+            default = "user",
+            description = "Color for the thread prefix of a post, \"user\" means post user color",
+            type = "string",
+        ),
+        Setting(
+            name = "color_thread_prefix_root",
+            default = "user",
+            description = "Color for the thread prefix of a root post, \"user\" means post user color",
+            type = "string",
+        ),
+        Setting(
             name = "download_location",
             default = os.environ.get("XDG_DOWNLOAD_DIR", "~/Downloads") + "/wee_most",
             description = "Location for storing downloaded files",
@@ -1055,12 +1067,20 @@ class ChannelBase:
 
         post = self.posts[post_id]
 
-        new_message = self._get_thread_prefix(post_id, post.user.color, root=True)
+        new_message = self._get_thread_prefix(post_id, root=True)
         new_message += format_style(post.get_first_line_text())
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
-    def _get_thread_prefix(self, post_id, color, root):
+    def _get_thread_prefix(self, post_id, root):
         format = config.thread_prefix_format_root if root else config.thread_prefix_format
+        color = config.color_thread_prefix_root if root else config.color_thread_prefix
+
+        if color == "user":
+            if post_id in self.posts:
+                color = self.posts[post_id].user.color
+            else:
+                color = "default"
+
         separator = weechat.config_string(weechat.config_get("weechat.look.prefix_suffix"))
         separator = colorize_sentence(separator, weechat.config_string(weechat.config_get("weechat.color.chat_prefix_suffix")))
         prefix = colorize_sentence(format.format(post_id[:3]), color)
@@ -1134,10 +1154,8 @@ class ChannelBase:
 
         root_post = self.posts.get(post.root_id)
 
-        thread_color = "default"
         if root_post:
             self.update_root_post_thread_prefix(root_post.id)
-            thread_color = root_post.user.color
 
         if post.read:
             tags += ",notify_none"
@@ -1151,7 +1169,7 @@ class ChannelBase:
 
         if post.message:
             full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t"
-            full_message += self._get_thread_prefix(post.root_id, thread_color, root=False)
+            full_message += self._get_thread_prefix(post.root_id, root=False)
             full_message += format_style(post.message)
             if not post.files:
                 full_message += post.get_reactions_line()
