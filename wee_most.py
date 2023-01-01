@@ -716,14 +716,14 @@ class Post:
         if self.attachments:
             if message:
                 message += "\n\n"
-            message += self.build_attachments()
+            message += self._build_attachments()
 
         if message and not self.files:
             message += self.get_reactions_line()
 
         return message
 
-    def build_attachments(self):
+    def _build_attachments(self):
         atts = []
 
         for attachment in self.attachments:
@@ -796,7 +796,7 @@ class Post:
             return self.message.split("\n")[0]
 
         if self.attachments:
-            return self.build_attachments().split("\n")[0]
+            return self._build_attachments().split("\n")[0]
 
         if self.files:
             return Post.render_file(self.files[0])
@@ -809,7 +809,7 @@ class Post:
             return Post.render_file(self.files[-1])
 
         if self.attachments:
-            return self.build_attachments().split("\n")[-1]
+            return self._build_attachments().split("\n")[-1]
 
         return self.message.split("\n")[-1]
 
