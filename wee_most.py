@@ -688,6 +688,23 @@ class Post:
         self.from_bot = kwargs["props"].get("from_bot", False) or kwargs["props"].get("from_webhook", False)
         self.username_override = kwargs["props"].get("override_username")
 
+    def build_nick(self):
+        prefix_string = weechat.config_string(weechat.config_get("weechat.look.nick_prefix"))
+        prefix_color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_prefix"))
+        prefix = colorize_sentence(prefix_string, prefix_color)
+
+        suffix_string = weechat.config_string(weechat.config_get("weechat.look.nick_suffix"))
+        suffix_color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_suffix"))
+        suffix = colorize_sentence(suffix_string, suffix_color)
+
+        nick = self.username_override or self.user.nick
+        nick = colorize_sentence(nick, self.user.color)
+
+        if self.from_bot:
+            nick += colorize_sentence(config.bot_suffix, config.color_bot_suffix)
+
+        return "{}{}{}".format(prefix, nick, suffix)
+
     def get_first_line_text(self):
         if self.message:
             return self.message.split("\n")[0]
@@ -800,33 +817,6 @@ def build_quote_message(message):
 
 def colorize_sentence(sentence, color):
     return "{}{}{}".format(weechat.color(color), sentence, weechat.color("reset"))
-
-def build_nick(user, from_bot, username_override):
-    nick_prefix = weechat.config_string(weechat.config_get("weechat.look.nick_prefix"))
-    nick_prefix_color_name = weechat.config_string(
-        weechat.config_get("weechat.color.chat_nick_prefix")
-    )
-
-    nick_suffix = weechat.config_string(weechat.config_get("weechat.look.nick_suffix"))
-    nick_suffix_color_name = weechat.config_string(
-        weechat.config_get("weechat.color.chat_nick_suffix")
-    )
-
-    if username_override:
-        nick = username_override
-    else:
-        nick = user.nick
-
-    nick = colorize_sentence(nick, user.color)
-
-    if from_bot:
-        nick += colorize_sentence(config.bot_suffix, config.color_bot_suffix)
-
-    return (
-        colorize_sentence(nick_prefix, nick_prefix_color_name)
-        + nick
-        + colorize_sentence(nick_suffix, nick_suffix_color_name)
-    )
 
 def build_message_with_attachments(message, attachments):
     if message:
@@ -1152,7 +1142,7 @@ class ChannelBase:
         if post.read:
             tags += ",notify_none"
 
-        full_message = build_nick(post.user, post.from_bot, post.username_override) + "\t" + new_message
+        full_message = post.build_nick() + "\t" + new_message
         weechat.prnt_date_tags(self.buffer, post.date, tags, full_message)
 
     def write_post(self, post):
@@ -1182,7 +1172,7 @@ class ChannelBase:
         if post.attachments:
             message = build_message_with_attachments(message, post.attachments)
 
-        prefix = build_nick(post.user, post.from_bot, post.username_override) + "\t"
+        prefix = post.build_nick() + "\t"
         if post.type in [ "system_join_channel", "system_join_team" ]:
             prefix = weechat.prefix("join")
         elif post.type in [ "system_leave_channel", "system_leave_team" ]:
