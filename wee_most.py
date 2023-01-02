@@ -695,6 +695,8 @@ class Post:
         self.from_bot = kwargs["props"].get("from_bot", False) or kwargs["props"].get("from_webhook", False)
         self.username_override = kwargs["props"].get("override_username")
 
+        self._rendered_message = ""
+
     def build_nick(self):
         prefix_string = weechat.config_string(weechat.config_get("weechat.look.nick_prefix"))
         prefix_color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_prefix"))
@@ -732,6 +734,8 @@ class Post:
 
         message += self.get_reactions_line()
 
+        self._rendered_message = message
+
         return message
 
     def _build_attachments(self):
@@ -751,26 +755,10 @@ class Post:
         return "\n".join(files)
 
     def get_first_line_text(self):
-        if self.message:
-            return self.message.split("\n")[0]
-
-        if self.attachments:
-            return self._build_attachments().split("\n")[0]
-
-        if self.files:
-            return self.files[0].render()
-
-        # should never happen
-        return ""
+        return self._rendered_message.split("\n")[0]
 
     def get_last_line_text(self):
-        if self.files:
-            return self.files[-1].render()
-
-        if self.attachments:
-            return self._build_attachments().split("\n")[-1]
-
-        return self.message.split("\n")[-1]
+        return self._rendered_message.split("\n")[-1]
 
     def add_reaction(self, reaction):
         self.reactions.append(reaction)
