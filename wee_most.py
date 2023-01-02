@@ -1099,7 +1099,7 @@ class ChannelBase:
         new_message = format_style(post.get_last_line_text()) + post.get_reactions_line()
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
-    def update_root_post_thread_prefix(self, post_id):
+    def _update_root_post_thread_prefix(self, post_id):
         if post_id not in self.posts:
             return
 
@@ -1113,7 +1113,7 @@ class ChannelBase:
         new_message += format_style(post.get_first_line_text())
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
-    def update_file_tags(self, post_id):
+    def _update_file_tags(self, post_id):
         if post_id not in self.posts:
             return
 
@@ -1220,7 +1220,7 @@ class ChannelBase:
 
         root_post = self.posts.get(post.root_id)
         if root_post:
-            self.update_root_post_thread_prefix(root_post.id)
+            self._update_root_post_thread_prefix(root_post.id)
 
         if post.read:
             tags += ",notify_none"
@@ -1244,7 +1244,7 @@ class ChannelBase:
 
         weechat.prnt_date_tags(self.buffer, post.date, tags, prefix + message)
 
-        self.update_file_tags(post.id)
+        self._update_file_tags(post.id)
 
         self.last_post_id = post.id
 
