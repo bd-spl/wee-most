@@ -725,8 +725,12 @@ class Post:
                 message += "\n\n"
             message += self._build_attachments()
 
-        if message and not self.files:
-            message += self.get_reactions_line()
+        if self.files:
+            if message:
+                message += "\n"
+            message += self._build_files()
+
+        message += self.get_reactions_line()
 
         return message
 
@@ -737,6 +741,14 @@ class Post:
             atts.append(attachment.render())
 
         return "\n\n".join(atts)
+
+    def _build_files(self):
+        files = []
+
+        for file in self.files:
+            files.append(file.render())
+
+        return "\n".join(files)
 
     def get_first_line_text(self):
         if self.message:
@@ -1101,6 +1113,34 @@ class ChannelBase:
         new_message += format_style(post.get_first_line_text())
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
+    def update_file_tags(self, post_id):
+        if post_id not in self.posts:
+            return
+
+        post = self.posts[post_id]
+        if not post.files:
+            return
+
+        lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), self.buffer, "lines")
+        line = weechat.hdata_pointer(weechat.hdata_get("lines"), lines, "last_line")
+        line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
+
+        # find last line of this post
+        while line and not is_post_line_data(line_data, post_id):
+            line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "prev_line")
+            line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
+
+        for file in reversed(post.files):
+            tags = get_line_data_tags(line_data)
+            tags.append("file_id_" + file.id)
+            weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"tags_array": ",".join(tags)})
+
+            line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "prev_line")
+            line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
+
+            if not line or not is_post_line_data(line_data, post.id): # safeguard
+                break
+
     def _get_thread_prefix(self, post_id, root):
         prefix_format = config.thread_prefix_format_root if root else config.thread_prefix_format
         prefix_color = config.color_thread_prefix_root if root else config.color_thread_prefix
@@ -1199,29 +1239,12 @@ class ChannelBase:
             prefix = weechat.prefix("quit")
 
         message = post.build_message()
-        if message:
-            if post.root_id:
-                message = self._get_thread_prefix(post.root_id, root=False) + message
-            weechat.prnt_date_tags(self.buffer, post.date, tags, prefix + message)
+        if post.root_id:
+            message = self._get_thread_prefix(post.root_id, root=False) + message
 
-        if post.files:
-            for file in post.files[:-1]:
-                weechat.prnt_date_tags(
-                    self.buffer,
-                    post.date,
-                    "post_id_" + post.id + ",file_id_" + file.id,
-                    "\t" + file.render()
-                )
+        weechat.prnt_date_tags(self.buffer, post.date, tags, prefix + message)
 
-            last_file = post.files[-1]
-            message = "\t" + last_file.render() + post.get_reactions_line()
-
-            weechat.prnt_date_tags(
-                self.buffer,
-                post.date,
-                "post_id_" + post.id + ",file_id_" + last_file.id,
-                message
-            )
+        self.update_file_tags(post.id)
 
         self.last_post_id = post.id
 
