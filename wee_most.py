@@ -127,6 +127,18 @@ class PluginConfig:
             type = "string",
         ),
         Setting(
+            name = "color_file_name",
+            default = "*",
+            description = "Color for the name part of a file",
+            type = "string",
+        ),
+        Setting(
+            name = "color_file_url",
+            default = "",
+            description = "Color for the URL part of a file",
+            type = "string",
+        ),
+        Setting(
             name = "color_quote",
             default = "yellow",
             description = "Color for quoted messages",
@@ -166,6 +178,18 @@ class PluginConfig:
             name = "download_location",
             default = os.environ.get("XDG_DOWNLOAD_DIR", "~/Downloads") + "/wee_most",
             description = "Location for storing downloaded files",
+            type = "string",
+        ),
+        Setting(
+            name = "file_name_format",
+            default = "[{}]",
+            description = "Format for the display of a file name, {} is replaced by name",
+            type = "string",
+        ),
+        Setting(
+            name = "file_url_format",
+            default = "({})",
+            description = "Format for the display of a file URL, {} is replaced by URL",
             type = "string",
         ),
         Setting(
@@ -622,7 +646,9 @@ class File:
         self.url = server.url + "/api/v4/files/{}".format(kwargs["id"])
 
     def render(self):
-        return "[{}] {}".format(self.name, self.url)
+        name = colorize(config.file_name_format.format(self.name), config.color_file_name)
+        url = colorize(config.file_url_format.format(self.url), config.color_file_url)
+        return "{}{}".format(name, url)
 
 def prepare_download_location(server):
     location = os.path.expanduser(config.download_location)
