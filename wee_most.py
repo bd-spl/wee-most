@@ -268,13 +268,13 @@ class PluginConfig:
         return getattr(self, key)
 
     def get_server_config(self, server_id, name):
-        option = "server." + server_id + "." + name
+        option = "server.{}.{}".format(server_id, name)
         config_value = weechat.config_get_plugin(option)
         expanded_value = weechat.string_eval_expression(config_value, {}, {}, {})
         return expanded_value
 
     def is_server_valid(self, server_id):
-        test_option = "server." + server_id + ".url"
+        test_option = "server.{}.url".format(server_id)
         return weechat.config_is_set_plugin(test_option)
 
     def _add_setting(self, s):
@@ -282,12 +282,12 @@ class PluginConfig:
             return
 
         weechat.config_set_plugin(s.name, s.default)
-        weechat.config_set_desc_plugin(s.name, '%s (default: "%s")' % (s.description, s.default))
+        weechat.config_set_desc_plugin(s.name, '{} (default: "{}")'.format(s.description, s.default))
 
     def add_server_options(self, server_id):
         for s in self.server_settings:
             self._add_setting(self.Setting(
-                name = "server." + server_id + "." + s.name,
+                name = "server.{}.{}".format(server_id, s.name),
                 default = s.default,
                 description = s.description.format(server_id),
                 type = "string"
@@ -352,7 +352,7 @@ def nick_completion_cb(data, completion_item, current_buffer, completion):
 
     for user in channel.users.values():
         weechat.completion_list_add(completion, user.username, 1, weechat.WEECHAT_LIST_POS_SORT)
-        weechat.completion_list_add(completion, "@" + user.username, 1, weechat.WEECHAT_LIST_POS_SORT)
+        weechat.completion_list_add(completion, "@{}".format(user.username), 1, weechat.WEECHAT_LIST_POS_SORT)
 
     return weechat.WEECHAT_RC_OK
 
@@ -362,10 +362,10 @@ def emoji_completion_cb(data, completion_item, current_buffer, completion):
         return weechat.WEECHAT_RC_OK
 
     for emoji in default_emojis:
-        weechat.completion_list_add(completion, ":" + emoji + ":", 0, weechat.WEECHAT_LIST_POS_SORT)
+        weechat.completion_list_add(completion, ":{}:".format(emoji), 0, weechat.WEECHAT_LIST_POS_SORT)
 
     for emoji in server.custom_emojis:
-        weechat.completion_list_add(completion, ":" + emoji + ":", 0, weechat.WEECHAT_LIST_POS_SORT)
+        weechat.completion_list_add(completion, ":{}:".format(emoji), 0, weechat.WEECHAT_LIST_POS_SORT)
 
     return weechat.WEECHAT_RC_OK
 
@@ -460,31 +460,31 @@ def mattermost_channel_buffer_required(f):
 
 def command_server_add(args, buffer):
     if 1 != len(args.split()):
-        write_command_error("server add " + args, "Error with subcommand arguments")
+        write_command_error("server add {}".format(args), "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     config.add_server_options(args)
 
-    weechat.prnt("", 'Server "%s" added. You should now configure it.' % args)
-    weechat.prnt("", "/set plugins.var.python.wee_most.server.%s.*" % args)
+    weechat.prnt("", 'Server "{}" added. You should now configure it.'.format(args))
+    weechat.prnt("", "/set plugins.var.python.wee_most.server.{}.*".format(args))
 
     return weechat.WEECHAT_RC_OK
 
 def command_connect(args, buffer):
     if 1 != len(args.split()):
-        write_command_error("connect " + args, "Error with subcommand arguments")
+        write_command_error("connect {}".format(args), "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
     return connect_server(args)
 
 def command_disconnect(args, buffer):
     if 1 != len(args.split()):
-        write_command_error("disconnect " + args, "Error with subcommand arguments")
+        write_command_error("disconnect {}".format(args), "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
     return disconnect_server(args)
 
 def command_server(args, buffer):
     if 0 == len(args.split()):
-        write_command_error("server " + args, "Error with subcommand arguments")
+        write_command_error("server {}".format(args), "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     command, _, args = args.partition(" ")
@@ -492,13 +492,13 @@ def command_server(args, buffer):
     if command == "add":
         return command_server_add(args, buffer)
 
-    write_command_error("server " + command + " " + args, "Invalid server subcommand")
+    write_command_error("server {} {}".format(command, args), "Invalid server subcommand")
     return weechat.WEECHAT_RC_ERROR
 
 @mattermost_channel_buffer_required
 def command_slash(args, buffer):
     if 0 == len(args.split()):
-        write_command_error("slash " + args, "Error with subcommand arguments")
+        write_command_error("slash {}".format(args), "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     server = get_server_from_buffer(buffer)
@@ -519,7 +519,7 @@ def mattermost_command_cb(data, buffer, command):
         return weechat.WEECHAT_RC_ERROR
 
     prefix, _, args = command.partition(" ")
-    command_function_name = "command_" + prefix
+    command_function_name = "command_{}".format(prefix)
 
     if command_function_name not in globals():
         write_command_error(command, "Invalid subcommand")
@@ -530,7 +530,7 @@ def mattermost_command_cb(data, buffer, command):
 @mattermost_channel_buffer_required
 def command_reply(args, buffer):
     if 2 != len(args.split(" ", 1)):
-        write_command_error("reply " + args, "Error with subcommand arguments")
+        write_command_error("reply {}".format(args), "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     post_id, _, message = args.partition(" ")
@@ -539,7 +539,7 @@ def command_reply(args, buffer):
 
     line_data = find_buffer_last_post_line_data(buffer, post_id)
     if not line_data:
-        server.print_error('Cannot find post id for "%s"' % post_id)
+        server.print_error('Cannot find post id for "{}"'.format(post_id))
         return weechat.WEECHAT_RC_ERROR
 
     tags = get_line_data_tags(line_data)
@@ -560,7 +560,7 @@ def command_reply(args, buffer):
 @mattermost_channel_buffer_required
 def command_react(args, buffer):
     if 2 != len(args.split()):
-        write_command_error("react " + args, "Error with subcommand arguments")
+        write_command_error("react {}".format(args), "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     post_id, _, emoji_name = args.partition(" ")
@@ -575,7 +575,7 @@ def command_react(args, buffer):
 @mattermost_channel_buffer_required
 def command_unreact(args, buffer):
     if 2 != len(args.split()):
-        write_command_error("unreact " + args, "Error with subcommand arguments")
+        write_command_error("unreact {}".format(args), "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     post_id, _, emoji_name = args.partition(" ")
@@ -590,7 +590,7 @@ def command_unreact(args, buffer):
 @mattermost_channel_buffer_required
 def command_delete(args, buffer):
     if 1 != len(args.split()):
-        write_command_error("delete " + args, "Error with subcommand arguments")
+        write_command_error("delete {}".format(args), "Error with subcommand arguments")
         return weechat.WEECHAT_RC_ERROR
 
     server = get_server_from_buffer(buffer)
@@ -606,9 +606,9 @@ def setup_commands():
     weechat.hook_command(
         "mattermost",
         "Mattermost commands",
-        "||".join([c.name + " " + c.args for c in commands]),
-        "\n".join([c.name.rjust(10) + ": " + c.description for c in commands]),
-        "||".join([c.name + " " + c.completion for c in commands]),
+        "||".join(["{} {}".format(c.name, c.args) for c in commands]),
+        "\n".join(["{}: {}".format(c.name.rjust(10), c.description) for c in commands]),
+        "||".join(["{} {}".format(c.name, c.completion) for c in commands]),
         "mattermost_command_cb",
         ""
     )
@@ -619,7 +619,7 @@ class File:
     def __init__(self, server, **kwargs):
         self.id = kwargs["id"]
         self.name = kwargs["name"]
-        self.url = server.url + "/api/v4/files/" + kwargs["id"]
+        self.url = server.url + "/api/v4/files/{}".format(kwargs["id"])
 
     def render(self):
         return "[{}] {}".format(self.name, self.url)
@@ -850,11 +850,11 @@ class Attachment:
         title = ""
         # write link as markdown link for later generic formatting
         if self.title and self.title_link:
-            title = self.title + " [](" + self.title_link + ")"
+            title = "{} []({})".format(self.title, self.title_link)
         elif self.title:
             title = self.title
         elif self.title_link:
-            title = "[](" + self.title_link + ")"
+            title = "[]({})".format(self.title_link)
 
         if title:
             att.append(colorize(format_style(title), config.color_attachment_title))
@@ -866,7 +866,7 @@ class Attachment:
             for field in self.fields:
                 field_text = ""
                 if field["title"] and field["value"]:
-                    field_text = field["title"] + ": " + field["value"]
+                    field_text = "{}: {}".format(field["title"], field["value"])
                 elif field["value"]:
                     field_text = field["value"]
 
@@ -894,7 +894,7 @@ class Attachment:
         new_text = p.sub(link_repl, text)
 
         if links:
-            return new_text + "\n" + "\n".join(links)
+            return "{}\n{}".format(new_text, "\n".join(links))
 
         return new_text
 
@@ -909,7 +909,7 @@ def post_post_cb(buffer, command, rc, out, err):
 
 def build_quote_message(message):
     if 69 < len(message):
-        message = "%s…" % message[:69].strip()
+        message = "{}…".format(message[:69].strip())
     return message
 
 def colorize(sentence, color):
@@ -1118,7 +1118,7 @@ class ChannelBase:
 
         for file in reversed(post.files):
             tags = get_line_data_tags(line_data)
-            tags.append("file_id_" + file.id)
+            tags.append("file_id_{}".format(file.id))
             weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"tags_array": ",".join(tags)})
 
             line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "prev_line")
@@ -1175,7 +1175,7 @@ class ChannelBase:
             weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": line})
 
     def edit_post(self, post):
-        tags = "post_id_%s" % post.id
+        tags = "post_id_{}".format(post.id)
 
         first_initial_line_data = find_buffer_first_post_line_data(self.buffer, post.id)
         if not first_initial_line_data:
@@ -1188,7 +1188,8 @@ class ChannelBase:
         initial_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), first_initial_line_data, "date")
         initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
 
-        full_initial_message = initial_message_prefix + "\t" + colorize(build_quote_message(format_style(initial_message)), config.color_quote)
+        quote = colorize(build_quote_message(format_style(initial_message)), config.color_quote)
+        full_initial_message = "{}\t{}".format(initial_message_prefix, quote)
         weechat.prnt_date_tags(self.buffer, initial_message_date, "notify_none", full_initial_message)
 
         new_message = format_style(post.message) + post.get_reactions_line()
@@ -1196,13 +1197,13 @@ class ChannelBase:
         if post.read:
             tags += ",notify_none"
 
-        full_message = post.build_nick() + "\t" + new_message
+        full_message = "{}\t{}".format(post.build_nick(), new_message)
         weechat.prnt_date_tags(self.buffer, post.date, tags, full_message)
 
     def write_post(self, post):
         self.posts[post.id] = post
 
-        tags = "post_id_%s" % post.id
+        tags = "post_id_{}".format(post.id)
 
         root_post = self.posts.get(post.root_id)
         if root_post:
@@ -1218,7 +1219,7 @@ class ChannelBase:
         else:
             tags += ",notify_message"
 
-        prefix = post.build_nick() + "\t"
+        prefix = "{}\t".format(post.build_nick())
         if post.type in [ "system_join_channel", "system_join_team" ]:
             prefix = weechat.prefix("join")
         elif post.type in [ "system_leave_channel", "system_leave_team" ]:
@@ -1333,12 +1334,12 @@ class ChannelBase:
     def _format_name(self, display_name, name):
         final_name = display_name
 
-        name_override = config.get_value("channel." + name);
+        name_override = config.get_value("channel.{}".format(name));
 
         if name_override:
             final_name = name_override
 
-        return config.get_value("channel_prefix_" + self.type) + final_name
+        return config.get_value("channel_prefix_{}".format(self.type)) + final_name
 
     def unload(self):
         weechat.buffer_close(self.buffer)
@@ -1359,7 +1360,7 @@ class DirectMessagesChannel(ChannelBase):
             prefix += config.channel_loading_indicator
 
         if NICK_GROUPS.get(self._status):
-            prefix += config.get_value("channel_prefix_direct_" + self._status)
+            prefix += config.get_value("channel_prefix_direct_{}".format(self._status))
         else:
             prefix += "?"
 
@@ -1593,7 +1594,7 @@ def remove_channel_user(buffer, user):
 def build_channel_name_from_channel_data(channel_data, server):
     channel_name = channel_data["name"]
     if "" != channel_data["display_name"]:
-        prefix = config.get_value("channel_prefix_" + CHANNEL_TYPES.get(channel_data["type"]))
+        prefix = config.get_value("channel_prefix_{}".format(CHANNEL_TYPES.get(channel_data["type"])))
         channel_name = prefix + channel_data["display_name"]
     else:
         match = re.match("(\w+)__(\w+)", channel_data["name"])
@@ -1631,7 +1632,7 @@ def create_channel_from_channel_data(channel_data, server):
         elif channel_data["type"] == "O":
             channel = PublicChannel(team, **channel_data)
         else:
-            server.print_error("Unknown channel type " + channel_data["type"])
+            server.print_error("Unknown channel type {}".format(channel_data["type"]))
             channel = PublicChannel(team, **channel_data)
 
         team.channels[channel.id] = channel
@@ -1727,7 +1728,7 @@ class Server:
         self.id = id
 
         if not config.is_server_valid(id):
-            raise ValueError("Invalid server id " + id)
+            raise ValueError("Invalid server id {}".format(id))
 
         self.url = config.get_server_config(id, "url").strip("/")
         self.username = config.get_server_config(id, "username")
@@ -1735,7 +1736,7 @@ class Server:
         self.command_2fa = config.get_server_config(id, "command_2fa")
 
         if not self.url or not self.username or not self.password:
-            raise ValueError("Server " + id + " is not fully configured")
+            raise ValueError("Server {} is not fully configured".format(id))
 
         self.token = ""
         self.me = None
@@ -2103,7 +2104,7 @@ def connect_server_cb(server_id, command, rc, out, err):
     server.worker = worker
     server.reconnection_loop_hook = reconnection_loop_hook
 
-    server.print("Connected to " + server_id)
+    server.print("Connected to {}".format(server_id))
 
     EVENTROUTER.enqueue_request(
         "run_get_custom_emojis",
@@ -2139,7 +2140,7 @@ def connect_server(server_id):
         weechat.prnt("", weechat.prefix("error") + str(ve))
         return weechat.WEECHAT_RC_ERROR
 
-    server.print("Connecting to " + server_id)
+    server.print("Connecting to {}".format(server_id))
 
     servers[server_id] = server
 
@@ -2237,7 +2238,7 @@ def run_get_user_teams(server, cb, cb_data):
     )
 
 def run_get_team(team_id, server, cb, cb_data):
-    url = server.url + "/api/v4/teams/" + team_id
+    url = server.url + "/api/v4/teams/{}".format(team_id)
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2250,7 +2251,7 @@ def run_get_team(team_id, server, cb, cb_data):
     )
 
 def run_get_users(server, page, cb, cb_data):
-    url = server.url + "/api/v4/users?per_page=200&page=" + str(page)
+    url = server.url + "/api/v4/users?per_page=200&page={}".format(str(page))
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2263,7 +2264,7 @@ def run_get_users(server, page, cb, cb_data):
     )
 
 def run_get_user(server, user_id, cb, cb_data):
-    url = server.url + "/api/v4/users/" + user_id
+    url = server.url + "/api/v4/users/{}".format(user_id)
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2276,7 +2277,7 @@ def run_get_user(server, user_id, cb, cb_data):
     )
 
 def run_get_custom_emojis(server, page, cb, cb_data):
-    url = server.url + "/api/v4/emoji?per_page=150&page=" + str(page)
+    url = server.url + "/api/v4/emoji?per_page=150&page={}".format(str(page))
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2329,7 +2330,7 @@ def run_user_login(server, cb, cb_data):
     )
 
 def run_get_channel(channel_id, server, cb, cb_data):
-    url = server.url + "/api/v4/channels/" + channel_id
+    url = server.url + "/api/v4/channels/{}".format(channel_id)
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2342,7 +2343,7 @@ def run_get_channel(channel_id, server, cb, cb_data):
     )
 
 def run_get_user_team_channels(team_id, server, cb, cb_data):
-    url = server.url + "/api/v4/users/me/teams/" + team_id + "/channels"
+    url = server.url + "/api/v4/users/me/teams/{}/channels".format(team_id)
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2397,7 +2398,7 @@ def run_post_command(team_id, channel_id, command, server, cb, cb_data):
     )
 
 def run_get_read_channel_posts(channel_id, server, cb, cb_data):
-    url = server.url + "/api/v4/users/me/channels/" + channel_id + "/posts/unread?limit_after=1"
+    url = server.url + "/api/v4/users/me/channels/{}/posts/unread?limit_after=1".format(channel_id)
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2410,7 +2411,7 @@ def run_get_read_channel_posts(channel_id, server, cb, cb_data):
     )
 
 def run_get_channel_posts_after(post_id, channel_id, server, cb, cb_data):
-    url = server.url + "/api/v4/channels/" + channel_id + "/posts?after=" + post_id
+    url = server.url + "/api/v4/channels/{}/posts?after={}".format(channel_id, post_id)
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2423,7 +2424,7 @@ def run_get_channel_posts_after(post_id, channel_id, server, cb, cb_data):
     )
 
 def run_get_channel_members(channel_id, server, page, cb, cb_data):
-    url = server.url + "/api/v4/channels/" + channel_id + "/members?per_page=200&page=" + str(page)
+    url = server.url + "/api/v4/channels/{}/members?per_page=200&page={}".format(channel_id, str(page))
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2436,7 +2437,7 @@ def run_get_channel_members(channel_id, server, page, cb, cb_data):
     )
 
 def run_get_user_channel_members(server, page, cb, cb_data):
-    url = server.url + "/api/v4/users/me/channel_members?pageSize=100&page=" + str(page)
+    url = server.url + "/api/v4/users/me/channel_members?pageSize=100&page={}".format(str(page))
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2502,7 +2503,7 @@ def run_post_reaction(emoji_name, post_id, server, cb, cb_data):
     )
 
 def run_delete_reaction(emoji_name, post_id, server, cb, cb_data):
-    url = server.url + "/api/v4/users/me/posts/" + post_id + "/reactions/" + emoji_name
+    url = server.url + "/api/v4/users/me/posts/{}/reactions/{}".format(post_id, emoji_name)
 
     weechat.hook_process_hashtable(
         "url:" + url,
@@ -2517,7 +2518,7 @@ def run_delete_reaction(emoji_name, post_id, server, cb, cb_data):
     )
 
 def run_delete_post(post_id, server, cb, cb_data):
-    url = server.url + "/api/v4/posts/" + post_id
+    url = server.url + "/api/v4/posts/{}".format(post_id)
 
     weechat.hook_process_hashtable(
         "url:" + url,
@@ -2532,7 +2533,7 @@ def run_delete_post(post_id, server, cb, cb_data):
     )
 
 def run_get_file(file_id, file_out_path, server, cb, cb_data):
-    url = server.url + "/api/v4/files/" + file_id
+    url = server.url + "/api/v4/files/{}".format(file_id)
 
     weechat.hook_process_hashtable(
         "url:" + url,
@@ -2810,7 +2811,7 @@ def receive_ws_callback(server_id, data):
         if data:
             message = json.loads(data.decode("utf-8"))
             if "event" in message:
-                handler_function_name = "handle_" + message["event"] + "_message"
+                handler_function_name = "handle_{}_message".format(message["event"])
                 if handler_function_name not in globals():
                     return weechat.WEECHAT_RC_OK
                 globals()[handler_function_name](server, message["data"], message["broadcast"])
