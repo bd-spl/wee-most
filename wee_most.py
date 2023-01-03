@@ -732,8 +732,6 @@ class Post:
                 message += "\n"
             message += self._build_files()
 
-        message += self.get_reactions_line()
-
         self._rendered_message = message
 
         return message
@@ -1226,7 +1224,7 @@ class ChannelBase:
         elif post.type in [ "system_leave_channel", "system_leave_team" ]:
             prefix = weechat.prefix("quit")
 
-        message = post.build_message()
+        message = post.build_message() + post.get_reactions_line()
         if post.root_id:
             message = self._get_thread_prefix(post.root_id, root=False) + message
 
