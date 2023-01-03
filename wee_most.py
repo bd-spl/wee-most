@@ -752,10 +752,10 @@ class Post:
 
         return "\n".join(files)
 
-    def get_first_line_text(self):
+    def get_first_line(self):
         return self._rendered_message.split("\n")[0]
 
-    def get_last_line_text(self):
+    def get_last_line(self):
         return self._rendered_message.split("\n")[-1]
 
     def add_reaction(self, reaction):
@@ -910,6 +910,7 @@ def post_post_cb(buffer, command, rc, out, err):
 def colorize(sentence, color):
     return "{}{}{}".format(weechat.color(color), sentence, weechat.color("reset"))
 
+# needs to be called on uncolored text
 def format_style(text):
     text = re.sub(
             r"(^| )(?:\*\*\*|___)([^*\n`]+)(?:\*\*\*|___)(?=[^\w]|$)",
@@ -1077,7 +1078,7 @@ class ChannelBase:
 
         post = self.posts[post_id]
 
-        new_message = format_style(post.get_last_line_text()) + post.render_reactions()
+        new_message = post.get_last_line() + post.render_reactions()
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
     def _update_root_post_thread_prefix(self, post_id):
@@ -1090,8 +1091,7 @@ class ChannelBase:
 
         post = self.posts[post_id]
 
-        new_message = self._render_thread_prefix(post_id, root=True)
-        new_message += format_style(post.get_first_line_text())
+        new_message = self._render_thread_prefix(post_id, root=True) + post.get_first_line()
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
     def _update_file_tags(self, post_id):
