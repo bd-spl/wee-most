@@ -907,11 +907,6 @@ def post_post_cb(buffer, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def build_quote_message(message):
-    if 69 < len(message):
-        message = "{}…".format(message[:69].strip())
-    return message
-
 def colorize(sentence, color):
     return "{}{}{}".format(weechat.color(color), sentence, weechat.color("reset"))
 
@@ -1188,7 +1183,11 @@ class ChannelBase:
         initial_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), first_initial_line_data, "date")
         initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
 
-        quote = colorize(build_quote_message(format_style(initial_message)), config.color_quote)
+        quote = initial_message
+        if 69 < len(initial_message):
+            quote = "{}…".format(initial_message[:69].strip())
+        quote = colorize((format_style(quote)), config.color_quote)
+
         full_initial_message = "{}\t{}".format(initial_message_prefix, quote)
         weechat.prnt_date_tags(self.buffer, initial_message_date, "notify_none", full_initial_message)
 
