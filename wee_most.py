@@ -1381,7 +1381,7 @@ class DirectMessagesChannel(ChannelBase):
         match = re.match("(\w+)__(\w+)", name)
 
         user = self.server.users[match.group(1)]
-        if user.username == self.server.me.username:
+        if user == self.server.me:
             user = self.server.users[match.group(2)]
 
         return user
@@ -1603,7 +1603,7 @@ def build_channel_name_from_channel_data(channel_data, server):
 
         if match:
             user = server.users[match.group(1)]
-            if user.username == server.me.username:
+            if user == server.me:
                 user = server.users[match.group(2)]
             channel_name = user.nick
 
