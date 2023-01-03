@@ -1219,6 +1219,9 @@ class ChannelBase:
         else:
             tags += ",notify_message"
 
+        if post.user == self.server.me:
+            tags += ",no_highlight"
+
         prefix = "{}\t".format(post.render_nick())
         if post.type in [ "system_join_channel", "system_join_team" ]:
             prefix = weechat.prefix("join")
