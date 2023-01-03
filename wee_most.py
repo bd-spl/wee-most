@@ -697,7 +697,7 @@ class Post:
 
         self._rendered_message = ""
 
-    def build_nick(self):
+    def render_nick(self):
         prefix_string = weechat.config_string(weechat.config_get("weechat.look.nick_prefix"))
         prefix_color = weechat.config_string(weechat.config_get("weechat.color.chat_nick_prefix"))
         prefix = colorize(prefix_string, prefix_color)
@@ -714,7 +714,7 @@ class Post:
 
         return "{}{}{}".format(prefix, nick, suffix)
 
-    def build_message(self):
+    def render_message(self):
         # remove tabs to prevent display issue on multiline messages
         # where 2 tabs at the beginning of a line results in no alignment
         tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
@@ -725,18 +725,18 @@ class Post:
         if self.attachments:
             if message:
                 message += "\n\n"
-            message += self._build_attachments()
+            message += self._render_attachments()
 
         if self.files:
             if message:
                 message += "\n"
-            message += self._build_files()
+            message += self._render_files()
 
         self._rendered_message = message
 
         return message
 
-    def _build_attachments(self):
+    def _render_attachments(self):
         atts = []
 
         for attachment in self.attachments:
@@ -744,7 +744,7 @@ class Post:
 
         return "\n\n".join(atts)
 
-    def _build_files(self):
+    def _render_files(self):
         files = []
 
         for file in self.files:
@@ -766,7 +766,7 @@ class Post:
             if r.user == reaction.user and r.emoji_name == reaction.emoji_name:
                 del self.reactions[i]
 
-    def get_reactions_line(self):
+    def render_reactions(self):
         if not self.reactions:
             return ""
 
@@ -1082,7 +1082,7 @@ class ChannelBase:
 
         post = self.posts[post_id]
 
-        new_message = format_style(post.get_last_line_text()) + post.get_reactions_line()
+        new_message = format_style(post.get_last_line_text()) + post.render_reactions()
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
     def _update_root_post_thread_prefix(self, post_id):
@@ -1095,7 +1095,7 @@ class ChannelBase:
 
         post = self.posts[post_id]
 
-        new_message = self._get_thread_prefix(post_id, root=True)
+        new_message = self._render_thread_prefix(post_id, root=True)
         new_message += format_style(post.get_first_line_text())
         weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
 
@@ -1127,7 +1127,7 @@ class ChannelBase:
             if not line or not is_post_line_data(line_data, post.id): # safeguard
                 break
 
-    def _get_thread_prefix(self, post_id, root):
+    def _render_thread_prefix(self, post_id, root):
         prefix_format = config.thread_prefix_format_root if root else config.thread_prefix_format
         prefix_color = config.color_thread_prefix_root if root else config.color_thread_prefix
 
@@ -1192,12 +1192,12 @@ class ChannelBase:
         full_initial_message = "{}\t{}".format(initial_message_prefix, quote)
         weechat.prnt_date_tags(self.buffer, initial_message_date, "notify_none", full_initial_message)
 
-        new_message = format_style(post.message) + post.get_reactions_line()
+        new_message = format_style(post.message) + post.render_reactions()
 
         if post.read:
             tags += ",notify_none"
 
-        full_message = "{}\t{}".format(post.build_nick(), new_message)
+        full_message = "{}\t{}".format(post.render_nick(), new_message)
         weechat.prnt_date_tags(self.buffer, post.date, tags, full_message)
 
     def write_post(self, post):
@@ -1219,15 +1219,15 @@ class ChannelBase:
         else:
             tags += ",notify_message"
 
-        prefix = "{}\t".format(post.build_nick())
+        prefix = "{}\t".format(post.render_nick())
         if post.type in [ "system_join_channel", "system_join_team" ]:
             prefix = weechat.prefix("join")
         elif post.type in [ "system_leave_channel", "system_leave_team" ]:
             prefix = weechat.prefix("quit")
 
-        message = post.build_message() + post.get_reactions_line()
+        message = post.render_message() + post.render_reactions()
         if post.root_id:
-            message = self._get_thread_prefix(post.root_id, root=False) + message
+            message = self._render_thread_prefix(post.root_id, root=False) + message
 
         weechat.prnt_date_tags(self.buffer, post.date, tags, prefix + message)
 
