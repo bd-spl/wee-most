@@ -697,10 +697,11 @@ class Post:
 
         self.user = server.users[kwargs["user_id"]]
 
-        self.files = []
+        self.files = {}
         if "metadata" in kwargs and "files" in kwargs["metadata"]:
             for file_data in kwargs["metadata"]["files"]:
-                self.files.append(File(server, **file_data))
+                file = File(server, **file_data)
+                self.files[file.id] = file
 
         self.reactions = []
         if "metadata" in kwargs and "reactions" in kwargs["metadata"]:
@@ -767,7 +768,7 @@ class Post:
     def _render_files(self):
         files = []
 
-        for file in self.files:
+        for file in self.files.values():
             files.append(file.render())
 
         return "\n".join(files)
@@ -1131,9 +1132,9 @@ class ChannelBase:
             line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "prev_line")
             line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
 
-        for file in reversed(post.files):
+        for file_id in reversed(post.files.keys()):
             tags = get_line_data_tags(line_data)
-            tags.append("file_id_{}".format(file.id))
+            tags.append("file_id_{}".format(file_id))
             weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"tags_array": ",".join(tags)})
 
             line = weechat.hdata_pointer(weechat.hdata_get("line"), line, "prev_line")
