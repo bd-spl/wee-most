@@ -643,7 +643,7 @@ class File:
     def __init__(self, server, **kwargs):
         self.id = kwargs["id"]
         self.name = kwargs["name"]
-        self.url = server.url + "/api/v4/files/{}".format(kwargs["id"])
+        self.url = server.url + "/api/v4/files/{}".format(self.id)
 
     def render(self):
         name = colorize(config.file_name_format.format(self.name), config.color_file_name)
@@ -703,10 +703,11 @@ class Post:
                 file = File(server, **file_data)
                 self.files[file.id] = file
 
-        self.reactions = []
+        self.reactions = {}
         if "metadata" in kwargs and "reactions" in kwargs["metadata"]:
             for reaction_data in kwargs["metadata"]["reactions"]:
-                self.reactions.append(Reaction(server, **reaction_data))
+                reaction = Reaction(server, **reaction_data)
+                self.reactions[reaction.id] = reaction
 
         self.attachments = []
         if "attachments" in kwargs["props"]:
@@ -780,16 +781,10 @@ class Post:
         return self._rendered_message.split("\n")[-1]
 
     def add_reaction(self, reaction):
-        for r in self.reactions:
-            if r.user == reaction.user and r.emoji_name == reaction.emoji_name:
-                return
-
-        self.reactions.append(reaction)
+        self.reactions[reaction.id] = reaction
 
     def remove_reaction(self, reaction):
-        for i, r in enumerate(self.reactions):
-            if r.user == reaction.user and r.emoji_name == reaction.emoji_name:
-                del self.reactions[i]
+        del self.reactions[reaction.id]
 
     def render_reactions(self):
         if not self.reactions:
@@ -801,7 +796,7 @@ class Post:
 
         if config.reaction_group:
             reactions_groups = {}
-            for r in self.reactions:
+            for r in self.reactions.values():
                 if r.emoji_name in reactions_groups:
                     reactions_groups[r.emoji_name].append(r.user)
                 else:
@@ -829,7 +824,7 @@ class Post:
                 reactions_string.append(reaction_string)
 
         else:
-            for r in self.reactions:
+            for r in self.reactions.values():
                 if r.user.username == my_username:
                     colorized_name = colorize(r.emoji_name, config.color_reaction_own)
                 else:
@@ -852,6 +847,7 @@ class Reaction:
     def __init__(self, server, **kwargs):
         self.user = server.users[kwargs["user_id"]]
         self.emoji_name = kwargs["emoji_name"]
+        self.id = "{}_{}".format(self.user, self.emoji_name)
 
 class Attachment:
     def __init__(self, **kwargs):
