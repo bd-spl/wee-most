@@ -780,6 +780,10 @@ class Post:
         return self._rendered_message.split("\n")[-1]
 
     def add_reaction(self, reaction):
+        for r in self.reactions:
+            if r.user == reaction.user and r.emoji_name == reaction.emoji_name:
+                return
+
         self.reactions.append(reaction)
 
     def remove_reaction(self, reaction):
