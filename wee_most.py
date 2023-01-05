@@ -1694,7 +1694,9 @@ def chat_line_event_cb(data, signal, hashtable):
 
     buffer = hashtable["_buffer"]
 
-    if data == "delete":
+    if data == "insert_post_id":
+        weechat.command(buffer, "/input insert \\x20{}\\x20".format(post_id))
+    elif data == "delete":
         weechat.command(buffer, "/input send /mattermost delete {}".format(post_id))
     elif data == "reply":
         weechat.command(buffer, "/cursor stop")
@@ -2890,6 +2892,7 @@ weechat.hook_timer(60 * 1000, 0, 0, "get_buffer_user_status_cb", "")
 weechat.hook_timer(60 * 1000, 0, 0, "get_direct_message_channels_user_status_cb", "")
 weechat.hook_config("irc.look.server_buffer", "config_server_buffer_cb", "")
 
+weechat.hook_hsignal("mattermost_cursor_insert_post_id", "chat_line_event_cb", "insert_post_id")
 weechat.hook_hsignal("mattermost_cursor_delete", "chat_line_event_cb", "delete")
 weechat.hook_hsignal("mattermost_cursor_reply", "chat_line_event_cb", "reply")
 weechat.hook_hsignal("mattermost_cursor_react", "chat_line_event_cb", "react")
