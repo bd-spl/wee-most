@@ -1683,14 +1683,9 @@ def buffer_switch_cb(data, signal, buffer):
 def chat_line_event_cb(data, signal, hashtable):
     tags = hashtable["_chat_line_tags"].split(",")
 
-    if data == "download":
-        file_id = find_file_id_in_tags(tags)
-        if not file_id:
-            return weechat.WEECHAT_RC_OK
-    else:
-        post_id = find_post_id_in_tags(tags)
-        if not post_id:
-            return weechat.WEECHAT_RC_OK
+    post_id = find_post_id_in_tags(tags)
+    if not post_id:
+        return weechat.WEECHAT_RC_OK
 
     buffer = hashtable["_buffer"]
 
@@ -1708,6 +1703,10 @@ def chat_line_event_cb(data, signal, hashtable):
         weechat.command(buffer, "/cursor stop")
         weechat.command(buffer, "/input insert /mattermost unreact {} :".format(post_id))
     elif data == "download":
+        file_id = find_file_id_in_tags(tags)
+        if not file_id:
+            return weechat.WEECHAT_RC_OK
+
         server = get_server_from_buffer(buffer)
         file_path = prepare_download_location(server) + "/" + file_id
         if os.path.isfile(file_path):
