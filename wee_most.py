@@ -653,7 +653,7 @@ class File:
         return "{}{}".format(name, url)
 
     def _path(self):
-        return "{}/{}".format(self.dir_path, self.id)
+        return "{}/{}".format(self.dir_path, self.name)
 
     def download_and_open(self):
         if os.path.isfile(self._path()):
