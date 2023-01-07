@@ -671,7 +671,7 @@ class File:
 
     @staticmethod
     def open(path):
-        weechat.hook_process('xdg-open "{}"'.format(path), 100, "", "")
+        weechat.hook_process('xdg-open "{}"'.format(path), 0, "", "")
 
 def file_get_cb(data, command, rc, out, err):
     server_id, file_path = data.split("|")
