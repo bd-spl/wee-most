@@ -643,26 +643,35 @@ class File:
     def __init__(self, server, **kwargs):
         self.id = kwargs["id"]
         self.name = kwargs["name"]
+        self.server = server
         self.url = server.url + "/api/v4/files/{}".format(self.id)
+        self.dir_path = os.path.expanduser(config.download_location)
 
     def render(self):
         name = colorize(config.file_name_format.format(self.name), config.color_file_name)
         url = colorize(config.file_url_format.format(self.url), config.color_file_url)
         return "{}{}".format(name, url)
 
-def prepare_download_location(server):
-    location = os.path.expanduser(config.download_location)
+    def _path(self):
+        return "{}/{}".format(self.dir_path, self.id)
 
-    if not os.path.exists(location):
-        try:
-            os.makedirs(location)
-        except:
-            server.print_error("Failed to create directory at files_download_location: {}".format(location))
+    def download_and_open(self):
+        if os.path.isfile(self._path()):
+            File.open(self._path())
+            return
 
-    return location
+        if not os.path.exists(self.dir_path):
+            try:
+                os.makedirs(self.dir_path)
+            except:
+                self.server.print_error("Failed to create directory for downloads: {}".format(self.dir_path))
+                return
 
-def open_file(file_path):
-    weechat.hook_process('xdg-open "{}"'.format(file_path), 100, "", "")
+        run_get_file(self.id, self._path(), self.server, "file_get_cb", "{}|{}".format(self.server.id, self._path()))
+
+    @staticmethod
+    def open(path):
+        weechat.hook_process('xdg-open "{}"'.format(path), 100, "", "")
 
 def file_get_cb(data, command, rc, out, err):
     server_id, file_path = data.split("|")
@@ -672,7 +681,7 @@ def file_get_cb(data, command, rc, out, err):
         server.print_error("An error occurred while downloading file")
         return weechat.WEECHAT_RC_ERROR
 
-    open_file(file_path)
+    File.open(file_path)
 
     return weechat.WEECHAT_RC_OK
 
@@ -1708,11 +1717,10 @@ def chat_line_event_cb(data, signal, hashtable):
             return weechat.WEECHAT_RC_OK
 
         server = get_server_from_buffer(buffer)
-        file_path = prepare_download_location(server) + "/" + file_id
-        if os.path.isfile(file_path):
-            open_file(file_path)
-        else:
-            run_get_file(file_id, file_path, server, "file_get_cb", "{}|{}".format(server.id, file_path))
+        channel = server.get_channel_from_buffer(buffer)
+        post = channel.posts[post_id]
+        file = post.files[file_id]
+        file.download_and_open()
 
     return weechat.WEECHAT_RC_OK
 
