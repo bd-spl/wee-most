@@ -18,8 +18,6 @@ from ssl import SSLWantReadError
 from websocket import (create_connection, WebSocketConnectionClosedException,
                        WebSocketTimeoutException, ABNF)
 
-## config
-
 class PluginConfig:
     Setting = namedtuple("Setting", ["name", "default", "description", "type"])
 
@@ -321,8 +319,6 @@ class PluginConfig:
         for s in self.general_settings:
             self._add_setting(s)
 
-## completion
-
 def load_default_emojis():
     emojis_file_path = weechat.info_get("weechat_data_dir", "") + "/wee_most_emojis"
     try:
@@ -411,8 +407,6 @@ def setup_completions():
     weechat.hook_completion("nicks", "complete @-nicks for Mattermost", "nick_completion_cb", "")
     weechat.hook_completion("emojis", "complete :emojis: for Mattermost", "emoji_completion_cb", "")
     weechat.hook_completion("mentions", "complete @-mentions for Mattermost", "mention_completion_cb", "")
-
-## commands
 
 Command = namedtuple("Command", ["name", "args", "description", "completion"])
 
@@ -637,8 +631,6 @@ def setup_commands():
         ""
     )
 
-## file
-
 class File:
     def __init__(self, server, **kwargs):
         self.id = kwargs["id"]
@@ -691,8 +683,6 @@ def find_file_id_in_tags(tags):
             return tag[8:]
 
     return None
-
-## post
 
 class Post:
     def __init__(self, server, **kwargs):
@@ -1018,8 +1008,6 @@ def find_post_id_in_tags(tags):
             return tag[8:]
 
     return None
-
-## channel
 
 CHANNEL_TYPES = {
     "D": "direct",
@@ -1734,8 +1722,6 @@ def handle_multiline_message_cb(data, modifier, buffer, string):
 
     return string
 
-## server
-
 class User:
     def __init__(self, **kwargs):
         self.id = kwargs["id"]
@@ -2205,8 +2191,6 @@ def disconnect_all():
     for server_id in servers.copy():
         disconnect_server(server_id)
 
-## http
-
 def singularity_cb(buffer, command, rc, out, err):
     server = get_server_from_buffer(buffer)
 
@@ -2593,8 +2577,6 @@ def run_get_preferences(server, cb, cb_data):
         build_buffer_cb_data(url, cb, cb_data)
     )
 
-## websocket
-
 class Worker:
     def __init__(self, server):
         self.last_ping_time = 0
@@ -2850,8 +2832,6 @@ def receive_ws_callback(server_id, data):
 
     return weechat.WEECHAT_RC_OK
 
-## globals
-
 EVENTROUTER = EventRouter()
 
 buffered_response_cb = EVENTROUTER.buffered_response_cb
@@ -2865,8 +2845,6 @@ default_emojis = []
 REQUEST_TIMEOUT_MS = 30 * 1000
 
 mentions = ["@here", "@channel", "@all"]
-
-## main
 
 WEECHAT_SCRIPT_NAME = "wee_most"
 WEECHAT_SCRIPT_DESCRIPTION = "Mattermost integration"
