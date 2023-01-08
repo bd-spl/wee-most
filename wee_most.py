@@ -1709,7 +1709,7 @@ def chat_line_event_cb(data, signal, hashtable):
     elif data == "unreact":
         weechat.command(buffer, "/cursor stop")
         weechat.command(buffer, "/input insert /mattermost unreact {} :".format(post_id))
-    elif data == "download":
+    elif data == "download" or data == "open":
         file_id = find_file_id_in_tags(tags)
         if not file_id:
             return weechat.WEECHAT_RC_OK
@@ -1718,7 +1718,11 @@ def chat_line_event_cb(data, signal, hashtable):
         channel = server.get_channel_from_buffer(buffer)
         post = channel.posts[post_id]
         file = post.files[file_id]
-        file.download(open=True)
+
+        if data == "download":
+            file.download()
+        elif data == "open":
+            file.download(temporary=True, open=True)
 
     return weechat.WEECHAT_RC_OK
 
@@ -2893,6 +2897,7 @@ weechat.hook_hsignal("mattermost_cursor_reply", "chat_line_event_cb", "reply")
 weechat.hook_hsignal("mattermost_cursor_react", "chat_line_event_cb", "react")
 weechat.hook_hsignal("mattermost_cursor_unreact", "chat_line_event_cb", "unreact")
 weechat.hook_hsignal("mattermost_cursor_download", "chat_line_event_cb", "download")
+weechat.hook_hsignal("mattermost_cursor_open", "chat_line_event_cb", "open")
 
 def shutdown_cb():
     disconnect_all()
