@@ -2899,6 +2899,15 @@ weechat.hook_hsignal("mattermost_cursor_unreact", "chat_line_event_cb", "unreact
 weechat.hook_hsignal("mattermost_cursor_file_download", "chat_line_event_cb", "file_download")
 weechat.hook_hsignal("mattermost_cursor_file_open", "chat_line_event_cb", "file_open")
 
+weechat.key_bind("cursor", {
+    "@chat(python.wee_most.*):d": "hsignal:mattermost_cursor_delete",
+    "@chat(python.wee_most.*):t": "hsignal:mattermost_cursor_reply",
+    "@chat(python.wee_most.*):r": "hsignal:mattermost_cursor_react",
+    "@chat(python.wee_most.*):u": "hsignal:mattermost_cursor_unreact",
+    "@chat(python.wee_most.*):F": "hsignal:mattermost_cursor_file_download",
+    "@chat(python.wee_most.*):f": "hsignal:mattermost_cursor_file_open",
+})
+
 def shutdown_cb():
     disconnect_all()
 
