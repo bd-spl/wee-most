@@ -8,6 +8,7 @@ import platform
 import re
 import socket
 import subprocess
+import tempfile
 import time
 import urllib.request
 import weechat
@@ -632,9 +633,12 @@ def setup_commands():
     )
 
 class File:
+    dir_path_tmp = tempfile.mkdtemp()
+
     def __init__(self, server, **kwargs):
         self.id = kwargs["id"]
         self.name = kwargs["name"]
+        self.extension = kwargs["extension"]
         self.server = server
         self.url = server.url + "/api/v4/files/{}".format(self.id)
         self.dir_path = os.path.expanduser(config.download_location)
@@ -644,22 +648,27 @@ class File:
         url = colorize(config.file_url_format.format(self.url), config.color_file_url)
         return "{}{}".format(name, url)
 
-    def _path(self):
+    def _path(self, temporary=False):
+        if temporary:
+            return "{}/{}.{}".format(self.dir_path_tmp, self.id, self.extension)
+
         return "{}/{}".format(self.dir_path, self.name)
 
-    def download(self, open=False):
-        if open and os.path.isfile(self._path()):
-            File.open(self._path())
+    def download(self, temporary=False, open=False):
+        file_path = self._path(temporary)
+
+        if open and os.path.isfile(file_path):
+            File.open(file_path)
             return
 
-        if not os.path.exists(self.dir_path):
+        if not temporary and not os.path.exists(self.dir_path):
             try:
                 os.makedirs(self.dir_path)
             except:
                 self.server.print_error("Failed to create directory for downloads: {}".format(self.dir_path))
                 return
 
-        run_get_file(self.id, self._path(), self.server, "file_get_cb", "{}|{}|{}".format(self.server.id, self._path(), open))
+        run_get_file(self.id, file_path, self.server, "file_get_cb", "{}|{}|{}".format(self.server.id, file_path, open))
 
     @staticmethod
     def open(path):
