@@ -647,8 +647,8 @@ class File:
     def _path(self):
         return "{}/{}".format(self.dir_path, self.name)
 
-    def download_and_open(self):
-        if os.path.isfile(self._path()):
+    def download(self, open=False):
+        if open and os.path.isfile(self._path()):
             File.open(self._path())
             return
 
@@ -659,21 +659,22 @@ class File:
                 self.server.print_error("Failed to create directory for downloads: {}".format(self.dir_path))
                 return
 
-        run_get_file(self.id, self._path(), self.server, "file_get_cb", "{}|{}".format(self.server.id, self._path()))
+        run_get_file(self.id, self._path(), self.server, "file_get_cb", "{}|{}|{}".format(self.server.id, self._path(), open))
 
     @staticmethod
     def open(path):
         weechat.hook_process('xdg-open "{}"'.format(path), 0, "", "")
 
 def file_get_cb(data, command, rc, out, err):
-    server_id, file_path = data.split("|")
+    server_id, file_path, open = data.split("|")
     server = servers[server_id]
 
     if rc != 0:
         server.print_error("An error occurred while downloading file")
         return weechat.WEECHAT_RC_ERROR
 
-    File.open(file_path)
+    if open:
+        File.open(file_path)
 
     return weechat.WEECHAT_RC_OK
 
@@ -1708,7 +1709,7 @@ def chat_line_event_cb(data, signal, hashtable):
         channel = server.get_channel_from_buffer(buffer)
         post = channel.posts[post_id]
         file = post.files[file_id]
-        file.download_and_open()
+        file.download(open=True)
 
     return weechat.WEECHAT_RC_OK
 
