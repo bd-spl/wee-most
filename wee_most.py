@@ -1678,7 +1678,7 @@ def set_channel_properties_from_channel_data(channel_data, server):
 def buffer_switch_cb(data, signal, buffer):
     for server in servers.values():
         channel = server.get_channel_from_buffer(buffer)
-        if channel:
+        if channel and channel.users:
             channel.mark_as_read()
             EVENTROUTER.enqueue_request(
                 "run_post_users_status_ids",
@@ -1961,7 +1961,7 @@ def get_buffer_user_status_cb(data, remaining_calls):
 
     for server in servers.values():
         channel = server.get_channel_from_buffer(buffer)
-        if channel:
+        if channel and channel.users:
             EVENTROUTER.enqueue_request(
                 "run_post_users_status_ids",
                 list(channel.users.keys()), server, "hydrate_channel_users_status_cb", "{}|{}".format(server.id, channel.id)
