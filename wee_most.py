@@ -6,6 +6,7 @@ import json
 import os
 import platform
 import re
+import shutil
 import socket
 import subprocess
 import tempfile
@@ -2910,5 +2911,10 @@ weechat.key_bind("cursor", {
 
 def shutdown_cb():
     disconnect_all()
+
+    try:
+        shutil.rmtree(File.dir_path_tmp)
+    except:
+        weechat.prnt("", weechat.prefix("error") + "Failed to remove temporary directory for files")
 
     return weechat.WEECHAT_RC_OK
