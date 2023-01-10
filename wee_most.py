@@ -181,9 +181,21 @@ class PluginConfig:
             type = "string",
         ),
         Setting(
+            name = "deleted_suffix",
+            default = "(deleted)",
+            description = "The suffix for deleted posts",
+            type = "string",
+        ),
+        Setting(
             name = "download_location",
             default = os.environ.get("XDG_DOWNLOAD_DIR", "~/Downloads") + "/wee_most",
             description = "Location for storing downloaded files",
+            type = "string",
+        ),
+        Setting(
+            name = "edited_suffix",
+            default = "(edited)",
+            description = "The suffix for edited posts",
             type = "string",
         ),
         Setting(
@@ -238,6 +250,12 @@ class PluginConfig:
             name = "thread_prefix_suffix",
             default = "",
             description = "String displayed after the thread prefix, if empty uses value from weechat.look.prefix_suffix",
+            type = "string",
+        ),
+        Setting(
+            name = "truncated_suffix",
+            default = "[...]",
+            description = "The suffix for truncated edited posts",
             type = "string",
         ),
     ]
@@ -778,7 +796,7 @@ class Post:
             lines = main_text.split("\n")
             if len(lines) > maxLines:
                 lines = lines[0: maxLines]
-                lines[maxLines - 1] += " {}".format(colorize("[...]", config.color_truncated_suffix))
+                lines[maxLines - 1] += " {}".format(colorize(config.truncated_suffix, config.color_truncated_suffix))
             main_text = "\n".join(lines)
 
         message = format_style(main_text) + message
@@ -1195,7 +1213,7 @@ class ChannelBase:
             return
 
         lines = [""] * len(pointers)
-        lines[0] = colorize("(deleted)", config.color_deleted)
+        lines[0] = colorize(config.deleted_suffix, config.color_deleted)
 
         self._update_post(pointers, lines)
 
@@ -1207,7 +1225,7 @@ class ChannelBase:
         message = post.render_message(maxLines=len(pointers)) + post.render_reactions()
         if post.root_id:
             message = self._render_thread_prefix(post.root_id, root=False) + message
-        message += " {}".format(colorize("(edited)", config.color_edited_suffix))
+        message += " {}".format(colorize(config.edited_suffix, config.color_edited_suffix))
 
         lines = message.split("\n")
 
