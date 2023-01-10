@@ -139,12 +139,6 @@ class PluginConfig:
             type = "string",
         ),
         Setting(
-            name = "color_quote",
-            default = "yellow",
-            description = "Color for quoted messages",
-            type = "string",
-        ),
-        Setting(
             name = "color_reaction",
             default = "darkgray",
             description = "Color for the messages reactions",
@@ -746,23 +740,36 @@ class Post:
 
         return "{}{}{}".format(prefix, nick, suffix)
 
-    def render_message(self):
-        # remove tabs to prevent display issue on multiline messages
-        # where 2 tabs at the beginning of a line results in no alignment
-        tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
-        message = self.message.replace("\t", " " * tab_width)
+    def render_message(self, maxLines=None):
+        # we assume maxLines is big enough to contains the files and attachments lines
+        # it is only used when editing a post and those items can't be modified
+        # so there should at least be space for them from the initial write
 
-        message = format_style(message)
+        message = ""
 
         if self.attachments:
-            if message:
+            if self.message:
                 message += "\n\n"
             message += self._render_attachments()
 
         if self.files:
-            if message:
+            if self.message:
                 message += "\n"
             message += self._render_files()
+
+        # remove tabs to prevent display issue on multiline messages
+        # where 2 tabs at the beginning of a line results in no alignment
+        tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
+        main_text = self.message.replace("\t", " " * tab_width)
+
+        if maxLines:
+            lines = main_text.split("\n")
+            if len(lines) > maxLines:
+                lines = lines[0: maxLines]
+                lines[maxLines - 1] += " [...]"
+            main_text = "\n".join(lines)
+
+        message = format_style(main_text) + message
 
         self._rendered_message = message
 
@@ -1171,6 +1178,34 @@ class ChannelBase:
     def remove_post(self, post_id):
         del self.posts[post_id]
 
+        pointers = self._get_lines_pointers(post_id)
+        if not pointers:
+            return
+
+        lines = [""] * len(pointers)
+        lines[0] = colorize("(deleted)", config.color_deleted)
+
+        self._update_post(pointers, lines)
+
+    def edit_post(self, post):
+        pointers = self._get_lines_pointers(post.id)
+        if not pointers:
+            return
+
+        message = post.render_message(maxLines=len(pointers)) + post.render_reactions()
+        if post.root_id:
+            message = self._render_thread_prefix(post.root_id, root=False) + message
+        message += " (edited)"
+
+        lines = message.split("\n")
+
+        if len(lines) < len(pointers):
+            # new message is shorter, just add blank lines
+            lines += [""] * (len(pointers) - len(lines))
+
+        self._update_post(pointers, lines)
+
+    def _get_lines_pointers(self, post_id):
         lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), self.buffer, "lines")
         line = weechat.hdata_pointer(weechat.hdata_get("lines"), lines, "last_line")
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
@@ -1188,45 +1223,12 @@ class ChannelBase:
             line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
         pointers.reverse()
 
-        if not pointers:
-            return
+        return pointers
 
-        lines = [""] * len(pointers)
-        lines[0] = colorize("(deleted)", config.color_deleted)
-
+    def _update_post(self, pointers, lines):
         for pointer, line in zip(pointers, lines):
             line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
             weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": line})
-
-    def edit_post(self, post):
-        tags = "post_id_{}".format(post.id)
-
-        first_initial_line_data = find_buffer_first_post_line_data(self.buffer, post.id)
-        if not first_initial_line_data:
-            return
-
-        initial_tags = get_line_data_tags(first_initial_line_data)
-        initial_post_id = find_post_id_in_tags(initial_tags)
-
-        initial_message = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "message")
-        initial_message_date = weechat.hdata_time(weechat.hdata_get("line_data"), first_initial_line_data, "date")
-        initial_message_prefix = weechat.hdata_string(weechat.hdata_get("line_data"), first_initial_line_data, "prefix")
-
-        quote = initial_message
-        if 69 < len(initial_message):
-            quote = "{}…".format(initial_message[:69].strip())
-        quote = colorize((format_style(quote)), config.color_quote)
-
-        full_initial_message = "{}\t{}".format(initial_message_prefix, quote)
-        weechat.prnt_date_tags(self.buffer, initial_message_date, "notify_none", full_initial_message)
-
-        new_message = format_style(post.message) + post.render_reactions()
-
-        if post.read:
-            tags += ",notify_none"
-
-        full_message = "{}\t{}".format(post.render_nick(), new_message)
-        weechat.prnt_date_tags(self.buffer, post.date, tags, full_message)
 
     def write_post(self, post):
         self.posts[post.id] = post
