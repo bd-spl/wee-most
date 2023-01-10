@@ -127,6 +127,12 @@ class PluginConfig:
             type = "string",
         ),
         Setting(
+            name = "color_edited_suffix",
+            default = "magenta",
+            description = "Color for edited suffix on edited posts",
+            type = "string",
+        ),
+        Setting(
             name = "color_file_name",
             default = "*",
             description = "Color for the name part of a file",
@@ -166,6 +172,12 @@ class PluginConfig:
             name = "color_thread_prefix_suffix",
             default = "",
             description = "Color for the thread prefix suffix, if empty uses value from weechat.color.chat_prefix_suffix",
+            type = "string",
+        ),
+        Setting(
+            name = "color_truncated_suffix",
+            default = "yellow",
+            description = "Color for truncated suffix on edited posts",
             type = "string",
         ),
         Setting(
@@ -766,7 +778,7 @@ class Post:
             lines = main_text.split("\n")
             if len(lines) > maxLines:
                 lines = lines[0: maxLines]
-                lines[maxLines - 1] += " [...]"
+                lines[maxLines - 1] += " {}".format(colorize("[...]", config.color_truncated_suffix))
             main_text = "\n".join(lines)
 
         message = format_style(main_text) + message
@@ -1195,7 +1207,7 @@ class ChannelBase:
         message = post.render_message(maxLines=len(pointers)) + post.render_reactions()
         if post.root_id:
             message = self._render_thread_prefix(post.root_id, root=False) + message
-        message += " (edited)"
+        message += " {}".format(colorize("(edited)", config.color_edited_suffix))
 
         lines = message.split("\n")
 
