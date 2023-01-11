@@ -890,6 +890,15 @@ class Post:
 
         return " [{}]".format(" ".join(reactions_string))
 
+    def open(self):
+        if hasattr(self.channel, 'team'):
+            team_name = self.channel.team.name
+        else:
+            team_name = list(self.channel.server.teams.values())[0].name
+
+        url = self.channel.server.url + "/{}/pl/{}".format(team_name, self.id)
+        weechat.hook_process('xdg-open "{}"'.format(url), 0, "", "")
+
 class Reaction:
     def __init__(self, server, **kwargs):
         self.user = server.users[kwargs["user_id"]]
@@ -1742,6 +1751,14 @@ def chat_line_event_cb(data, signal, hashtable):
     elif data == "unreact":
         weechat.command(buffer, "/cursor stop")
         weechat.command(buffer, "/input insert /mattermost unreact {} :".format(post_id))
+    elif data == "post_open":
+        weechat.command(buffer, "/cursor stop")
+
+        server = get_server_from_buffer(buffer)
+        channel = server.get_channel_from_buffer(buffer)
+        post = channel.posts[post_id]
+        post.open()
+
     elif data.startswith("file_"):
         file_id = find_file_id_in_tags(tags)
         if not file_id:
@@ -1944,7 +1961,8 @@ class Team:
     def __init__(self, server, **kwargs):
         self.server = server
         self.id = kwargs["id"]
-        self.name = kwargs["display_name"]
+        self.name = kwargs["name"]
+        self.display_name= kwargs["display_name"]
         self.buffer = None
         self.channels = {}
 
@@ -1953,10 +1971,10 @@ class Team:
     def _create_buffer(self):
         parent_buffer_name = weechat.buffer_get_string(self.server.buffer, "name")[:-1]
         # use "*" character so that the buffer is unique and gets sorted before all team buffers
-        buffer_name = "{}.{}*".format(parent_buffer_name, self.name)
+        buffer_name = "{}.{}*".format(parent_buffer_name, self.display_name)
         self.buffer = weechat.buffer_new(buffer_name, "", "", "", "")
 
-        weechat.buffer_set(self.buffer, "short_name", self.name)
+        weechat.buffer_set(self.buffer, "short_name", self.display_name)
         weechat.buffer_set(self.buffer, "localvar_set_server_id", self.server.id)
         weechat.buffer_set(self.buffer, "localvar_set_type", "server")
 
@@ -2931,6 +2949,7 @@ weechat.hook_hsignal("mattermost_cursor_react", "chat_line_event_cb", "react")
 weechat.hook_hsignal("mattermost_cursor_unreact", "chat_line_event_cb", "unreact")
 weechat.hook_hsignal("mattermost_cursor_file_download", "chat_line_event_cb", "file_download")
 weechat.hook_hsignal("mattermost_cursor_file_open", "chat_line_event_cb", "file_open")
+weechat.hook_hsignal("mattermost_cursor_post_open", "chat_line_event_cb", "post_open")
 
 weechat.key_bind("cursor", {
     "@chat(python.wee_most.*):d": "hsignal:mattermost_cursor_delete",
@@ -2939,6 +2958,7 @@ weechat.key_bind("cursor", {
     "@chat(python.wee_most.*):u": "hsignal:mattermost_cursor_unreact",
     "@chat(python.wee_most.*):F": "hsignal:mattermost_cursor_file_download",
     "@chat(python.wee_most.*):f": "hsignal:mattermost_cursor_file_open",
+    "@chat(python.wee_most.*):o": "hsignal:mattermost_cursor_post_open",
 })
 
 def shutdown_cb():
