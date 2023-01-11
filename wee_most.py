@@ -1227,6 +1227,8 @@ class ChannelBase:
         self._update_post(pointers, lines)
 
     def edit_post(self, post):
+        self.posts[post.id] = post
+
         pointers = self._get_lines_pointers(post.id)
         if not pointers:
             return
