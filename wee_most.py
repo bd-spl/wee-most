@@ -1211,7 +1211,7 @@ class ChannelBase:
 
         for pointer, line in zip(pointers, lines):
             line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
-            weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": line})
+            weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": line, "tags_array":""})
 
     def edit_post(self, post):
         post.edited = True
