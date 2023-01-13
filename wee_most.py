@@ -693,7 +693,7 @@ class File:
                 self.server.print_error("Failed to create directory for downloads: {}".format(self.dir_path))
                 return
 
-        run_get_file(self.id, file_path, self.server, "file_get_cb", "{}|{}|{}".format(self.server.id, file_path, open))
+        run_get_file(self.id, file_path, self.server, "file_get_cb", "{}|{}|{}".format(self.server.id, file_path, int(open)))
 
     @staticmethod
     def open(path):
@@ -707,7 +707,7 @@ def file_get_cb(data, command, rc, out, err):
         server.print_error("An error occurred while downloading file")
         return weechat.WEECHAT_RC_ERROR
 
-    if open:
+    if open == "1":
         File.open(file_path)
 
     return weechat.WEECHAT_RC_OK
