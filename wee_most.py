@@ -1141,6 +1141,12 @@ class ChannelBase:
             self.id, self.server, 0, "hydrate_channel_users_cb", "{}|{}|0".format(self.server.id, self.id)
         )
 
+    def update_properties(self, channel_data):
+        self.name = self._format_name(channel_data["display_name"], channel_data["name"])
+        self.title = channel_data["header"]
+        weechat.buffer_set(self.buffer, "short_name", self.name)
+        weechat.buffer_set(self.buffer, "title", self.title)
+
     def _update_root_post_thread_prefix(self, post_id):
         if post_id not in self.posts:
             return
@@ -1654,22 +1660,6 @@ def remove_channel_user(buffer, user):
     nick = weechat.nicklist_search_nick(buffer, "", user.nick)
     weechat.nicklist_remove_nick(buffer, nick)
 
-def build_channel_name_from_channel_data(channel_data, server):
-    channel_name = channel_data["name"]
-    if "" != channel_data["display_name"]:
-        prefix = config.get_value("channel_prefix_{}".format(CHANNEL_TYPES.get(channel_data["type"])))
-        channel_name = prefix + channel_data["display_name"]
-    else:
-        match = re.match("(\w+)__(\w+)", channel_data["name"])
-
-        if match:
-            user = server.users[match.group(1)]
-            if user == server.me:
-                user = server.users[match.group(2)]
-            channel_name = user.nick
-
-    return channel_name
-
 def create_channel_from_channel_data(channel_data, server):
     if channel_data["type"] == "D":
         if channel_data["last_post_at"] == 0:
@@ -1699,13 +1689,6 @@ def create_channel_from_channel_data(channel_data, server):
             channel = PublicChannel(team, **channel_data)
 
         team.channels[channel.id] = channel
-
-def set_channel_properties_from_channel_data(channel_data, server):
-    buffer = server.get_channel(channel_data["id"]).buffer
-
-    channel_name = build_channel_name_from_channel_data(channel_data, server)
-    weechat.buffer_set(buffer, "short_name", channel_name)
-    weechat.buffer_set(buffer, "title", channel_data["header"])
 
 def buffer_switch_cb(data, signal, buffer):
     for server in servers.values():
@@ -2786,7 +2769,10 @@ def handle_channel_member_updated_message(server, data, broadcast):
 
 def handle_channel_updated_message(server, data, broadcast):
     channel_data = json.loads(data["channel"])
-    set_channel_properties_from_channel_data(channel_data, server)
+    channel = server.get_channel(channel_data["id"])
+    if not channel:
+        return
+    channel.update_properties(channel_data)
 
 def handle_channel_viewed_message(server, data, broadcast):
     channel = server.get_channel(data["channel_id"])
