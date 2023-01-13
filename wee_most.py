@@ -728,6 +728,7 @@ class Post:
         self.type = kwargs["type"]
         self.date = int(kwargs["create_at"]/1000)
         self.read = False
+        self.edited = False
 
         self.user = server.users[kwargs["user_id"]]
 
@@ -823,9 +824,6 @@ class Post:
 
     def get_first_line(self):
         return self._rendered_message.split("\n")[0]
-
-    def get_last_line(self):
-        return self._rendered_message.split("\n")[-1]
 
     def add_reaction(self, reaction):
         self.reactions[reaction.id] = reaction
@@ -1143,19 +1141,6 @@ class ChannelBase:
             self.id, self.server, 0, "hydrate_channel_users_cb", "{}|{}|0".format(self.server.id, self.id)
         )
 
-    def update_post_reactions(self, post_id):
-        if post_id not in self.posts:
-            return
-
-        line_data = find_buffer_last_post_line_data(self.buffer, post_id)
-        if not line_data:
-            return
-
-        post = self.posts[post_id]
-
-        new_message = post.get_last_line() + post.render_reactions()
-        weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
-
     def _update_root_post_thread_prefix(self, post_id):
         if post_id not in self.posts:
             return
@@ -1224,11 +1209,16 @@ class ChannelBase:
         lines = [""] * len(pointers)
         lines[0] = colorize(config.deleted_suffix, config.color_deleted)
 
-        self._update_post(pointers, lines)
+        for pointer, line in zip(pointers, lines):
+            line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
+            weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": line})
 
     def edit_post(self, post):
+        post.edited = True
         self.posts[post.id] = post
+        self.update_post(post)
 
+    def update_post(self, post):
         pointers = self._get_lines_pointers(post.id)
         if not pointers:
             return
@@ -1236,7 +1226,9 @@ class ChannelBase:
         message = post.render_message(maxLines=len(pointers)) + post.render_reactions()
         if post.root_id:
             message = self._render_thread_prefix(post.root_id, root=False) + message
-        message += " {}".format(colorize(config.edited_suffix, config.color_edited_suffix))
+
+        if post.edited:
+            message += " {}".format(colorize(config.edited_suffix, config.color_edited_suffix))
 
         lines = message.split("\n")
 
@@ -1244,7 +1236,9 @@ class ChannelBase:
             # new message is shorter, just add blank lines
             lines += [""] * (len(pointers) - len(lines))
 
-        self._update_post(pointers, lines)
+        for pointer, line in zip(pointers, lines):
+            line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
+            weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": line})
 
     def _get_lines_pointers(self, post_id):
         lines = weechat.hdata_pointer(weechat.hdata_get("buffer"), self.buffer, "lines")
@@ -1265,11 +1259,6 @@ class ChannelBase:
         pointers.reverse()
 
         return pointers
-
-    def _update_post(self, pointers, lines):
-        for pointer, line in zip(pointers, lines):
-            line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
-            weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": line})
 
     def write_post(self, post):
         self.posts[post.id] = post
@@ -2757,7 +2746,7 @@ def handle_reaction_added_message(server, data, broadcast):
 
     post = channel.posts[reaction_data["post_id"]]
     post.add_reaction(Reaction(server, **reaction_data))
-    channel.update_post_reactions(post.id)
+    channel.update_post(post)
 
 def handle_reaction_removed_message(server, data, broadcast):
     reaction_data = json.loads(data["reaction"])
@@ -2768,7 +2757,7 @@ def handle_reaction_removed_message(server, data, broadcast):
 
     post = channel.posts[reaction_data["post_id"]]
     post.remove_reaction(Reaction(server, **reaction_data))
-    channel.update_post_reactions(post.id)
+    channel.update_post(post)
 
 def handle_post_edited_message(server, data, broadcast):
     post_data = json.loads(data["post"])
