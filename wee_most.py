@@ -97,12 +97,6 @@ class PluginConfig:
             type = "string",
         ),
         Setting(
-            name = "color_attachment_link",
-            default = "/gray",
-            description = "Color for the message attachment links",
-            type = "string",
-        ),
-        Setting(
             name = "color_attachment_title",
             default = "*",
             description = "Color for the message attachment title",
@@ -154,6 +148,12 @@ class PluginConfig:
             name = "color_reaction_own",
             default = "gray",
             description = "Color for the messages reactions you have added",
+            type = "string",
+        ),
+        Setting(
+            name = "color_reference_link",
+            default = "/gray",
+            description = "Color for the reference-style links",
             type = "string",
         ),
         Setting(
@@ -793,6 +793,8 @@ class Post:
         tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
         main_text = self.message.replace("\t", " " * tab_width)
 
+        main_text = format_markdown_links(main_text)
+
         if maxLines:
             lines = main_text.split("\n")
             if len(lines) > maxLines:
@@ -951,27 +953,7 @@ class Attachment:
         if self.footer:
             att.append(self.footer)
 
-        return self._format_markdown_links("\n".join(att))
-
-    def _format_markdown_links(self, text):
-        links = []
-
-        def link_repl(match):
-            nonlocal links
-            text, url = match.groups()
-            counter = len(links) + 1
-            links.append(colorize("[{}] {}".format(counter, url), config.color_attachment_link))
-            if text:
-                return "{} [{}]".format(text, counter)
-            return "[{}]".format(counter)
-
-        p = re.compile('\[([^]]*)\]\(([^\)*]*)\)')
-        new_text = p.sub(link_repl, text)
-
-        if links:
-            return "{}\n{}".format(new_text, "\n".join(links))
-
-        return new_text
+        return format_markdown_links("\n".join(att))
 
 def post_post_cb(buffer, command, rc, out, err):
     server = get_server_from_buffer(buffer)
@@ -1012,6 +994,26 @@ def format_style(text):
             flags=re.MULTILINE,
             )
     return text
+
+def format_markdown_links(text):
+    links = []
+
+    def link_repl(match):
+        nonlocal links
+        text, url = match.groups()
+        counter = len(links) + 1
+        links.append(colorize("[{}] {}".format(counter, url), config.color_reference_link))
+        if text:
+            return "{} [{}]".format(text, counter)
+        return "[{}]".format(counter)
+
+    p = re.compile('\[([^]]*)\]\(([^\)*]*)\)')
+    new_text = p.sub(link_repl, text)
+
+    if links:
+        return "{}\n{}".format(new_text, "\n".join(links))
+
+    return new_text
 
 def get_line_data_tags(line_data):
     tags = []
