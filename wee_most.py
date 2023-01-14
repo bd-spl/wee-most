@@ -1002,9 +1002,9 @@ def format_markdown_links(text):
         nonlocal links
         text, url = match.groups()
         counter = len(links) + 1
-        links.append(colorize("[{}] {}".format(counter, url), config.color_reference_link))
+        links.append(colorize("[{}]: {}".format(counter, url), config.color_reference_link))
         if text:
-            return "{} [{}]".format(text, counter)
+            return "[{}] [{}]".format(text, counter)
         return "[{}]".format(counter)
 
     p = re.compile('\[([^]]*)\]\(([^\)*]*)\)')
