@@ -729,6 +729,7 @@ class Post:
         self.date = int(kwargs["create_at"]/1000)
         self.read = False
         self.edited = False
+        self.thread_root = False
 
         self.user = server.users[kwargs["user_id"]]
 
@@ -751,8 +752,6 @@ class Post:
 
         self.from_bot = kwargs["props"].get("from_bot", False) or kwargs["props"].get("from_webhook", False)
         self.username_override = kwargs["props"].get("override_username")
-
-        self._rendered_message = ""
 
     def render_nick(self):
         prefix_string = weechat.config_string(weechat.config_get("weechat.look.nick_prefix"))
@@ -804,8 +803,6 @@ class Post:
 
         message = format_style(main_text) + message
 
-        self._rendered_message = message
-
         return message
 
     def _render_attachments(self):
@@ -823,9 +820,6 @@ class Post:
             files.append(file.render())
 
         return "\n".join(files)
-
-    def get_first_line(self):
-        return self._rendered_message.split("\n")[0]
 
     def add_reaction(self, reaction):
         self.reactions[reaction.id] = reaction
@@ -1149,19 +1143,6 @@ class ChannelBase:
         weechat.buffer_set(self.buffer, "short_name", self.name)
         weechat.buffer_set(self.buffer, "title", self.title)
 
-    def _update_root_post_thread_prefix(self, post_id):
-        if post_id not in self.posts:
-            return
-
-        line_data = find_buffer_first_post_line_data(self.buffer, post_id)
-        if not line_data:
-            return
-
-        post = self.posts[post_id]
-
-        new_message = self._render_thread_prefix(post_id, root=True) + post.get_first_line()
-        weechat.hdata_update(weechat.hdata_get("line_data"), line_data, {"message": new_message})
-
     def _update_file_tags(self, post_id):
         if post_id not in self.posts:
             return
@@ -1190,7 +1171,7 @@ class ChannelBase:
             if not line or not is_post_line_data(line_data, post.id): # safeguard
                 break
 
-    def _render_thread_prefix(self, post_id, root):
+    def _prefix_thread_message(self, message, post_id, root):
         prefix_format = config.thread_prefix_format_root if root else config.thread_prefix_format
         prefix_color = config.color_thread_prefix_root if root else config.color_thread_prefix
 
@@ -1202,10 +1183,17 @@ class ChannelBase:
 
         suffix_string = config.thread_prefix_suffix or weechat.config_string(weechat.config_get("weechat.look.prefix_suffix"))
         suffix_color = config.color_thread_prefix_suffix or weechat.config_string(weechat.config_get("weechat.color.chat_prefix_suffix"))
-
         suffix = colorize(suffix_string, suffix_color)
-        prefix = colorize(prefix_format.format(post_id[:3]), prefix_color)
-        return "{} {} ".format(prefix, suffix)
+
+        prefix = prefix_format.format(post_id[:3])
+        prefix_empty = "{} {} ".format(" " * len(prefix), suffix)
+        prefix = colorize(prefix, prefix_color)
+        prefix_full = "{} {} ".format(prefix, suffix)
+
+        lines = message.split("\n")
+        lines = [ prefix_full + lines[0] ] + [ prefix_empty + l for l in lines[1:] ]
+
+        return "\n".join(lines)
 
     def remove_post(self, post_id):
         del self.posts[post_id]
@@ -1232,8 +1220,11 @@ class ChannelBase:
             return
 
         message = post.render_message(maxLines=len(pointers)) + post.render_reactions()
+
         if post.root_id:
-            message = self._render_thread_prefix(post.root_id, root=False) + message
+            message = self._prefix_thread_message(message, post.root_id, root=False)
+        elif post.thread_root:
+            message = self._prefix_thread_message(message, post.id, root=True)
 
         if post.edited:
             message += " {}".format(colorize(config.edited_suffix, config.color_edited_suffix))
@@ -1275,7 +1266,8 @@ class ChannelBase:
 
         root_post = self.posts.get(post.root_id)
         if root_post:
-            self._update_root_post_thread_prefix(root_post.id)
+            root_post.thread_root = True
+            self.update_post(root_post)
 
         if post.read:
             tags += ",notify_none"
@@ -1298,7 +1290,7 @@ class ChannelBase:
 
         message = post.render_message() + post.render_reactions()
         if post.root_id:
-            message = self._render_thread_prefix(post.root_id, root=False) + message
+            message = self._prefix_thread_message(message, post.root_id, root=False)
 
         weechat.prnt_date_tags(self.buffer, post.date, tags, prefix + message)
 
