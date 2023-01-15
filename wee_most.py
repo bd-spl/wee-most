@@ -800,9 +800,9 @@ class Post:
             main_text = "\n".join(lines)
 
         full_text = main_text
-        full_text += "\n\n" if attachments_text and main_text else ""
+        full_text += "\n\n" if attachments_text and full_text else ""
         full_text += attachments_text
-        full_text += "\n" if files_text and main_text else ""
+        full_text += "\n" if files_text and full_text else ""
         full_text += files_text
 
         return format_style(full_text)
