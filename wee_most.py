@@ -728,7 +728,7 @@ class Post:
         self.type = kwargs["type"]
         self.date = int(kwargs["create_at"]/1000)
         self.read = False
-        self.edited = False
+        self.edited = kwargs["edit_at"] != 0
         self.thread_root = False
 
         self.user = server.users[kwargs["user_id"]]
