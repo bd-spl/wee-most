@@ -799,11 +799,17 @@ class Post:
                 lines += [""] * (main_text_lines_count - len(lines))
             main_text = "\n".join(lines)
 
+        if self.edited and main_text:
+            main_text += " {}".format(colorize(config.edited_suffix, config.color_edited_suffix))
+
         full_text = main_text
         full_text += "\n\n" if attachments_text and full_text else ""
         full_text += attachments_text
         full_text += "\n" if files_text and full_text else ""
         full_text += files_text
+
+        if self.edited and not main_text:
+            full_text += " {}".format(colorize(config.edited_suffix, config.color_edited_suffix))
 
         return format_style(full_text)
 
@@ -1211,9 +1217,6 @@ class ChannelBase:
             message = self._prefix_thread_message(message, post.root_id, root=False)
         elif post.thread_root:
             message = self._prefix_thread_message(message, post.id, root=True)
-
-        if post.edited:
-            message += " {}".format(colorize(config.edited_suffix, config.color_edited_suffix))
 
         lines = message.split("\n")
 
