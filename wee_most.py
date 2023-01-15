@@ -770,11 +770,7 @@ class Post:
 
         return "{}{}{}".format(prefix, nick, suffix)
 
-    def render_message(self, maxLines=None):
-        # we assume maxLines is big enough to contains the files and attachments lines
-        # it is only used when editing a post and those items can't be modified
-        # so there should at least be space for them from the initial write
-
+    def render_message(self, lines_count=None):
         message = ""
 
         if self.attachments:
@@ -794,11 +790,21 @@ class Post:
 
         main_text = format_markdown_links(main_text)
 
-        if maxLines:
+        if lines_count:
+            # we assume lines_count is big enough to contains the files and attachments lines
+            # it is only used when editing a post and those items can't be modified
+            # so there should at least be space for them from the initial write
+            main_text_lines_count = lines_count - len(message.split("\n")) + 1
+
             lines = main_text.split("\n")
-            if len(lines) > maxLines:
-                lines = lines[0: maxLines]
-                lines[maxLines - 1] += " {}".format(colorize(config.truncated_suffix, config.color_truncated_suffix))
+            if len(lines) > main_text_lines_count:
+                # new message is longer, truncate from max line
+                lines = lines[0: main_text_lines_count]
+                lines[-1] += " {}".format(colorize(config.truncated_suffix, config.color_truncated_suffix))
+            elif len(lines) < main_text_lines_count:
+                # new message is shorter, just add blank lines to keep files tags on the same line
+                lines += [""] * (main_text_lines_count - len(lines))
+
             main_text = "\n".join(lines)
 
         return format_style(main_text + message)
@@ -1217,7 +1223,7 @@ class ChannelBase:
         if not pointers:
             return
 
-        message = post.render_message(maxLines=len(pointers)) + post.render_reactions()
+        message = post.render_message(lines_count=len(pointers)) + post.render_reactions()
 
         if post.root_id:
             message = self._prefix_thread_message(message, post.root_id, root=False)
@@ -1228,10 +1234,6 @@ class ChannelBase:
             message += " {}".format(colorize(config.edited_suffix, config.color_edited_suffix))
 
         lines = message.split("\n")
-
-        if len(lines) < len(pointers):
-            # new message is shorter, just add blank lines
-            lines += [""] * (len(pointers) - len(lines))
 
         for pointer, line in zip(pointers, lines):
             line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
