@@ -770,33 +770,26 @@ class Post:
 
         return "{}{}{}".format(prefix, nick, suffix)
 
+    # we assume lines_count is big enough to contains the files and attachments lines
+    # it is only used when editing a post and those items can't be modified
+    # so there should at least be space for them from the initial write
     def render_message(self, lines_count=None):
-        message = ""
-
-        if self.attachments:
-            if self.message:
-                message += "\n\n"
-            message += self._render_attachments()
-
-        if self.files:
-            if self.message:
-                message += "\n"
-            message += self._render_files()
-
         # remove tabs to prevent display issue on multiline messages
         # where 2 tabs at the beginning of a line results in no alignment
         tab_width = weechat.config_integer(weechat.config_get("weechat.look.tab_width"))
         main_text = self.message.replace("\t", " " * tab_width)
-
         main_text = format_markdown_links(main_text)
 
-        if lines_count:
-            # we assume lines_count is big enough to contains the files and attachments lines
-            # it is only used when editing a post and those items can't be modified
-            # so there should at least be space for them from the initial write
-            main_text_lines_count = lines_count - len(message.split("\n")) + 1
+        attachments_text = "\n\n".join([ a.render() for a in self.attachments ])
+        files_text = "\n".join([ f.render() for f in self.files.values() ])
 
-            lines = main_text.split("\n")
+        if lines_count:
+            main_text_lines_count = lines_count
+            main_text_lines_count -= len(attachments_text.split("\n")) if attachments_text else 0
+            main_text_lines_count -= len(files_text.split("\n")) if files_text else 0
+            main_text_lines_count -= 1 if attachments_text and main_text else 0 # extra empty line separator
+
+            lines = main_text.split("\n") if main_text else []
             if len(lines) > main_text_lines_count:
                 # new message is longer, truncate from max line
                 lines = lines[0: main_text_lines_count]
@@ -804,26 +797,15 @@ class Post:
             elif len(lines) < main_text_lines_count:
                 # new message is shorter, just add blank lines to keep files tags on the same line
                 lines += [""] * (main_text_lines_count - len(lines))
-
             main_text = "\n".join(lines)
 
-        return format_style(main_text + message)
+        full_text = main_text
+        full_text += "\n\n" if attachments_text and main_text else ""
+        full_text += attachments_text
+        full_text += "\n" if files_text and main_text else ""
+        full_text += files_text
 
-    def _render_attachments(self):
-        atts = []
-
-        for attachment in self.attachments:
-            atts.append(attachment.render())
-
-        return "\n\n".join(atts)
-
-    def _render_files(self):
-        files = []
-
-        for file in self.files.values():
-            files.append(file.render())
-
-        return "\n".join(files)
+        return format_style(full_text)
 
     def add_reaction(self, reaction):
         self.reactions[reaction.id] = reaction
