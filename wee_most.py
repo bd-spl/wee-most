@@ -801,9 +801,7 @@ class Post:
                 lines[maxLines - 1] += " {}".format(colorize(config.truncated_suffix, config.color_truncated_suffix))
             main_text = "\n".join(lines)
 
-        message = format_style(main_text) + message
-
-        return message
+        return format_style(main_text + message)
 
     def _render_attachments(self):
         atts = []
