@@ -956,7 +956,7 @@ def colorize(sentence, color):
 # needs to be called on uncolored text
 def format_style(text):
     text = re.sub(
-            r"(^| )(?:\*\*\*|___)([^*\n`]+)(?:\*\*\*|___)(?=[^\w]|$)",
+            r"(^| |\")(?:\*\*\*|___)([^*\n`]+)(?:\*\*\*|___)(?=[^\w]|$)",
             r"\1{}{}\2{}{}".format(
                 weechat.color("bold"), weechat.color("italic"), weechat.color("-bold"), weechat.color("-italic")
                 ),
@@ -964,7 +964,7 @@ def format_style(text):
             flags=re.MULTILINE,
             )
     text = re.sub(
-            r"(^| )(?:\*\*|__)([^*\n`]+)(?:\*\*|__)(?=[^\w]|$)",
+            r"(^| |\")(?:\*\*|__)([^*\n`]+)(?:\*\*|__)(?=[^\w]|$)",
             r"\1{}\2{}".format(
                 weechat.color("bold"), weechat.color("-bold")
                 ),
@@ -972,7 +972,7 @@ def format_style(text):
             flags=re.MULTILINE,
             )
     text = re.sub(
-            r"(^| )(?:\*|_)([^*\n`]+)(?:\*|_)(?=[^\w]|$)",
+            r"(^| |\")(?:\*|_)([^*\n`]+)(?:\*|_)(?=[^\w]|$)",
             r"\1{}\2{}".format(
                 weechat.color("italic"), weechat.color("-italic")
                 ),
