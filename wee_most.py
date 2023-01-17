@@ -1503,6 +1503,7 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
     response = json.loads(out)
 
     if not response["order"]:
+        channel.set_loading(False)
         return weechat.WEECHAT_RC_OK
 
     for post_id in reversed(response["order"]):
@@ -1521,7 +1522,7 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
             post.id, post.channel.id, server, "hydrate_channel_posts_cb", buffer
         )
     else:
-        post.channel.set_loading(False)
+        channel.set_loading(False)
 
     return weechat.WEECHAT_RC_OK
 
@@ -1639,9 +1640,6 @@ def remove_channel_user(buffer, user):
 
 def create_channel_from_channel_data(channel_data, server):
     if channel_data["type"] == "D":
-        if channel_data["last_post_at"] == 0:
-            return;
-
         match = re.match("(\w+)__(\w+)", channel_data["name"])
         if match.group(1) in server.closed_channels or match.group(2) in server.closed_channels:
             return;
