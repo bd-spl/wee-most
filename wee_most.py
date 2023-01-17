@@ -1382,7 +1382,7 @@ class ChannelBase:
     def _format_name(self, display_name, name):
         final_name = display_name
 
-        name_override = config.get_value("channel.{}".format(name));
+        name_override = config.get_value("channel.{}".format(name))
 
         if name_override:
             final_name = name_override
@@ -1643,7 +1643,7 @@ def create_channel_from_channel_data(channel_data, server):
         match = re.match("(\w+)__(\w+)", channel_data["name"])
         user_1_id, user_2_id = match.group(1), match.group(2)
         if user_1_id in server.closed_channels or user_2_id in server.closed_channels:
-            return;
+            return
         if server.users[user_1_id].deleted or server.users[user_2_id].deleted:
             return
 
@@ -1651,7 +1651,7 @@ def create_channel_from_channel_data(channel_data, server):
         server.channels[channel.id] = channel
     elif channel_data["type"] == "G":
         if channel_data["id"] in server.closed_channels:
-            return;
+            return
 
         channel = GroupChannel(server, **channel_data)
         server.channels[channel.id] = channel
