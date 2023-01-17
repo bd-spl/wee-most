@@ -2441,7 +2441,11 @@ def run_get_read_channel_posts(channel_id, server, cb, cb_data):
     )
 
 def run_get_channel_posts_after(post_id, channel_id, server, cb, cb_data):
-    url = server.url + "/api/v4/channels/{}/posts?after={}".format(channel_id, post_id)
+    if post_id:
+        url = server.url + "/api/v4/channels/{}/posts?after={}".format(channel_id, post_id)
+    else:
+        url = server.url + "/api/v4/channels/{}/posts".format(channel_id)
+
     weechat.hook_process_hashtable(
         "url:" + url,
         {
@@ -2619,11 +2623,9 @@ def rehydrate_server_buffer(server, buffer):
         return
     channel.set_loading(True)
 
-    last_post_id = channel.last_post_id
-
     EVENTROUTER.enqueue_request(
         "run_get_channel_posts_after",
-        last_post_id, channel.id, server, "hydrate_channel_posts_cb", buffer
+        channel.last_post_id, channel.id, server, "hydrate_channel_posts_cb", buffer
     )
 
 def rehydrate_server_buffers(server):
