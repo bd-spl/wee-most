@@ -1641,8 +1641,11 @@ def remove_channel_user(buffer, user):
 def create_channel_from_channel_data(channel_data, server):
     if channel_data["type"] == "D":
         match = re.match("(\w+)__(\w+)", channel_data["name"])
-        if match.group(1) in server.closed_channels or match.group(2) in server.closed_channels:
+        user_1_id, user_2_id = match.group(1), match.group(2)
+        if user_1_id in server.closed_channels or user_2_id in server.closed_channels:
             return;
+        if server.users[user_1_id].deleted or server.users[user_2_id].deleted:
+            return
 
         channel = DirectMessagesChannel(server, **channel_data)
         server.channels[channel.id] = channel
