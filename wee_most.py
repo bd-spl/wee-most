@@ -2767,9 +2767,6 @@ def handle_user_added_message(server, data, broadcast):
         channel = server.get_channel(broadcast["channel_id"])
         channel.add_user(data["user_id"])
 
-def handle_group_added_message(server, data, broadcast):
-    connect_server_team_channel(broadcast["channel_id"], server)
-
 def handle_direct_added_message(server, data, broadcast):
     connect_server_team_channel(broadcast["channel_id"], server)
 
