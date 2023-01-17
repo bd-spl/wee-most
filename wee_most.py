@@ -2732,7 +2732,7 @@ def handle_post_deleted_message(server, data, broadcast):
         post.channel.remove_post(post.id)
 
 def handle_channel_created_message(server, data, broadcast):
-    connect_server_team_channel(data["channel_id"], server)
+    connect_server_team_channel(broadcast["channel_id"], server)
 
 def handle_channel_member_updated_message(server, data, broadcast):
     channel_member_data = json.loads(data["channelMember"])
