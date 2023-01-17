@@ -1477,8 +1477,7 @@ def hydrate_channel_posts_cb(buffer, command, rc, out, err):
 
     response = json.loads(out)
 
-    response["order"].reverse()
-    for post_id in response["order"]:
+    for post_id in reversed(response["order"]):
         builded_post = Post(server, **response["posts"][post_id])
         channel.write_post(builded_post)
 
@@ -1506,8 +1505,7 @@ def hydrate_channel_read_posts_cb(buffer, command, rc, out, err):
     if not response["order"]:
         return weechat.WEECHAT_RC_OK
 
-    response["order"].reverse()
-    for post_id in response["order"]:
+    for post_id in reversed(response["order"]):
         post = Post(server, **response["posts"][post_id])
         post.read = True
         channel.write_post(post)
