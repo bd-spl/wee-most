@@ -987,6 +987,8 @@ def format_markdown_links(text):
     def link_repl(match):
         nonlocal links
         text, url = match.groups()
+        if text == url:
+            return text
         counter = len(links) + 1
         links.append(colorize("[{}]: {}".format(counter, url), config.color_reference_link))
         if text:
