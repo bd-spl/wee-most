@@ -1670,6 +1670,8 @@ def create_channel_from_channel_data(channel_data, server):
 
         team.channels[channel.id] = channel
 
+    return channel
+
 def buffer_switch_cb(data, signal, buffer):
     for server in servers.values():
         channel = server.get_channel_from_buffer(buffer)
@@ -1856,11 +1858,14 @@ class Server:
             if isinstance(channel, DirectMessagesChannel) and channel.user.id == user_id:
                 return channel
 
-    def fetch_direct_message_channels_user_status(self):
+    def fetch_direct_message_channels_user_status(self, channel=None):
         user_ids = []
 
-        for channel in self.get_direct_messages_channels():
+        if channel:
             user_ids.append(channel.user.id)
+        else:
+            for channel in self.get_direct_messages_channels():
+                user_ids.append(channel.user.id)
 
         EVENTROUTER.enqueue_request(
             "run_post_users_status_ids",
@@ -1994,7 +1999,13 @@ def connect_server_team_channel_cb(server_id, command, rc, out, err):
         return weechat.WEECHAT_RC_ERROR
 
     channel_data = json.loads(out)
-    create_channel_from_channel_data(channel_data, server)
+    channel = create_channel_from_channel_data(channel_data, server)
+
+    if isinstance(channel, DirectMessagesChannel):
+        server.fetch_direct_message_channels_user_status(channel)
+
+    # this is only used for channel appearing so shouldn't be muted immediately
+    channel.load(muted=False)
 
     return weechat.WEECHAT_RC_OK
 
