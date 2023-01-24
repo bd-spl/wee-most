@@ -1393,6 +1393,7 @@ class ChannelBase:
 
     def unload(self):
         weechat.buffer_close(self.buffer)
+        self.buffer = None
 
 class DirectMessagesChannel(ChannelBase):
     def __init__(self, server, **kwargs):
@@ -1902,8 +1903,6 @@ class Server:
     def unload(self):
         self.print("Unloading server")
 
-        servers.pop(self.id)
-
         if self.worker:
             close_worker(self.worker)
         if self.reconnection_loop_hook:
@@ -1913,8 +1912,10 @@ class Server:
             channel.unload()
         for team in self.teams.values():
             team.unload()
-
         weechat.buffer_close(self.buffer)
+        self.buffer = None
+        self.channels = {}
+        self.teams = {}
 
 class Team:
     def __init__(self, server, **kwargs):
@@ -1943,6 +1944,8 @@ class Team:
         for channel in self.channels.values():
             channel.unload()
         weechat.buffer_close(self.buffer)
+        self.channels = {}
+        self.buffer = None
 
 def buffer_merge(buffer):
     if weechat.config_string(weechat.config_get("irc.look.server_buffer")) == "merge_with_core":
@@ -2181,6 +2184,7 @@ def connect_server(server_id):
 
         if server != None:
             server.unload()
+            servers.pop(server_id)
 
     try:
         server = Server(server_id)
@@ -2210,6 +2214,7 @@ def disconnect_server(server_id):
 
     if rc == weechat.WEECHAT_RC_OK:
         server.unload()
+        servers.pop(server_id)
 
     return rc
 
