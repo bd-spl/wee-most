@@ -1258,8 +1258,8 @@ class ChannelBase:
 
         if post.read:
             tags += ",notify_none"
-        elif root_post and root_post.user == self.server.me and root_post.user != post.user:
-            # if somebody (not us) reply to our post
+        elif root_post and root_post.user == self.server.me and root_post.user != post.user and self.type != 'direct':
+            # if somebody (not us) reply to our post (not in a DM channel)
             tags += ",notify_highlight"
         elif self.type in ['direct', 'group']:
             tags += ",notify_private"
