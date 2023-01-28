@@ -1310,6 +1310,12 @@ class ChannelBase:
 
         weechat.nicklist_add_nick(self.buffer, "", user.nick, color, "", color, 1)
 
+    def remove_user(self, user_id):
+        user = self.users.pop(user_id, None)
+        if user:
+            nick = weechat.nicklist_search_nick(self.buffer, "", user.nick)
+            weechat.nicklist_remove_nick(self.buffer, nick)
+
     def update_nicklist(self):
         for user in self.users.values():
             self.update_nicklist_user(user)
@@ -1636,10 +1642,6 @@ def update_custom_emojis(data, command, rc, out, err):
         )
 
     return weechat.WEECHAT_RC_OK
-
-def remove_channel_user(buffer, user):
-    nick = weechat.nicklist_search_nick(buffer, "", user.nick)
-    weechat.nicklist_remove_nick(buffer, nick)
 
 def create_channel_from_channel_data(channel_data, server):
     if channel_data["type"] == "D":
@@ -2819,9 +2821,9 @@ def handle_new_user_message(server, data, broadcast):
 
 def handle_user_removed_message(server, data, broadcast):
     if broadcast["channel_id"]:
-        user = server.users[data["user_id"]]
-        buffer = server.get_channel(broadcast["channel_id"]).buffer
-        remove_channel_user(buffer, user)
+        channel = server.get_channel(broadcast["channel_id"])
+        if channel:
+            channel.remove_user(data["user_id"])
 
 def handle_added_to_team_message(server, data, broadcast):
     user = server.users[data["user_id"]]
