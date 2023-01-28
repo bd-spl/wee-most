@@ -2813,10 +2813,9 @@ def handle_group_added_message(server, data, broadcast):
     connect_server_team_channel(broadcast["channel_id"], server)
 
 def handle_new_user_message(server, data, broadcast):
-    user_id = data["user_id"]
     EVENTROUTER.enqueue_request(
         "run_get_user",
-        server, user_id, "new_user_cb", server.id
+        server, data["user_id"], "new_user_cb", server.id
     )
 
 def handle_user_removed_message(server, data, broadcast):
@@ -2826,17 +2825,14 @@ def handle_user_removed_message(server, data, broadcast):
             channel.remove_user(data["user_id"])
 
 def handle_added_to_team_message(server, data, broadcast):
-    user = server.users[data["user_id"]]
-
-    server.teams[data["team_id"]] = None
-
+    # cannot test but probably this event is only triggered on own user
     EVENTROUTER.enqueue_request(
         "run_get_team",
         data["team_id"], server, "connect_server_team_cb", server.id
     )
 
 def handle_leave_team_message(server, data, broadcast):
-    user = server.users[data["user_id"]]
+    # cannot test but probably this event is only triggered on own user
     team = server.teams.pop(data["team_id"])
     team.unload()
 
