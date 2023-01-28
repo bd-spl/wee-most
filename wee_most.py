@@ -1645,7 +1645,11 @@ def create_channel_from_channel_data(channel_data, server):
     if channel_data["type"] == "D":
         match = re.match("(\w+)__(\w+)", channel_data["name"])
         user_1_id, user_2_id = match.group(1), match.group(2)
-        if user_1_id in server.closed_channels or user_2_id in server.closed_channels:
+        if user_1_id in server.closed_channels:
+            server.closed_channels[user_1_id] = channel_data["id"]
+            return
+        if user_2_id in server.closed_channels:
+            server.closed_channels[user_2_id] = channel_data["id"]
             return
         if server.users[user_1_id].deleted or server.users[user_2_id].deleted:
             return
@@ -1786,7 +1790,7 @@ class Server:
         self.channels = {}
         self.worker = None
         self.reconnection_loop_hook = ""
-        self.closed_channels = []
+        self.closed_channels = {}
         self.custom_emojis = []
 
         self._create_buffer()
@@ -1844,6 +1848,16 @@ class Server:
                 return team.channels[channel_id]
 
         return None
+
+    def remove_channel(self, channel_id):
+        if channel_id in self.channels:
+            del self.channels[channel_id]
+            return
+
+        for team in self.teams.values():
+            if channel_id in team.channels:
+                del team.channels[channel_id]
+                return
 
     def get_direct_messages_channels(self):
         channels = []
@@ -2002,6 +2016,8 @@ def connect_server_team_channel_cb(server_id, command, rc, out, err):
         return weechat.WEECHAT_RC_ERROR
 
     channel_data = json.loads(out)
+    if server.get_channel(channel_data["id"]):
+        return weechat.WEECHAT_RC_OK
     channel = create_channel_from_channel_data(channel_data, server)
 
     if isinstance(channel, DirectMessagesChannel):
@@ -2074,7 +2090,7 @@ def connect_server_preferences_cb(server_id, command, rc, out, err):
 
     for pref in response:
         if pref["category"] in ["direct_channel_show", "group_channel_show"] and pref["value"] == "false":
-            server.closed_channels.append(pref["name"])
+            server.closed_channels[pref["name"]] = None # will contain channel id if encountered later
 
     return weechat.WEECHAT_RC_OK
 
@@ -2841,6 +2857,30 @@ def handle_status_change_message(server, data, broadcast):
     user_dm_channel = server.get_direct_messages_channel(user.id)
     if user_dm_channel:
         user_dm_channel.set_status(user.status)
+
+def handle_preferences_changed_message(server, data, broadcast):
+    prefs = json.loads(data["preferences"])
+
+    for pref in prefs:
+        if pref["category"] in ["direct_channel_show", "group_channel_show"]:
+            if pref["value"] == "false":
+                if pref["category"] == "direct_channel_show":
+                    channel = server.get_direct_messages_channel(pref["name"])
+                else:
+                    channel = server.get_channel(pref["name"])
+                if channel:
+                    channel.unload()
+                    server.remove_channel(channel.id)
+                server.closed_channels[pref["name"]] = channel.id if channel else None
+            else:
+                if pref["category"] == "direct_channel_show":
+                    channel_id = server.closed_channels.get(pref["name"])
+                else:
+                    channel_id = pref["name"]
+                if channel_id:
+                    connect_server_team_channel(channel_id, server)
+                if pref["name"] in server.closed_channels:
+                    del server.closed_channels[pref["name"]]
 
 def receive_ws_callback(server_id, data):
     server = servers[server_id]
