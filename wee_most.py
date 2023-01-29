@@ -2236,14 +2236,6 @@ def disconnect_server(server_id):
 
     return rc
 
-def auto_connect():
-    for server_id in config.autoconnect:
-        connect_server(server_id)
-
-def disconnect_all():
-    for server_id in servers.copy():
-        disconnect_server(server_id)
-
 def singularity_cb(buffer, command, rc, out, err):
     server = get_server_from_buffer(buffer)
 
@@ -2945,7 +2937,8 @@ setup_completions()
 config.setup()
 
 if weechat.info_get("auto_connect", "") == '1':
-    auto_connect()
+    for server_id in config.autoconnect:
+        connect_server(server_id)
 
 weechat.hook_modifier("input_text_for_buffer", "handle_multiline_message_cb", "")
 weechat.hook_signal("buffer_switch", "buffer_switch_cb", "")
@@ -2974,7 +2967,8 @@ weechat.key_bind("cursor", {
 })
 
 def shutdown_cb():
-    disconnect_all()
+    for server_id in servers.copy():
+        disconnect_server(server_id)
 
     try:
         shutil.rmtree(File.dir_path_tmp)
