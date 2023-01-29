@@ -425,15 +425,6 @@ def mention_completion_cb(data, completion_item, current_buffer, completion):
 
     return weechat.WEECHAT_RC_OK
 
-def setup_completions():
-    weechat.hook_completion("irc_channels", "complete channels for Mattermost", "channel_completion_cb", "")
-    weechat.hook_completion("irc_privates", "complete dms/mpdms for Mattermost", "private_completion_cb", "")
-    weechat.hook_completion("mattermost_server_commands", "complete server names for Mattermost", "server_completion_cb", "")
-    weechat.hook_completion("mattermost_slash_commands", "complete Mattermost slash commands", "slash_command_completion_cb", "")
-    weechat.hook_completion("nicks", "complete @-nicks for Mattermost", "nick_completion_cb", "")
-    weechat.hook_completion("emojis", "complete :emojis: for Mattermost", "emoji_completion_cb", "")
-    weechat.hook_completion("mentions", "complete @-mentions for Mattermost", "mention_completion_cb", "")
-
 Command = namedtuple("Command", ["name", "args", "description", "completion"])
 
 commands = [
@@ -645,17 +636,6 @@ def command_delete(args, buffer):
 
 def write_command_error(args, message):
     weechat.prnt("", weechat.prefix("error") + message + ' "/mattermost ' + args + '" (help on command: /help mattermost)')
-
-def setup_commands():
-    weechat.hook_command(
-        "mattermost",
-        "Mattermost commands",
-        "||".join(["{} {}".format(c.name, c.args) for c in commands]),
-        "\n".join(["{}: {}".format(c.name.rjust(10), c.description) for c in commands]),
-        "||".join(["{} {}".format(c.name, c.completion) for c in commands]),
-        "mattermost_command_cb",
-        ""
-    )
 
 class File:
     dir_path_tmp = tempfile.mkdtemp()
@@ -2931,14 +2911,30 @@ weechat.register(
     ""
 )
 
-setup_commands()
 load_default_emojis()
-setup_completions()
 config.setup()
 
 if weechat.info_get("auto_connect", "") == '1':
     for server_id in config.autoconnect:
         connect_server(server_id)
+
+weechat.hook_command(
+    "mattermost",
+    "Mattermost commands",
+    "||".join(["{} {}".format(c.name, c.args) for c in commands]),
+    "\n".join(["{}: {}".format(c.name.rjust(10), c.description) for c in commands]),
+    "||".join(["{} {}".format(c.name, c.completion) for c in commands]),
+    "mattermost_command_cb",
+    ""
+)
+
+weechat.hook_completion("irc_channels", "complete channels for Mattermost", "channel_completion_cb", "")
+weechat.hook_completion("irc_privates", "complete dms/mpdms for Mattermost", "private_completion_cb", "")
+weechat.hook_completion("mattermost_server_commands", "complete server names for Mattermost", "server_completion_cb", "")
+weechat.hook_completion("mattermost_slash_commands", "complete Mattermost slash commands", "slash_command_completion_cb", "")
+weechat.hook_completion("nicks", "complete @-nicks for Mattermost", "nick_completion_cb", "")
+weechat.hook_completion("emojis", "complete :emojis: for Mattermost", "emoji_completion_cb", "")
+weechat.hook_completion("mentions", "complete @-mentions for Mattermost", "mention_completion_cb", "")
 
 weechat.hook_modifier("input_text_for_buffer", "handle_multiline_message_cb", "")
 weechat.hook_signal("buffer_switch", "buffer_switch_cb", "")
