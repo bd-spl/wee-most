@@ -692,13 +692,6 @@ def file_get_cb(data, command, rc, out, err):
 
     return weechat.WEECHAT_RC_OK
 
-def find_file_id_in_tags(tags):
-    for tag in tags:
-        if tag.startswith("file_id_"):
-            return tag[8:]
-
-    return None
-
 class Post:
     def __init__(self, server, **kwargs):
         self.id = kwargs["id"]
@@ -1026,13 +1019,6 @@ def find_buffer_first_post_line_data(buffer, post_id):
         if "" == line:
             return None
         line_data = weechat.hdata_pointer(weechat.hdata_get("line"), line, "data")
-
-def find_post_id_in_tags(tags):
-    for tag in tags:
-        if tag.startswith("post_id_"):
-            return tag[8:]
-
-    return None
 
 CHANNEL_TYPES = {
     "D": "direct",
@@ -1675,8 +1661,11 @@ def buffer_switch_cb(data, signal, buffer):
 def chat_line_event_cb(data, signal, hashtable):
     tags = hashtable["_chat_line_tags"].split(",")
 
-    post_id = find_post_id_in_tags(tags)
-    if not post_id:
+    for tag in tags:
+        if tag.startswith("post_id_"):
+            post_id = tag[8:]
+            break
+    else:
         return weechat.WEECHAT_RC_OK
 
     buffer = hashtable["_buffer"]
@@ -1703,8 +1692,11 @@ def chat_line_event_cb(data, signal, hashtable):
         post.open()
 
     elif data.startswith("file_"):
-        file_id = find_file_id_in_tags(tags)
-        if not file_id:
+        for tag in tags:
+            if tag.startswith("file_id_"):
+                file_id = tag[8:]
+                break
+        else:
             return weechat.WEECHAT_RC_OK
 
         server = get_server_from_buffer(buffer)
