@@ -2819,10 +2819,12 @@ def handle_new_user_message(server, data, broadcast):
     )
 
 def handle_user_removed_message(server, data, broadcast):
-    if broadcast["channel_id"]:
-        channel = server.get_channel(broadcast["channel_id"])
-        if channel:
-            channel.remove_user(data["user_id"])
+    channel = server.get_channel(data["channel_id"])
+    if data["remover_id"] == server.me.id: # we are leaving the channel
+        channel.unload()
+        server.remove_channel(channel.id)
+    else:
+        channel.remove_user(data["remover_id"])
 
 def handle_added_to_team_message(server, data, broadcast):
     # cannot test but probably this event is only triggered on own user
