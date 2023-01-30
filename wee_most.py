@@ -571,16 +571,12 @@ def command_reply(args, buffer):
     post_id, _, message = args.partition(" ")
 
     server = get_server_from_buffer(buffer)
-
-    line_data = find_buffer_last_post_line_data(buffer, post_id)
-    if not line_data:
-        server.print_error('Cannot find post id for "{}"'.format(post_id))
-        return weechat.WEECHAT_RC_ERROR
-
-    tags = get_line_data_tags(line_data)
-
     channel = server.get_channel_from_buffer(buffer)
-    post = channel.posts[post_id]
+    post = channel.posts.get(post_id, None)
+
+    if not post:
+        server.print_error('Cannot find post id "{}"'.format(post_id))
+        return weechat.WEECHAT_RC_ERROR
 
     new_post = {
         "channel_id": channel.id,
