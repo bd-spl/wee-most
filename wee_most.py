@@ -154,6 +154,10 @@ class PluginConfig:
             self.sections["look"], "thread_prefix_suffix", "string",
             "String displayed after the thread prefix, if empty uses value from weechat.look.prefix_suffix",
             "", 0, 0, "", "", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["look.thread_prefix_user_color"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "thread_prefix_user_color", "boolean",
+            "Use root post user color for the thread prefix",
+            "", 0, 0, "", "", 0, "", "", "", "", "", ""), "type": "boolean" }
         self.options["look.truncated_suffix"] = { "pointer": weechat.config_new_option(self.file,
             self.sections["look"], "truncated_suffix", "string",
             "The suffix for truncated edited posts",
@@ -230,11 +234,11 @@ class PluginConfig:
             "", 0, 0, "/gray", "/gray", 0, "", "", "", "", "", ""), "type": "color" }
         self.options["color.thread_prefix"] = { "pointer": weechat.config_new_option(self.file,
             self.sections["color"], "thread_prefix", "color",
-            "Color for the thread prefix of a post",
+            "Color for the thread prefix of a post (see also wee_most.look.thread_prefix_user_color)",
             "", 0, 0, "blue", "blue", 0, "", "", "", "", "", ""), "type": "color" }
         self.options["color.thread_prefix_root"] = { "pointer": weechat.config_new_option(self.file,
             self.sections["color"], "thread_prefix_root", "color",
-            "Color for the thread prefix of a root post",
+            "Color for the thread prefix of a root post (see also wee_most.look.thread_prefix_user_color)",
             "", 0, 0, "blue", "blue", 0, "", "", "", "", "", ""), "type": "color" }
         self.options["color.thread_prefix_suffix"] = { "pointer": weechat.config_new_option(self.file,
             self.sections["color"], "thread_prefix_suffix", "color",
@@ -1057,7 +1061,7 @@ class ChannelBase:
         prefix_format = config.get_value("format", "thread_prefix_root") if root else config.get_value("format", "thread_prefix")
         prefix_color = config.get_value("color", "thread_prefix_root") if root else config.get_value("color", "thread_prefix")
 
-        if prefix_color == "user":
+        if config.get_value("look", "thread_prefix_user_color"):
             if post_id in self.posts:
                 prefix_color = self.posts[post_id].user.color
             else:
