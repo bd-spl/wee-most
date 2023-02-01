@@ -153,7 +153,7 @@ class PluginConfig:
         self.options["look.thread_prefix_suffix"] = { "pointer": weechat.config_new_option(self.file,
             self.sections["look"], "thread_prefix_suffix", "string",
             "String displayed after the thread prefix, if empty uses value from weechat.look.prefix_suffix",
-            "", 0, 0, "", "", 0, "", "", "", "", "", ""), "type": "string" }
+            "", 0, 0, None, None, 1, "", "", "", "", "", ""), "type": "string" }
         self.options["look.thread_prefix_user_color"] = { "pointer": weechat.config_new_option(self.file,
             self.sections["look"], "thread_prefix_user_color", "boolean",
             "Use root post user color for the thread prefix",
@@ -243,7 +243,7 @@ class PluginConfig:
         self.options["color.thread_prefix_suffix"] = { "pointer": weechat.config_new_option(self.file,
             self.sections["color"], "thread_prefix_suffix", "color",
             "Color for the thread prefix suffix, if empty uses value from weechat.color.chat_prefix_suffix",
-            "", 0, 0, "", "", 0, "", "", "", "", "", ""), "type": "color" }
+            "", 0, 0, None, None, 1, "", "", "", "", "", ""), "type": "color" }
         self.options["color.truncated_suffix"] = { "pointer": weechat.config_new_option(self.file,
             self.sections["color"], "truncated_suffix", "color",
             "Color for truncated suffix on edited posts",
