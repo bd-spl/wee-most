@@ -49,12 +49,13 @@ class PluginConfig:
         return ""
 
     def get_server_value(self, server_id, name):
-        option = self.options.get("server.{}.{}".format(server_id, name), None)
-        if not option:
-            return ""
+        value = self.get_value("server", "{}.{}".format(server_id, name))
 
-        config_value = weechat.config_string(option["pointer"])
-        return weechat.string_eval_expression(config_value, {}, {}, {})
+        if name == "password":
+            # used for evaluation of ${sec.data.name} for example
+            return weechat.string_eval_expression(value, {}, {}, {})
+
+        return value
 
     def is_server_valid(self, server_id):
         return "server.{}.url".format(server_id) in self.options
