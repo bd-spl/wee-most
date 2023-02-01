@@ -21,329 +21,254 @@ from websocket import (create_connection, WebSocketConnectionClosedException,
                        WebSocketTimeoutException, ABNF)
 
 class PluginConfig:
-    Setting = namedtuple("Setting", ["name", "default", "description", "type"])
 
-    general_settings = [
-        Setting(
-            name = "autoconnect",
-            default = "",
-            description = "Comma separated list of server names to automatically connect to at start",
-            type = "list",
-        ),
-        Setting(
-            name = "bot_suffix",
-            default = " [BOT]",
-            description = "The suffix for bot names",
-            type = "string",
-        ),
-        Setting(
-            name = "buflist_color_away_nick",
-            default = "true",
-            description = "Use nicklist_away color for direct messages channels name in buflist if user is not online",
-            type = "boolean",
-        ),
-        Setting(
-            name = "channel_loading_indicator",
-            default = "…",
-            description = "Indicator for channels being loaded with content",
-            type = "string",
-        ),
-        Setting(
-            name = "channel_prefix_direct_away",
-            default = "-",
-            description = "The prefix of buffer names for direct messages channels if user status is \"away\"",
-            type = "string",
-        ),
-        Setting(
-            name = "channel_prefix_direct_dnd",
-            default = "@",
-            description = "The prefix of buffer names for direct messages channels if user status is \"do not disturb\"",
-            type = "string",
-        ),
-        Setting(
-            name = "channel_prefix_direct_offline",
-            default = " ",
-            description = "The prefix of buffer names for direct messages channels if user status is \"offline\"",
-            type = "string",
-        ),
-        Setting(
-            name = "channel_prefix_direct_online",
-            default = "+",
-            description = "The prefix of buffer names for direct messages channels if user status is \"online\"",
-            type = "string",
-        ),
-        Setting(
-            name = "channel_prefix_group",
-            default = "&",
-            description = "The prefix of buffer names for group channels",
-            type = "string",
-        ),
-        Setting(
-            name = "channel_prefix_private",
-            default = "%",
-            description = "The prefix of buffer names for private channels",
-            type = "string",
-        ),
-        Setting(
-            name = "channel_prefix_public",
-            default = "#",
-            description = "The prefix of buffer names for public channels",
-            type = "string",
-        ),
-        Setting(
-            name = "color_attachment_field",
-            default = "default",
-            description = "Color for the message attachment fields",
-            type = "string",
-        ),
-        Setting(
-            name = "color_attachment_title",
-            default = "*",
-            description = "Color for the message attachment title",
-            type = "string",
-        ),
-        Setting(
-            name = "color_bot_suffix",
-            default = "darkgray",
-            description = "Color for the bot suffix in message attachments",
-            type = "string",
-        ),
-        Setting(
-            name = "color_channel_muted",
-            default = "darkgray",
-            description = "Color for the muted channels in the buflist",
-            type = "string",
-        ),
-        Setting(
-            name = "color_deleted",
-            default = "red",
-            description = "Color for deleted messages",
-            type = "string",
-        ),
-        Setting(
-            name = "color_edited_suffix",
-            default = "magenta",
-            description = "Color for edited suffix on edited posts",
-            type = "string",
-        ),
-        Setting(
-            name = "color_file_name",
-            default = "*",
-            description = "Color for the name part of a file",
-            type = "string",
-        ),
-        Setting(
-            name = "color_file_url",
-            default = "",
-            description = "Color for the URL part of a file",
-            type = "string",
-        ),
-        Setting(
-            name = "color_reaction",
-            default = "darkgray",
-            description = "Color for the messages reactions",
-            type = "string",
-        ),
-        Setting(
-            name = "color_reaction_own",
-            default = "gray",
-            description = "Color for the messages reactions you have added",
-            type = "string",
-        ),
-        Setting(
-            name = "color_reference_link",
-            default = "/gray",
-            description = "Color for the reference-style links",
-            type = "string",
-        ),
-        Setting(
-            name = "color_thread_prefix",
-            default = "user",
-            description = "Color for the thread prefix of a post, \"user\" means post user color",
-            type = "string",
-        ),
-        Setting(
-            name = "color_thread_prefix_root",
-            default = "user",
-            description = "Color for the thread prefix of a root post, \"user\" means post user color",
-            type = "string",
-        ),
-        Setting(
-            name = "color_thread_prefix_suffix",
-            default = "",
-            description = "Color for the thread prefix suffix, if empty uses value from weechat.color.chat_prefix_suffix",
-            type = "string",
-        ),
-        Setting(
-            name = "color_truncated_suffix",
-            default = "yellow",
-            description = "Color for truncated suffix on edited posts",
-            type = "string",
-        ),
-        Setting(
-            name = "deleted_suffix",
-            default = "(deleted)",
-            description = "The suffix for deleted posts",
-            type = "string",
-        ),
-        Setting(
-            name = "download_location",
-            default = os.environ.get("XDG_DOWNLOAD_DIR", "~/Downloads") + "/wee_most",
-            description = "Location for storing downloaded files",
-            type = "string",
-        ),
-        Setting(
-            name = "edited_suffix",
-            default = "(edited)",
-            description = "The suffix for edited posts",
-            type = "string",
-        ),
-        Setting(
-            name = "file_name_format",
-            default = "[{}]",
-            description = "Format for the display of a file name, {} is replaced by name",
-            type = "string",
-        ),
-        Setting(
-            name = "file_url_format",
-            default = "({})",
-            description = "Format for the display of a file URL, {} is replaced by URL",
-            type = "string",
-        ),
-        Setting(
-            name = "nick_full_name",
-            default = "false",
-            description = "Use full name instead of username as nick",
-            type = "boolean",
-        ),
-        Setting(
-            name = "reaction_group",
-            default = "true",
-            description = "Group reactions by emoji",
-            type = "boolean",
-        ),
-        Setting(
-            name = "reaction_nick_colorize",
-            default = "true",
-            description = "Colorize the reaction nick with the user color",
-            type = "boolean",
-        ),
-        Setting(
-            name = "reaction_nick_show",
-            default = "false",
-            description = "Display the nick of the user(s) alongside the reaction",
-            type = "boolean",
-        ),
-        Setting(
-            name = "thread_prefix_format",
-            default = " {} ",
-            description = "Format for the thread prefix of a post, {} is replaced by id",
-            type = "string",
-        ),
-        Setting(
-            name = "thread_prefix_format_root",
-            default = "[{}]",
-            description = "Format for the thread prefix of a root post, {} is replaced by id",
-            type = "string",
-        ),
-        Setting(
-            name = "thread_prefix_suffix",
-            default = "",
-            description = "String displayed after the thread prefix, if empty uses value from weechat.look.prefix_suffix",
-            type = "string",
-        ),
-        Setting(
-            name = "truncated_suffix",
-            default = "[...]",
-            description = "The suffix for truncated edited posts",
-            type = "string",
-        ),
-    ]
+    def __init__(self):
+        self.file = None
+        self.sections = {}
+        self.options = {}
 
-    server_settings = [
-        Setting(
-            name = "command_2fa",
-            default = "",
-            description = "Shell command to retrieve the 2FA token",
-            type = "string",
-        ),
-        Setting(
-            name = "password",
-            default = "",
-            description = "Password for authentication to {} server",
-            type = "string",
-        ),
-        Setting(
-            name = "url",
-            default = "",
-            description = "URL of {} server",
-            type = "string",
-        ),
-        Setting(
-            name = "username",
-            default = "",
-            description = "Username for authentication to {} server",
-            type = "string",
-        ),
-    ]
+    def get_value(self, section, name):
+        option = self.options.get("{}.{}".format(section, name), None)
+        if not option:
+            return ""
 
-    def __getattr__(self, key):
-        setting = None
+        # weechat_config_option_get_string function is not available for scripting
+        # so we need to store it in the option structure
+        if option["type"] == "boolean":
+            return weechat.config_boolean(option["pointer"])
+        elif option["type"] == "integer":
+            return weechat.config_integer(option["pointer"])
+        elif option["type"] == "string":
+            return weechat.config_string(option["pointer"])
+        elif option["type"] == "color":
+            return weechat.config_color(option["pointer"])
+        elif option["type"] == "list": # custom type
+            value = weechat.config_string(option["pointer"])
+            return list(filter(None, value.split(",")))
 
-        for s in self.general_settings:
-            if s.name == key:
-                setting = s
-                break
+        return ""
 
-        if not setting:
-            # return non general setting value
-            return weechat.config_get_plugin(key)
+    def get_server_value(self, server_id, name):
+        option = self.options.get("server.{}.{}".format(server_id, name), None)
+        if not option:
+            return ""
 
-        get_func = getattr(self, "_get_" + s.type)
-        return get_func(key)
-
-    def _get_boolean(self, key):
-        return weechat.config_string_to_boolean(weechat.config_get_plugin(key))
-
-    def _get_string(self, key):
-        return weechat.config_get_plugin(key)
-
-    def _get_list(self, key):
-        autoconnect = weechat.config_get_plugin(key)
-        return list(filter(None, autoconnect.split(",")))
-
-    def get_value(self, key):
-        return getattr(self, key)
-
-    def get_server_config(self, server_id, name):
-        option = "server.{}.{}".format(server_id, name)
-        config_value = weechat.config_get_plugin(option)
-        expanded_value = weechat.string_eval_expression(config_value, {}, {}, {})
-        return expanded_value
+        config_value = weechat.config_string(option["pointer"])
+        return weechat.string_eval_expression(config_value, {}, {}, {})
 
     def is_server_valid(self, server_id):
-        test_option = "server.{}.url".format(server_id)
-        return weechat.config_is_set_plugin(test_option)
+        return "server.{}.url".format(server_id) in self.options
 
-    def _add_setting(self, s):
-        if weechat.config_is_set_plugin(s.name):
-            return
-
-        weechat.config_set_plugin(s.name, s.default)
-        weechat.config_set_desc_plugin(s.name, '{} (default: "{}")'.format(s.description, s.default))
+    def read(self):
+        weechat.config_read(self.file)
 
     def add_server_options(self, server_id):
-        for s in self.server_settings:
-            self._add_setting(self.Setting(
-                name = "server.{}.{}".format(server_id, s.name),
-                default = s.default,
-                description = s.description.format(server_id),
-                type = "string"
-                ))
+        self.options["server.{}.command_2fa".format(server_id)] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["server"], "{}.command_2fa".format(server_id), "string",
+            "Shell command to retrieve the 2FA token of {} server".format(server_id),
+            "", 0, 0, "", "", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["server.{}.password".format(server_id)] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["server"], "{}.password".format(server_id), "string",
+            "Password for authentication to {} server".format(server_id),
+            "", 0, 0, "", "", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["server.{}.url".format(server_id)] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["server"], "{}.url".format(server_id), "string",
+            "URL of {} server".format(server_id),
+            "", 0, 0, "", "", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["server.{}.username".format(server_id)] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["server"], "{}.username".format(server_id), "string",
+            "Username for authentication to {} server".format(server_id),
+            "", 0, 0, "", "", 0, "", "", "", "", "", ""), "type": "string" }
 
     def setup(self):
-        for s in self.general_settings:
-            self._add_setting(s)
+        self.file = weechat.config_new("wee_most", "", "")
+
+        # look
+        self.sections["look"] = weechat.config_new_section(self.file, "look", 0, 0, "", "", "", "", "", "", "", "", "", "")
+        self.options["look.bot_suffix"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "bot_suffix", "string",
+            "The suffix for bot names",
+            "", 0, 0, " [BOT]", " [BOT]", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["look.buflist_color_away_nick"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "buflist_color_away_nick", "boolean",
+            "Use nicklist_away color for direct messages channels name in buflist if user is not online",
+            "", 0, 0, "on", "on", 0, "", "", "", "", "", ""), "type": "boolean" }
+        self.options["look.channel_loading_indicator"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "channel_loading_indicator", "string",
+            "Indicator for channels being loaded with content",
+            "", 0, 0, "…", "…", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["look.channel_prefix_direct_away"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "channel_prefix_direct_away", "string",
+            "The prefix of buffer names for direct messages channels if user status is \"away\"",
+            "", 0, 0, "-", "-", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["look.channel_prefix_direct_dnd"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "channel_prefix_direct_dnd", "string",
+            "The prefix of buffer names for direct messages channels if user status is \"do not disturb\"",
+            "", 0, 0, "@", "@", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["look.channel_prefix_direct_offline"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "channel_prefix_direct_offline", "string",
+            "The prefix of buffer names for direct messages channels if user status is \"offline\"",
+            "", 0, 0, " ", " ", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["look.channel_prefix_direct_online"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "channel_prefix_direct_online", "string",
+            "The prefix of buffer names for direct messages channels if user status is \"online\"",
+            "", 0, 0, "+", "+", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["look.channel_prefix_group"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "channel_prefix_group", "string",
+            "The prefix of buffer names for group channels",
+            "", 0, 0, "&", "&", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["look.channel_prefix_private"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "channel_prefix_private", "string",
+            "The prefix of buffer names for private channels",
+            "", 0, 0, "%", "%", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["look.channel_prefix_public"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "channel_prefix_public", "string",
+            "The prefix of buffer names for public channels",
+            "", 0, 0, "#", "#", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["look.deleted_suffix"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "deleted_suffix", "string",
+            "The suffix for deleted posts",
+            "", 0, 0, "(deleted)", "(deleted)", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["look.edited_suffix"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "edited_suffix", "string",
+            "The suffix for edited posts",
+            "", 0, 0, "(edited)", "(edited)", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["look.nick_full_name"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "nick_full_name", "boolean",
+            "Use full name instead of username as nick",
+            "", 0, 0, "off", "off", 0, "", "", "", "", "", ""), "type": "boolean" }
+        self.options["look.reaction_group"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "reaction_group", "boolean",
+            "Group reactions by emoji",
+            "", 0, 0, "on", "on", 0, "", "", "", "", "", ""), "type": "boolean" }
+        self.options["look.reaction_nick_colorize"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "reaction_nick_colorize", "boolean",
+            "Colorize the reaction nick with the user color",
+            "", 0, 0, "on", "on", 0, "", "", "", "", "", ""), "type": "boolean" }
+        self.options["look.reaction_nick_show"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "reaction_nick_show", "boolean",
+            "Display the nick of the user(s) alongside the reaction",
+            "", 0, 0, "off", "off", 0, "", "", "", "", "", ""), "type": "boolean" }
+        self.options["look.thread_prefix_suffix"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "thread_prefix_suffix", "string",
+            "String displayed after the thread prefix, if empty uses value from weechat.look.prefix_suffix",
+            "", 0, 0, "", "", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["look.truncated_suffix"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["look"], "truncated_suffix", "string",
+            "The suffix for truncated edited posts",
+            "", 0, 0, "[...]", "[...]", 0, "", "", "", "", "", ""), "type": "string" }
+
+        # format
+        self.sections["format"] = weechat.config_new_section(self.file, "format", 0, 0, "", "", "", "", "", "", "", "", "", "")
+        self.options["format.file_name"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["format"], "file_name", "string",
+            "Format for the display of a file name, {} is replaced by name",
+            "", 0, 0, "[{}]", "[{}]", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["format.file_url"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["format"], "file_url", "string",
+            "Format for the display of a file URL, {} is replaced by URL",
+            "", 0, 0, "({})", "({})", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["format.thread_prefix"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["format"], "thread_prefix", "string",
+            "Format for the thread prefix of a post, {} is replaced by id",
+            "", 0, 0, " {} ", " {} ", 0, "", "", "", "", "", ""), "type": "string" }
+        self.options["format.thread_prefix_root"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["format"], "thread_prefix_root", "string",
+            "Format for the thread prefix of a root post, {} is replaced by id",
+            "", 0, 0, "[{}]", "[{}]", 0, "", "", "", "", "", ""), "type": "string" }
+
+        # color
+        self.sections["color"] = weechat.config_new_section(self.file, "color", 0, 0, "", "", "", "", "", "", "", "", "", "")
+        self.options["color.attachment_field"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "attachment_field", "color",
+            "Color for the message attachment fields",
+            "", 0, 0, "default", "default", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.attachment_field"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "attachment_field", "color",
+            "Color for the message attachment fields",
+            "", 0, 0, "default", "default", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.attachment_title"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "attachment_title", "color",
+            "Color for the message attachment title",
+            "", 0, 0, "*default", "*default", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.bot_suffix"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "bot_suffix", "color",
+            "Color for the bot suffix in message attachments",
+            "", 0, 0, "darkgray", "darkgray", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.channel_muted"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "channel_muted", "color",
+            "Color for the muted channels in the buflist",
+            "", 0, 0, "darkgray", "darkgray", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.deleted"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "deleted", "color",
+            "Color for deleted messages",
+            "", 0, 0, "red", "red", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.edited_suffix"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "edited_suffix", "color",
+            "Color for edited suffix on edited posts",
+            "", 0, 0, "magenta", "magenta", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.file_name"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "file_name", "color",
+            "Color for the name part of a file",
+            "", 0, 0, "*default", "*default", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.file_url"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "file_url", "color",
+            "Color for the URL part of a file",
+            "", 0, 0, "default", "default", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.reaction"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "reaction", "color",
+            "Color for the messages reactions",
+            "", 0, 0, "darkgray", "darkgray", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.reaction_own"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "reaction_own", "color",
+            "Color for the messages reactions you have added",
+            "", 0, 0, "gray", "gray", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.reference_link"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "reference_link", "color",
+            "Color for the reference-style links",
+            "", 0, 0, "/gray", "/gray", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.thread_prefix"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "thread_prefix", "color",
+            "Color for the thread prefix of a post",
+            "", 0, 0, "blue", "blue", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.thread_prefix_root"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "thread_prefix_root", "color",
+            "Color for the thread prefix of a root post",
+            "", 0, 0, "blue", "blue", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.thread_prefix_suffix"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "thread_prefix_suffix", "color",
+            "Color for the thread prefix suffix, if empty uses value from weechat.color.chat_prefix_suffix",
+            "", 0, 0, "", "", 0, "", "", "", "", "", ""), "type": "color" }
+        self.options["color.truncated_suffix"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["color"], "truncated_suffix", "color",
+            "Color for truncated suffix on edited posts",
+            "", 0, 0, "yellow", "yellow", 0, "", "", "", "", "", ""), "type": "color" }
+
+        # file
+        self.sections["file"] = weechat.config_new_section(self.file, "file", 0, 0, "", "", "", "", "", "", "", "", "", "")
+        download_dir = os.environ.get("XDG_DOWNLOAD_DIR", "~/Downloads") + "/wee_most"
+        self.options["file.download_location"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["file"], "download_location", "string",
+            "Location for storing downloaded files",
+            "", 0, 0, download_dir, download_dir, 0, "", "", "", "", "", ""), "type": "string" }
+
+        # server (user can add options)
+        self.sections["server"] = weechat.config_new_section(self.file, "server", 1, 0, "", "", "", "", "", "", "create_server_option_cb", "", "", "")
+        self.options["server.autoconnect"] = { "pointer": weechat.config_new_option(self.file,
+            self.sections["server"], "autoconnect", "string",
+            "Comma separated list of server names to automatically connect to at start",
+            "", 0, 0, "", "", 0, "", "", "", "", "", ""), "type": "list" }
+
+def create_server_option_cb(data, config_file, section, option_name, value):
+    if not re.match('^[a-z]+\.(command_2fa|password|url|username)$', option_name):
+        return weechat.WEECHAT_CONFIG_OPTION_SET_ERROR
+
+    global config
+    config.options["server.{}".format(option_name)] = { "pointer": weechat.config_new_option(config_file,
+        section, option_name, "string", "",
+        "", 0, 0, value, value, 0, "", "", "", "", "", ""), "type": "string" }
+
+    return weechat.WEECHAT_CONFIG_OPTION_SET_OK_CHANGED
 
 def load_default_emojis():
     emojis_file_path = weechat.info_get("weechat_data_dir", "") + "/wee_most_emojis"
@@ -501,7 +426,7 @@ def command_server_add(args, buffer):
     config.add_server_options(args)
 
     weechat.prnt("", 'Server "{}" added. You should now configure it.'.format(args))
-    weechat.prnt("", "/set plugins.var.python.wee_most.server.{}.*".format(args))
+    weechat.prnt("", "/set wee_most.server.{}.*".format(args))
 
     return weechat.WEECHAT_RC_OK
 
@@ -642,11 +567,11 @@ class File:
         self.extension = kwargs["extension"]
         self.server = server
         self.url = server.url + "/api/v4/files/{}".format(self.id)
-        self.dir_path = os.path.expanduser(config.download_location)
+        self.dir_path = os.path.expanduser(config.get_value("file", "download_location"))
 
     def render(self):
-        name = colorize(config.file_name_format.format(self.name), config.color_file_name)
-        url = colorize(config.file_url_format.format(self.url), config.color_file_url)
+        name = colorize(config.get_value("format", "file_name").format(self.name), config.get_value("color", "file_name"))
+        url = colorize(config.get_value("format", "file_url").format(self.url), config.get_value("color", "file_url"))
         return "{}{}".format(name, url)
 
     def _path(self, temporary=False):
@@ -735,7 +660,7 @@ class Post:
         nick = colorize(nick, self.user.color)
 
         if self.from_bot:
-            nick += colorize(config.bot_suffix, config.color_bot_suffix)
+            nick += colorize(config.get_value("look", "bot_suffix"), config.get_value("color", "bot_suffix"))
 
         return "{}{}{}".format(prefix, nick, suffix)
 
@@ -762,14 +687,14 @@ class Post:
             if len(lines) > main_text_lines_count:
                 # new message is longer, truncate from max line
                 lines = lines[0: main_text_lines_count]
-                lines[-1] += " {}".format(colorize(config.truncated_suffix, config.color_truncated_suffix))
+                lines[-1] += " {}".format(colorize(config.get_value("look", "truncated_suffix"), config.get_value("color", "truncated_suffix")))
             elif len(lines) < main_text_lines_count:
                 # new message is shorter, just add blank lines to keep files tags on the same line
                 lines += [""] * (main_text_lines_count - len(lines))
             main_text = "\n".join(lines)
 
         if self.edited and main_text:
-            main_text += " {}".format(colorize(config.edited_suffix, config.color_edited_suffix))
+            main_text += " {}".format(colorize(config.get_value("look", "edited_suffix"), config.get_value("color", "edited_suffix")))
 
         full_text = main_text
         full_text += "\n\n" if attachments_text and full_text else ""
@@ -778,7 +703,7 @@ class Post:
         full_text += files_text
 
         if self.edited and not main_text:
-            full_text += " {}".format(colorize(config.edited_suffix, config.color_edited_suffix))
+            full_text += " {}".format(colorize(config.get_value("look", "edited_suffix"), config.get_value("color", "edited_suffix")))
 
         return format_style(full_text)
 
@@ -796,7 +721,7 @@ class Post:
 
         reactions_string = []
 
-        if config.reaction_group:
+        if config.get_value("look", "reaction_group"):
             reactions_groups = {}
             for r in self.reactions.values():
                 if r.emoji_name in reactions_groups:
@@ -805,17 +730,17 @@ class Post:
                     reactions_groups[r.emoji_name] = [ r.user ]
 
             for name, users in reactions_groups.items():
-                colorized_name = colorize(name, config.color_reaction)
+                colorized_name = colorize(name, config.get_value("color", "reaction"))
                 for u in users:
                     if u.username == my_username:
-                        colorized_name = colorize(name, config.color_reaction_own)
+                        colorized_name = colorize(name, config.get_value("color", "reaction_own"))
                         break
 
-                if config.reaction_nick_show:
+                if config.get_value("look", "reaction_nick_show"):
                     users_string = []
                     for u in users:
                         user_string = u.nick
-                        if config.reaction_nick_colorize:
+                        if config.get_value("look", "reaction_nick_colorize"):
                             user_string = colorize(user_string, u.color)
                         users_string.append(user_string)
 
@@ -828,13 +753,13 @@ class Post:
         else:
             for r in self.reactions.values():
                 if r.user.username == my_username:
-                    colorized_name = colorize(r.emoji_name, config.color_reaction_own)
+                    colorized_name = colorize(r.emoji_name, config.get_value("color", "reaction_own"))
                 else:
-                    colorized_name = colorize(r.emoji_name, config.color_reaction)
+                    colorized_name = colorize(r.emoji_name, config.get_value("color", "reaction"))
 
-                if config.reaction_nick_show:
+                if config.get_value("look", "reaction_nick_show"):
                     user_string = u.nick
-                    if config.reaction_nick_colorize:
+                    if config.get_value("look", "reaction_nick_colorize"):
                         user_string = colorize(user_string, r.user.color)
 
                     reaction_string = ":{}:({})".format(colorized_name, user_string)
@@ -889,7 +814,7 @@ class Attachment:
             title = "[]({})".format(self.title_link)
 
         if title:
-            att.append(colorize(format_style(title), config.color_attachment_title))
+            att.append(colorize(format_style(title), config.get_value("color", "attachment_title")))
 
         if self.text:
             att.append(self.text)
@@ -903,7 +828,7 @@ class Attachment:
                     field_text = field["value"]
 
                 if field_text:
-                    att.append(colorize(format_style(field_text), config.color_attachment_field))
+                    att.append(colorize(format_style(field_text), config.get_value("color", "attachment_field")))
 
         if self.footer:
             att.append(self.footer)
@@ -959,7 +884,7 @@ def format_markdown_links(text):
         if text == url:
             return text
         counter = len(links) + 1
-        links.append(colorize("[{}]: {}".format(counter, url), config.color_reference_link))
+        links.append(colorize("[{}]: {}".format(counter, url), config.get_value("color", "reference_link")))
         if text:
             return "[{}] [{}]".format(text, counter)
         return "[{}]".format(counter)
@@ -1067,11 +992,11 @@ class ChannelBase:
     def _update_buffer_name(self):
         prefix = ""
         if self._is_loading:
-            prefix += config.channel_loading_indicator
+            prefix += config.get_value("look", "channel_loading_indicator")
 
         color = ""
         if self._is_muted:
-            color = weechat.color(config.color_channel_muted)
+            color = weechat.color(config.get_value("color", "channel_muted"))
 
         weechat.buffer_set(self.buffer, "short_name", color + prefix + self.name)
 
@@ -1128,8 +1053,8 @@ class ChannelBase:
                 break
 
     def _prefix_thread_message(self, message, post_id, root):
-        prefix_format = config.thread_prefix_format_root if root else config.thread_prefix_format
-        prefix_color = config.color_thread_prefix_root if root else config.color_thread_prefix
+        prefix_format = config.get_value("format", "thread_prefix_root") if root else config.get_value("format", "thread_prefix")
+        prefix_color = config.get_value("color", "thread_prefix_root") if root else config.get_value("color", "thread_prefix")
 
         if prefix_color == "user":
             if post_id in self.posts:
@@ -1137,8 +1062,8 @@ class ChannelBase:
             else:
                 prefix_color = "default"
 
-        suffix_string = config.thread_prefix_suffix or weechat.config_string(weechat.config_get("weechat.look.prefix_suffix"))
-        suffix_color = config.color_thread_prefix_suffix or weechat.config_string(weechat.config_get("weechat.color.chat_prefix_suffix"))
+        suffix_string = config.get_value("look", "thread_prefix_suffix") or weechat.config_string(weechat.config_get("weechat.look.prefix_suffix"))
+        suffix_color = config.get_value("color", "thread_prefix_suffix") or weechat.config_string(weechat.config_get("weechat.color.chat_prefix_suffix"))
         suffix = colorize(suffix_string, suffix_color)
 
         prefix = prefix_format.format(post_id[:3])
@@ -1159,7 +1084,7 @@ class ChannelBase:
             return
 
         lines = [""] * len(pointers)
-        lines[0] = colorize(config.deleted_suffix, config.color_deleted)
+        lines[0] = colorize(config.get_value("look", "deleted_suffix"), config.get_value("color", "deleted"))
 
         for pointer, line in zip(pointers, lines):
             line_data = weechat.hdata_pointer(weechat.hdata_get("line"), pointer, "data")
@@ -1352,12 +1277,12 @@ class ChannelBase:
     def _format_name(self, display_name, name):
         final_name = display_name
 
-        name_override = config.get_value("channel.{}".format(name))
+        name_override = config.get_value("look", "channel.{}".format(name))
 
         if name_override:
             final_name = name_override
 
-        return config.get_value("channel_prefix_{}".format(self.type)) + final_name
+        return config.get_value("look", "channel_prefix_{}".format(self.type)) + final_name
 
     def unload(self):
         weechat.buffer_close(self.buffer)
@@ -1376,17 +1301,17 @@ class DirectMessagesChannel(ChannelBase):
     def _update_buffer_name(self):
         prefix = ""
         if self._is_loading:
-            prefix += config.channel_loading_indicator
+            prefix += config.get_value("look", "channel_loading_indicator")
 
         if NICK_GROUPS.get(self._status):
-            prefix += config.get_value("channel_prefix_direct_{}".format(self._status))
+            prefix += config.get_value("look", "channel_prefix_direct_{}".format(self._status))
         else:
             prefix += "?"
 
         color = ""
         if self._is_muted:
-            color = weechat.color(config.color_channel_muted)
-        if self._status != "online" and config.buflist_color_away_nick:
+            color = weechat.color(config.get_value("color", "channel_muted"))
+        if self._status != "online" and config.get_value("look", "buflist_color_away_nick"):
             color += weechat.color("|" + weechat.config_string(weechat.config_get("weechat.color.nicklist_away")))
 
         weechat.buffer_set(self.buffer, "short_name", color + prefix + self.name)
@@ -1731,7 +1656,7 @@ class User:
     def nick(self):
         nick = self.username
 
-        if config.nick_full_name and self.first_name and self.last_name:
+        if config.get_value("look", "nick_full_name") and self.first_name and self.last_name:
             nick = "{} {}".format(self.first_name, self.last_name)
 
         return nick
@@ -1743,10 +1668,10 @@ class Server:
         if not config.is_server_valid(id):
             raise ValueError("Invalid server id {}".format(id))
 
-        self.url = config.get_server_config(id, "url").strip("/")
-        self.username = config.get_server_config(id, "username")
-        self.password = config.get_server_config(id, "password")
-        self.command_2fa = config.get_server_config(id, "command_2fa")
+        self.url = config.get_server_value(id, "url").strip("/")
+        self.username = config.get_server_value(id, "username")
+        self.password = config.get_server_value(id, "password")
+        self.command_2fa = config.get_server_value(id, "command_2fa")
 
         if not self.url or not self.username or not self.password:
             raise ValueError("Server {} is not fully configured".format(id))
@@ -2901,9 +2826,10 @@ weechat.register(
 
 load_default_emojis()
 config.setup()
+config.read()
 
 if weechat.info_get("auto_connect", "") == '1':
-    for server_id in config.autoconnect:
+    for server_id in config.get_value("server", "autoconnect"):
         connect_server(server_id)
 
 weechat.hook_command(
