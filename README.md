@@ -1,6 +1,6 @@
 # wee-most
 
-WeeChat plugin for Mattermost
+WeeChat script for Mattermost
 
 Tested only on latest Mattermost and WeeChat stable versions on Linux
 
@@ -11,7 +11,7 @@ While fixing bugs and adding new features there, I had to refactor large parts o
 Those changes were not welcome in that project so I continued working on my own fork.
 By now the projects have diverged considerably.
 
-My wish would be to have a plugin for Mattermost as good as [wee-slack](https://github.com/wee-slack/wee-slack) is for Slack.
+My wish would be to have a script for Mattermost as good as [wee-slack](https://github.com/wee-slack/wee-slack) is for Slack.
 I was a very happy user of it in a previous job.
 As such I have been drawing a lot of inspiration from its code and features.
 

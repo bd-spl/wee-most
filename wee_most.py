@@ -20,7 +20,7 @@ from ssl import SSLWantReadError
 from websocket import (create_connection, WebSocketConnectionClosedException,
                        WebSocketTimeoutException, ABNF)
 
-class PluginConfig:
+class Config:
 
     def __init__(self):
         self.file = None
@@ -2803,7 +2803,7 @@ EVENTROUTER = EventRouter()
 
 buffered_response_cb = EVENTROUTER.buffered_response_cb
 
-config = PluginConfig()
+config = Config()
 
 servers = {}
 
