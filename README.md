@@ -48,36 +48,3 @@ Then you can connect/disconnect to servers
 /mattermost connect a_banal_server
 /mattermost disconnect a_banal_server
 ```
-
-## Mattermost commands
-
-You can send Mattermost commands using this prefix.
-
-```
-/mattermost slash me Aya ! :3
-```
-
-## Reply, React, Remove
-
-Mouse click or select a line print the short post id in the input field.
-
-Some command uses this id to interact with posts.
-
-```
-/mattermost reply abc Yeah you right !
-/mattermost react abc :rofl:
-/mattermost react abc :100:
-/mattermost delete abc
-```
-
-You can add aliases for some of these commands (if there's no conflict with other plugins)
-```
-alias add reply /mattermost reply
-```
-
-## Buffers display
-
-For a nice organization of buffers in the buflist, use a sorting by name
-```
-/set buflist.look.sort name
-```
