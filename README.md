@@ -23,7 +23,7 @@ The script is currently only tested:
 
 Python dependencies:
 
-* [websocket_client](https://github.com/websocket-client/websocket-client)
+* [websocket-client](https://github.com/websocket-client/websocket-client)
 
 ```bash
 $ make install
