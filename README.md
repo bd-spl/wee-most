@@ -43,3 +43,27 @@ You can then connect
 ```
 /mattermost connect dunder_mifflin
 ```
+
+## Configuration
+
+```
+/fset wee_most.*
+```
+
+More info later
+
+## Commands
+
+```
+/help mattermost
+```
+
+More info later
+
+## Keybindings
+
+```
+/key list cursor
+```
+
+More info later
