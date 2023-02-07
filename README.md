@@ -9,7 +9,7 @@ with the intended goal to make it as good as [wee-slack](https://github.com/wee-
 
 ## Requirements
 
-The script is currently only tested:
+The script is currently only tested on what I'm using daily, meaning:
 - against server running latest Mattermost stable version
 - on latest WeeChat stable version on Linux
 
