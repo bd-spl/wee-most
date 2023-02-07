@@ -15,11 +15,11 @@ The script is currently only tested on what I'm using daily, meaning:
 
 ## Installation
 
-Python dependencies:
-
+Python dependencies to install separately:
 * [websocket-client](https://github.com/websocket-client/websocket-client)
 
-```bash
+Install the script from the source with make
+```
 $ make install
 ```
 
