@@ -2,16 +2,10 @@
 
 WeeChat script for Mattermost
 
-## History
+## Past and Future
 
-This project was originally a fork of [wee-matter](https://sr.ht/~stacyharper/wee-matter/).
-While fixing bugs and adding new features there, I had to refactor large parts of the code.
-Those changes were not welcome in that project so I continued working on my own fork.
-By now the projects have diverged considerably.
-
-My wish would be to have a script for Mattermost as good as [wee-slack](https://github.com/wee-slack/wee-slack) is for Slack.
-I was a very happy user of it in a previous job.
-As such I have been drawing a lot of inspiration from its code and features.
+This project was originally a fork of [wee-matter](https://sr.ht/~stacyharper/wee-matter/)
+with the intended goal to make it as good as [wee-slack](https://github.com/wee-slack/wee-slack) is for Slack.
 
 ## Requirements
 
