@@ -645,7 +645,7 @@ class Post:
                 self.reactions[reaction.id] = reaction
 
         self.attachments = []
-        if "attachments" in kwargs["props"]:
+        if "attachments" in kwargs["props"] and kwargs["props"]["attachments"] is not None:
             for attachment_data in kwargs["props"]["attachments"]:
                 self.attachments.append(Attachment(**attachment_data))
 
