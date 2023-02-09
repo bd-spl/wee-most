@@ -1602,12 +1602,15 @@ def chat_line_event_cb(data, signal, hashtable):
         weechat.command(buffer, "/input send /mattermost delete {}".format(post_id))
     elif data == "reply":
         weechat.command(buffer, "/cursor stop")
+        weechat.command(buffer, "/input delete_line")
         weechat.command(buffer, "/input insert /mattermost reply {}\\x20".format(post_id))
     elif data == "react":
         weechat.command(buffer, "/cursor stop")
+        weechat.command(buffer, "/input delete_line")
         weechat.command(buffer, "/input insert /mattermost react {} :".format(post_id))
     elif data == "unreact":
         weechat.command(buffer, "/cursor stop")
+        weechat.command(buffer, "/input delete_line")
         weechat.command(buffer, "/input insert /mattermost unreact {} :".format(post_id))
     elif data == "post_open":
         weechat.command(buffer, "/cursor stop")
