@@ -829,6 +829,8 @@ class Attachment:
                 field_text = ""
                 if field["title"] and field["value"]:
                     field_text = "{}: {}".format(field["title"], field["value"])
+                elif field["title"]:
+                    field_text = "{}: ".format(field["title"])
                 elif field["value"]:
                     field_text = field["value"]
 
