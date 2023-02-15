@@ -153,11 +153,11 @@ class Config:
         self.options["look.thread_prefix_suffix"] = { "pointer": weechat.config_new_option(self.file,
             self.sections["look"], "thread_prefix_suffix", "string",
             "String displayed after the thread prefix, if empty uses value from weechat.look.prefix_suffix",
-            "", 0, 0, None, None, 1, "", "", "", "", "", ""), "type": "string" }
+            "", 0, 0, " | ", " | ", 1, "", "", "", "", "", ""), "type": "string" }
         self.options["look.thread_prefix_user_color"] = { "pointer": weechat.config_new_option(self.file,
             self.sections["look"], "thread_prefix_user_color", "boolean",
             "Use root post user color for the thread prefix",
-            "", 0, 0, "", "", 0, "", "", "", "", "", ""), "type": "boolean" }
+            "", 0, 0, "on", "on", 0, "", "", "", "", "", ""), "type": "boolean" }
         self.options["look.truncated_suffix"] = { "pointer": weechat.config_new_option(self.file,
             self.sections["look"], "truncated_suffix", "string",
             "The suffix for truncated edited posts",
@@ -243,7 +243,7 @@ class Config:
         self.options["color.thread_prefix_suffix"] = { "pointer": weechat.config_new_option(self.file,
             self.sections["color"], "thread_prefix_suffix", "color",
             "Color for the thread prefix suffix, if empty uses value from weechat.color.chat_prefix_suffix",
-            "", 0, 0, None, None, 1, "", "", "", "", "", ""), "type": "color" }
+            "", 0, 0, "red", "red", 1, "", "", "", "", "", ""), "type": "color" }
         self.options["color.truncated_suffix"] = { "pointer": weechat.config_new_option(self.file,
             self.sections["color"], "truncated_suffix", "color",
             "Color for truncated suffix on edited posts",
@@ -502,16 +502,35 @@ def command_reply(args, buffer):
 
     server = get_server_from_buffer(buffer)
     channel = server.get_channel_from_buffer(buffer)
-    post = channel.posts.get(post_id, None)
+    post = None
+    ppost = {}
+    pids = []
+    posts = list(channel.posts.values())
+    for p in posts:
+        pid = p.root_id or p.id
+        pids.append(pid)
+        if post_id == pid:
+            post = pid
 
     if not post:
-        server.print_error('Cannot find post id "{}"'.format(post_id))
-        return weechat.WEECHAT_RC_ERROR
+        ppost = channel.posts.get(post_id, None)
 
+    try:
+        post = ppost.root_id or ppost.id
+    except AttributeError:
+        pass
+
+    if not post:
+        try:
+            post = pids[0 - int(post_id)]
+        except ValueError:
+            post = post_id
+    write_command_debug(post, "id:")
+    
     new_post = {
         "channel_id": channel.id,
         "message": message,
-        "root_id": post.root_id or post.id,
+        "root_id": post,
     }
 
     run_post_post(new_post, server, "post_post_cb", buffer)
@@ -562,6 +581,9 @@ def command_delete(args, buffer):
 
 def write_command_error(args, message):
     weechat.prnt("", weechat.prefix("error") + message + ' "/mattermost ' + args + '" (help on command: /help mattermost)')
+
+def write_command_debug(args, message):
+    weechat.prnt("", weechat.prefix("error") + message + ' ' + args)
 
 class File:
     dir_path_tmp = tempfile.mkdtemp()
@@ -1073,7 +1095,7 @@ class ChannelBase:
         suffix_color = config.get_value("color", "thread_prefix_suffix") or weechat.config_string(weechat.config_get("weechat.color.chat_prefix_suffix"))
         suffix = colorize(suffix_string, suffix_color)
 
-        prefix = prefix_format.format(post_id[:3])
+        prefix = prefix_format.format(post_id)
         prefix_empty = "{} {} ".format(" " * len(prefix), suffix)
         prefix = colorize(prefix, prefix_color)
         prefix_full = "{} {} ".format(prefix, suffix)
