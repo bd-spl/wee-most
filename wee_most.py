@@ -264,6 +264,37 @@ class Config:
             "Comma separated list of server names to automatically connect to at start",
             "", 0, 0, "", "", 0, "", "", "", "", "", ""), "type": "list" }
 
+def _get_post_id(channel, post_id, prefer_root=False, debug=False):
+    post = None
+    ppost = {}
+    pids = []
+    posts = list(channel.posts.values())
+    for p in posts:
+        if prefer_root:
+            pid = p.root_id or p.id
+        else:
+            pid = p.id or p.root_id
+        pids.append(pid)
+        if post_id == pid:
+            post = pid
+
+    if not post:
+        ppost = channel.posts.get(post_id, None)
+
+    try:
+        post = ppost.root_id or ppost.id
+    except AttributeError:
+        pass
+
+    if not post:
+        try:
+            post = pids[0 - int(post_id)]
+        except ValueError:
+            post = post_id
+    if debug:
+        write_command_debug(post, "id:")
+    return post
+
 def create_server_option_cb(data, config_file, section, option_name, value):
     if not re.match('^[a-z]+\.(command_2fa|password|url|username)$', option_name):
         return weechat.WEECHAT_CONFIG_OPTION_SET_ERROR
@@ -502,31 +533,8 @@ def command_reply(args, buffer):
 
     server = get_server_from_buffer(buffer)
     channel = server.get_channel_from_buffer(buffer)
-    post = None
-    ppost = {}
-    pids = []
-    posts = list(channel.posts.values())
-    for p in posts:
-        pid = p.root_id or p.id
-        pids.append(pid)
-        if post_id == pid:
-            post = pid
+    post = _get_post_id(channel, post_id, True)  # reply be root thread IDs
 
-    if not post:
-        ppost = channel.posts.get(post_id, None)
-
-    try:
-        post = ppost.root_id or ppost.id
-    except AttributeError:
-        pass
-
-    if not post:
-        try:
-            post = pids[0 - int(post_id)]
-        except ValueError:
-            post = post_id
-    write_command_debug(post, "id:")
-    
     new_post = {
         "channel_id": channel.id,
         "message": message,
@@ -547,6 +555,8 @@ def command_react(args, buffer):
     emoji_name = emoji_name.strip(":")
 
     server = get_server_from_buffer(buffer)
+    channel = server.get_channel_from_buffer(buffer)
+    post_id = _get_post_id(channel, post_id)
 
     run_post_reaction(emoji_name, post_id, server, "singularity_cb", buffer)
 
@@ -562,6 +572,8 @@ def command_unreact(args, buffer):
     emoji_name = emoji_name.strip(":")
 
     server = get_server_from_buffer(buffer)
+    channel = server.get_channel_from_buffer(buffer)
+    post_id = _get_post_id(channel, post_id)
 
     run_delete_reaction(emoji_name, post_id, server, "singularity_cb", buffer)
 
